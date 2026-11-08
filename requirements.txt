@@ -1,0 +1,11 @@
+streamlit>=1.41,<2
+pandas>=2.2,<3
+numpy>=1.26,<3
+plotly>=5.24,<7
+openpyxl>=3.1,<4
+filelock>=3.16,<4
+reportlab>=4.2,<5
+requests>=2.32,<3
+statsmodels>=0.14,<1
+pytest>=8.3,<10
+protobuf>=5.28,<7
