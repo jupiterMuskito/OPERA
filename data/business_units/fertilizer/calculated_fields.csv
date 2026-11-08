@@ -1,0 +1,9 @@
+field_id,field_name,formula,uom,aggregation,daily_target,period_target,target_direction,status,evaluation_order,mtd_aggregation,ytd_aggregation,dashboard,dashboard_group,chart
+CF1,Average Gas Feed,[DP1],Derived,Maximum,100000,100000,High,active,1,Maximum,Maximum,true,Operations,line
+CF2,Peak Reformer Temperature,[DP2],Derived,Minimum,820,820,High,active,2,Minimum,Minimum,true,Operations,line
+CF3,Minimum Urea Pressure,[DP3],Derived,Average,980,980,High,active,3,Average,Average,true,Operations,line
+CF4,Product Quality Index,([L1]+[L2])/2,Derived,Maximum,155,155,High,active,4,Maximum,Maximum,true,Operations,line
+CF5,Field-DCS Pressure Deviation,ABS([F1]-[DP1]),Derived,Minimum,380,380,High,active,5,Minimum,Minimum,true,Operations,line
+CF6,Converter Temperature Rise,ABS([DP3]-[DP2]),Derived,Average,500,500,High,active,6,Average,Average,true,Operations,line
+CF7,Granulation Quality Index,([L6]+[L7])/2,Derived,Maximum,2500,2500,High,active,7,Maximum,Maximum,true,Operations,line
+CF8,Bagging Performance,[DP20],Derived,Minimum,155,155,High,active,8,Minimum,Minimum,true,Operations,line
