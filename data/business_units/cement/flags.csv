@@ -1,0 +1,4 @@
+timestamp,date,time,field_id,value,flag_type,message,status
+2026-10-11T12:00:00+00:00,2026-10-11,06:00,DP1,598.0,Out of range,Deliberate sample value above configured maximum,Open
+2026-10-11T12:00:00+00:00,2026-10-11,06:00,L7,80.5,Out of range,Deliberate sample value above configured maximum,Open
+2026-10-11T12:00:00+00:00,2026-10-11,06:00,F1,482.99999999999994,Out of range,Deliberate sample value above configured maximum,Open

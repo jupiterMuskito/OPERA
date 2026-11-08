@@ -1,0 +1,568 @@
+equipment_id,equipment_name,plant,unit_section,equipment_type,section_tag,active,placeholder
+EQ01,Limestone Crusher,Okpella Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+EQ02,Raw Mill,Okpella Cement Plant,41 Raw Material Grinding,Rotating/Grinding Equipment,,true,false
+EQ03,Preheater Tower / Cyclones,Okpella Cement Plant,51 Preheater and Precalciner,Static Process Vessel,,true,false
+EQ04,Rotary Kiln,Okpella Cement Plant,56 Rotary Kiln and Tertiary Air Duct,Rotating Thermal Equipment,,true,false
+EQ05,Clinker Cooler,Okpella Cement Plant,57 Clinker Cooler,Rotating/Mechanical Equipment,,true,false
+EQ06,Coal Mill,Okpella Cement Plant,73 Coal Grinding and Dust Dosing,Rotating/Grinding Equipment,,true,false
+EQ07,Cement Mill,Okpella Cement Plant,84A Cement Grinding A,Rotating/Grinding Equipment,,true,false
+EQ08,Cement Silo,Okpella Cement Plant,86 Cement Silos and Bulk Loading,Confined Space/Storage Vessel,,true,false
+EQ09,Bag Filter / Dust Collector,Okpella Cement Plant,All process areas,Static/Confined Space Equipment,,true,false
+EQ10,Belt Conveyor,Okpella Cement Plant,All process areas,Rotating/Moving Equipment,,true,false
+EQ11,Bucket Elevator,Okpella Cement Plant,42 Raw Meal Homogenizing Silo,Rotating/Moving Equipment,,true,false
+EQ12,Packing Plant / Bagging Machine,Okpella Cement Plant,87A Packing and Loading Plant (Line 1 & 2),Rotating/Mechanical Equipment,,true,false
+EQ13,Air Compressor,Okpella Cement Plant,Air Compressor Room,Pressurized Equipment,,true,false
+EQ14,Electrical Substation / MCC,Okpella Cement Plant,Plant-wide,High Voltage Electrical Equipment,,true,false
+EQ15,Overhead Crane,Okpella Cement Plant,Mechanical Workshop,Lifting Equipment,,true,false
+EQ16,Weighbridge,Okpella Cement Plant,Weigh Bridge,Static Equipment,,true,false
+EQ17,Cooling Tower,Okpella Cement Plant,Water Cooling,Static/Rotating Equipment,,true,false
+EQ18,Mobile Equipment (Loader/Forklift),Okpella Cement Plant,02 Limestone/Correctives Crushing and Conveying,Mobile Plant,,true,false
+EQ19,Calciner,Okpella Cement Plant,51 Preheater and Precalciner,Static Process Vessel,,true,false
+EQ20,Blast Hole Drill Rig,Okpella Cement Plant,Quarry and Haul Roads,Mobile Drilling Equipment,,true,false
+EQ21,Quarry Excavator,Okpella Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+EQ22,Haul Truck,Okpella Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+EQ23,Explosives Magazine,Okpella Cement Plant,Explosives Magazine,Explosives Storage Facility,,true,false
+EQ24,Stacker,Okpella Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Rotating/Moving Equipment,,true,false
+EQ25,Reclaimer,Okpella Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Rotating/Moving Equipment,,true,false
+EQ26,Roller Press,Okpella Cement Plant,41 Raw Material Grinding,Rotating/Mechanical Equipment,,true,false
+EQ27,Electrostatic Precipitator (ESP),Okpella Cement Plant,54 Exhaust Gas Treatment,High Voltage Electrical Equipment,,true,false
+EQ28,Cement Mill Separator,Okpella Cement Plant,84A Cement Grinding A,Rotating/Mechanical Equipment,,true,false
+EQ29,Clinker Storage Dome,Okpella Cement Plant,66 Clinker Silo and Conveying,Confined Space/Storage Vessel,,true,false
+EQ30,Bulk Cement Loading Station,Okpella Cement Plant,86 Cement Silos and Bulk Loading,Static Equipment,,true,false
+EQ31,Quality Control Laboratory,Okpella Cement Plant,Quality Control Laboratory,Laboratory Equipment,,true,false
+EQ32,Water Treatment Plant,Okpella Cement Plant,Water Treatment,Water Treatment Equipment,,true,false
+EQ33,Diesel Generator,Okpella Cement Plant,Diesel Generator / Power House,Power Generation Equipment,,true,false
+EQ34,Fuel Oil Storage Tank,Okpella Cement Plant,Fuel Oil Storage and Pumping,Bulk Storage Tank,,true,false
+EQ35,Maintenance Workshop,Okpella Cement Plant,Mechanical Workshop,Workshop Machinery,,true,false
+EQ36,Fire Water Pump House,Okpella Cement Plant,Fire Water Pump House,Fire Safety Equipment,,true,false
+EQ37,Water Tanker (Dust Suppression),Okpella Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+EQ38,Raw Meal Silo,Okpella Cement Plant,42 Raw Meal Homogenizing Silo,Confined Space/Storage Vessel,,true,false
+EQ39,Coal Storage / Hopper,Okpella Cement Plant,71-1 Coal Crushing and Conveying,Confined Space/Storage Vessel,,true,false
+EQ40,Kiln Main Burner,Okpella Cement Plant,56 Rotary Kiln and Tertiary Air Duct,Burner Equipment,,true,false
+EQ41,Calciner Burner,Okpella Cement Plant,51 Preheater and Precalciner,Burner Equipment,,true,false
+EQ42,RDF Feeding System,Okpella Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+EQ43,Tyre Feeding System (Midkiln),Okpella Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+EQ44,Fuel Shredder,Okpella Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+EQ45,Alternative Fuel Storage Hall,Okpella Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+EQ46,Nucleonic Level Gauge,Okpella Cement Plant,42 Raw Meal Homogenizing Silo,Radioactive Source Equipment,,true,false
+EQ47,Cross-Belt Analyser,Okpella Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Radioactive Source Equipment,,true,false
+EQ48,Waste Heat Recovery Boiler,Okpella Cement Plant,Waste Heat Recovery Plant,Waste Heat Recovery Equipment,,true,false
+EQ49,Steam Turbine (WHR),Okpella Cement Plant,Waste Heat Recovery Plant,Waste Heat Recovery Equipment,,true,false
+EQ50,Gas Conditioning Tower,Okpella Cement Plant,Gas Conditioning Tower,Static Process Vessel,,true,false
+EQ51,CEMS Analyser Cabinet,Okpella Cement Plant,54 Exhaust Gas Treatment,Laboratory Equipment,,true,false
+EQ52,Blending / Homogenising Silo,Okpella Cement Plant,42 Raw Meal Homogenizing Silo,Confined Space/Storage Vessel,,true,false
+EQ53,Primary Crusher,Okpella Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+EQ54,Secondary Crusher,Okpella Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+EQ55,Apron Feeder,Okpella Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Moving Equipment,,true,false
+EQ56,Screw Conveyor,Okpella Cement Plant,All process areas,Rotating/Moving Equipment,,true,false
+EQ57,Air Slide Conveyor,Okpella Cement Plant,42 Raw Meal Homogenizing Silo,Rotating/Moving Equipment,,true,false
+EQ58,Drag Chain Conveyor,Okpella Cement Plant,51 Preheater and Precalciner,Rotating/Moving Equipment,,true,false
+EQ59,Process Fan (ID/Booster),Okpella Cement Plant,41 Raw Material Grinding,Static/Rotating Equipment,,true,false
+EQ60,Rotary Air Lock / Valve,Okpella Cement Plant,All process areas,Rotating/Mechanical Equipment,,true,false
+EQ61,Palletiser / Bag Stacker,Okpella Cement Plant,87A Packing and Loading Plant (Line 1 & 2),Rotating/Mechanical Equipment,,true,false
+EQ62,Rail Wagon Loading Station,Okpella Cement Plant,Rail Siding and Wagon Loading,Static Equipment,,true,false
+EQ63,Main Stores / Warehouse,Okpella Cement Plant,Store Area,Warehouse / Stores Equipment,,true,false
+EQ64,Battery / UPS Room,Okpella Cement Plant,CCR Building,High Voltage Electrical Equipment,,true,false
+EQ65,Main Transformer,Okpella Cement Plant,Main Substation and Transformer Yard,High Voltage Electrical Equipment,,true,false
+EQ66,Scaffolding (Temporary Works),Okpella Cement Plant,Plant-wide,Scaffolding / Temporary Works,,true,false
+EQ67,Gypsum / Additive Store,Okpella Cement Plant,"23 Gypsum Additives and Correctives Preblending, storage and conveying",Confined Space/Storage Vessel,,true,false
+CEM-SPARE-001,Spare equipment 001,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-002,Spare equipment 002,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-003,Spare equipment 003,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-004,Spare equipment 004,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-005,Spare equipment 005,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-006,Spare equipment 006,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-007,Spare equipment 007,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-008,Spare equipment 008,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-009,Spare equipment 009,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-010,Spare equipment 010,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-011,Spare equipment 011,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-012,Spare equipment 012,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-013,Spare equipment 013,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-014,Spare equipment 014,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-015,Spare equipment 015,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-016,Spare equipment 016,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-017,Spare equipment 017,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-018,Spare equipment 018,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-019,Spare equipment 019,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-020,Spare equipment 020,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-021,Spare equipment 021,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-022,Spare equipment 022,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-023,Spare equipment 023,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-024,Spare equipment 024,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-025,Spare equipment 025,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-026,Spare equipment 026,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-027,Spare equipment 027,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-028,Spare equipment 028,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-029,Spare equipment 029,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-030,Spare equipment 030,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-031,Spare equipment 031,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-032,Spare equipment 032,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-033,Spare equipment 033,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-034,Spare equipment 034,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-035,Spare equipment 035,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-036,Spare equipment 036,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-037,Spare equipment 037,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-038,Spare equipment 038,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-039,Spare equipment 039,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-040,Spare equipment 040,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-041,Spare equipment 041,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-042,Spare equipment 042,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-043,Spare equipment 043,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-044,Spare equipment 044,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-045,Spare equipment 045,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-046,Spare equipment 046,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-047,Spare equipment 047,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-048,Spare equipment 048,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-049,Spare equipment 049,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-050,Spare equipment 050,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-051,Spare equipment 051,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-052,Spare equipment 052,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-053,Spare equipment 053,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-054,Spare equipment 054,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-055,Spare equipment 055,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-056,Spare equipment 056,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-057,Spare equipment 057,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-058,Spare equipment 058,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-059,Spare equipment 059,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-060,Spare equipment 060,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-061,Spare equipment 061,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-062,Spare equipment 062,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-063,Spare equipment 063,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-064,Spare equipment 064,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-065,Spare equipment 065,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-066,Spare equipment 066,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-067,Spare equipment 067,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-068,Spare equipment 068,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-069,Spare equipment 069,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-070,Spare equipment 070,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-071,Spare equipment 071,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-072,Spare equipment 072,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-073,Spare equipment 073,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-074,Spare equipment 074,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-075,Spare equipment 075,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-076,Spare equipment 076,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-077,Spare equipment 077,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-078,Spare equipment 078,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-079,Spare equipment 079,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-080,Spare equipment 080,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-081,Spare equipment 081,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-082,Spare equipment 082,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-083,Spare equipment 083,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-084,Spare equipment 084,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-085,Spare equipment 085,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-086,Spare equipment 086,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-087,Spare equipment 087,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-088,Spare equipment 088,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-089,Spare equipment 089,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-090,Spare equipment 090,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-091,Spare equipment 091,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-092,Spare equipment 092,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-093,Spare equipment 093,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-094,Spare equipment 094,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-095,Spare equipment 095,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-096,Spare equipment 096,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-097,Spare equipment 097,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-098,Spare equipment 098,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-099,Spare equipment 099,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-100,Spare equipment 100,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-101,Spare equipment 101,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-102,Spare equipment 102,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-103,Spare equipment 103,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-104,Spare equipment 104,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-105,Spare equipment 105,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-106,Spare equipment 106,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-107,Spare equipment 107,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-108,Spare equipment 108,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-109,Spare equipment 109,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-110,Spare equipment 110,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-111,Spare equipment 111,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-112,Spare equipment 112,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-113,Spare equipment 113,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-114,Spare equipment 114,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-115,Spare equipment 115,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-116,Spare equipment 116,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-117,Spare equipment 117,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-118,Spare equipment 118,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-119,Spare equipment 119,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-120,Spare equipment 120,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-121,Spare equipment 121,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-122,Spare equipment 122,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-123,Spare equipment 123,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-124,Spare equipment 124,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-125,Spare equipment 125,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-126,Spare equipment 126,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-127,Spare equipment 127,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-128,Spare equipment 128,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-129,Spare equipment 129,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-130,Spare equipment 130,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-131,Spare equipment 131,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-132,Spare equipment 132,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-133,Spare equipment 133,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-134,Spare equipment 134,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-135,Spare equipment 135,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-136,Spare equipment 136,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-137,Spare equipment 137,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-138,Spare equipment 138,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-139,Spare equipment 139,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-140,Spare equipment 140,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-141,Spare equipment 141,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-142,Spare equipment 142,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-143,Spare equipment 143,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-144,Spare equipment 144,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-145,Spare equipment 145,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-146,Spare equipment 146,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-147,Spare equipment 147,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-148,Spare equipment 148,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-149,Spare equipment 149,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-150,Spare equipment 150,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-151,Spare equipment 151,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-152,Spare equipment 152,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-153,Spare equipment 153,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-154,Spare equipment 154,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-155,Spare equipment 155,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-156,Spare equipment 156,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-157,Spare equipment 157,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-158,Spare equipment 158,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-159,Spare equipment 159,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-160,Spare equipment 160,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-161,Spare equipment 161,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-162,Spare equipment 162,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-163,Spare equipment 163,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-164,Spare equipment 164,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-165,Spare equipment 165,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-166,Spare equipment 166,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-167,Spare equipment 167,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-168,Spare equipment 168,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-169,Spare equipment 169,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-170,Spare equipment 170,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-171,Spare equipment 171,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-172,Spare equipment 172,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-173,Spare equipment 173,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-174,Spare equipment 174,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-175,Spare equipment 175,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-176,Spare equipment 176,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-177,Spare equipment 177,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-178,Spare equipment 178,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-179,Spare equipment 179,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-180,Spare equipment 180,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-181,Spare equipment 181,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-182,Spare equipment 182,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-183,Spare equipment 183,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-184,Spare equipment 184,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-185,Spare equipment 185,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-186,Spare equipment 186,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-187,Spare equipment 187,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-188,Spare equipment 188,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-189,Spare equipment 189,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-190,Spare equipment 190,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-191,Spare equipment 191,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-192,Spare equipment 192,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-193,Spare equipment 193,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-194,Spare equipment 194,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-195,Spare equipment 195,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-196,Spare equipment 196,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-197,Spare equipment 197,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-198,Spare equipment 198,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-199,Spare equipment 199,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-200,Spare equipment 200,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-201,Spare equipment 201,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-202,Spare equipment 202,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-203,Spare equipment 203,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-204,Spare equipment 204,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-205,Spare equipment 205,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-206,Spare equipment 206,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-207,Spare equipment 207,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-208,Spare equipment 208,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-209,Spare equipment 209,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-210,Spare equipment 210,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-211,Spare equipment 211,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-212,Spare equipment 212,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-213,Spare equipment 213,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-214,Spare equipment 214,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-215,Spare equipment 215,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-216,Spare equipment 216,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-217,Spare equipment 217,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-218,Spare equipment 218,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-219,Spare equipment 219,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-220,Spare equipment 220,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-221,Spare equipment 221,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-222,Spare equipment 222,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-223,Spare equipment 223,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-224,Spare equipment 224,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-225,Spare equipment 225,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-226,Spare equipment 226,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-227,Spare equipment 227,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-228,Spare equipment 228,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-229,Spare equipment 229,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-230,Spare equipment 230,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-231,Spare equipment 231,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-232,Spare equipment 232,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-233,Spare equipment 233,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-234,Spare equipment 234,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-235,Spare equipment 235,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-236,Spare equipment 236,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-237,Spare equipment 237,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-238,Spare equipment 238,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-239,Spare equipment 239,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-240,Spare equipment 240,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-241,Spare equipment 241,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-242,Spare equipment 242,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-243,Spare equipment 243,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-244,Spare equipment 244,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-245,Spare equipment 245,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-246,Spare equipment 246,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-247,Spare equipment 247,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-248,Spare equipment 248,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-249,Spare equipment 249,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-250,Spare equipment 250,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-251,Spare equipment 251,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-252,Spare equipment 252,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-253,Spare equipment 253,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-254,Spare equipment 254,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-255,Spare equipment 255,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-256,Spare equipment 256,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-257,Spare equipment 257,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-258,Spare equipment 258,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-259,Spare equipment 259,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-260,Spare equipment 260,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-261,Spare equipment 261,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-262,Spare equipment 262,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-263,Spare equipment 263,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-264,Spare equipment 264,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-265,Spare equipment 265,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-266,Spare equipment 266,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-267,Spare equipment 267,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-268,Spare equipment 268,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-269,Spare equipment 269,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-270,Spare equipment 270,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-271,Spare equipment 271,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-272,Spare equipment 272,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-273,Spare equipment 273,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-274,Spare equipment 274,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-275,Spare equipment 275,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-276,Spare equipment 276,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-277,Spare equipment 277,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-278,Spare equipment 278,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-279,Spare equipment 279,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-280,Spare equipment 280,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-281,Spare equipment 281,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-282,Spare equipment 282,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-283,Spare equipment 283,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-284,Spare equipment 284,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-285,Spare equipment 285,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-286,Spare equipment 286,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-287,Spare equipment 287,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-288,Spare equipment 288,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-289,Spare equipment 289,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-290,Spare equipment 290,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-291,Spare equipment 291,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-292,Spare equipment 292,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-293,Spare equipment 293,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-294,Spare equipment 294,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-295,Spare equipment 295,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-296,Spare equipment 296,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-297,Spare equipment 297,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-298,Spare equipment 298,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-299,Spare equipment 299,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-300,Spare equipment 300,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-301,Spare equipment 301,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-302,Spare equipment 302,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-303,Spare equipment 303,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-304,Spare equipment 304,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-305,Spare equipment 305,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-306,Spare equipment 306,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-307,Spare equipment 307,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-308,Spare equipment 308,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-309,Spare equipment 309,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-310,Spare equipment 310,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-311,Spare equipment 311,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-312,Spare equipment 312,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-313,Spare equipment 313,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-314,Spare equipment 314,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-315,Spare equipment 315,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-316,Spare equipment 316,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-317,Spare equipment 317,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-318,Spare equipment 318,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-319,Spare equipment 319,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-320,Spare equipment 320,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-321,Spare equipment 321,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-322,Spare equipment 322,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-323,Spare equipment 323,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-324,Spare equipment 324,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-325,Spare equipment 325,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-326,Spare equipment 326,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-327,Spare equipment 327,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-328,Spare equipment 328,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-329,Spare equipment 329,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-330,Spare equipment 330,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-331,Spare equipment 331,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-332,Spare equipment 332,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-333,Spare equipment 333,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-334,Spare equipment 334,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-335,Spare equipment 335,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-336,Spare equipment 336,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-337,Spare equipment 337,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-338,Spare equipment 338,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-339,Spare equipment 339,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-340,Spare equipment 340,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-341,Spare equipment 341,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-342,Spare equipment 342,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-343,Spare equipment 343,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-344,Spare equipment 344,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-345,Spare equipment 345,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-346,Spare equipment 346,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-347,Spare equipment 347,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-348,Spare equipment 348,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-349,Spare equipment 349,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-350,Spare equipment 350,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-351,Spare equipment 351,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-352,Spare equipment 352,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-353,Spare equipment 353,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-354,Spare equipment 354,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-355,Spare equipment 355,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-356,Spare equipment 356,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-357,Spare equipment 357,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-358,Spare equipment 358,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-359,Spare equipment 359,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-360,Spare equipment 360,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-361,Spare equipment 361,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-362,Spare equipment 362,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-363,Spare equipment 363,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-364,Spare equipment 364,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-365,Spare equipment 365,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-366,Spare equipment 366,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-367,Spare equipment 367,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-368,Spare equipment 368,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-369,Spare equipment 369,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-370,Spare equipment 370,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-371,Spare equipment 371,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-372,Spare equipment 372,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-373,Spare equipment 373,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-374,Spare equipment 374,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-375,Spare equipment 375,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-376,Spare equipment 376,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-377,Spare equipment 377,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-378,Spare equipment 378,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-379,Spare equipment 379,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-380,Spare equipment 380,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-381,Spare equipment 381,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-382,Spare equipment 382,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-383,Spare equipment 383,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-384,Spare equipment 384,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-385,Spare equipment 385,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-386,Spare equipment 386,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-387,Spare equipment 387,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-388,Spare equipment 388,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-389,Spare equipment 389,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-390,Spare equipment 390,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-391,Spare equipment 391,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-392,Spare equipment 392,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-393,Spare equipment 393,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-394,Spare equipment 394,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-395,Spare equipment 395,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-396,Spare equipment 396,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-397,Spare equipment 397,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-398,Spare equipment 398,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-399,Spare equipment 399,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-400,Spare equipment 400,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-401,Spare equipment 401,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-402,Spare equipment 402,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-403,Spare equipment 403,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-404,Spare equipment 404,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-405,Spare equipment 405,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-406,Spare equipment 406,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-407,Spare equipment 407,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-408,Spare equipment 408,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-409,Spare equipment 409,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-410,Spare equipment 410,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-411,Spare equipment 411,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-412,Spare equipment 412,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-413,Spare equipment 413,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-414,Spare equipment 414,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-415,Spare equipment 415,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-416,Spare equipment 416,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-417,Spare equipment 417,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-418,Spare equipment 418,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-419,Spare equipment 419,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-420,Spare equipment 420,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-421,Spare equipment 421,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-422,Spare equipment 422,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-423,Spare equipment 423,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-424,Spare equipment 424,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-425,Spare equipment 425,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-426,Spare equipment 426,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-427,Spare equipment 427,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-428,Spare equipment 428,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-429,Spare equipment 429,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-430,Spare equipment 430,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-431,Spare equipment 431,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-432,Spare equipment 432,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-433,Spare equipment 433,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-434,Spare equipment 434,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-435,Spare equipment 435,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-436,Spare equipment 436,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-437,Spare equipment 437,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-438,Spare equipment 438,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-439,Spare equipment 439,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-440,Spare equipment 440,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-441,Spare equipment 441,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-442,Spare equipment 442,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-443,Spare equipment 443,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-444,Spare equipment 444,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-445,Spare equipment 445,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-446,Spare equipment 446,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-447,Spare equipment 447,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-448,Spare equipment 448,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-449,Spare equipment 449,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-450,Spare equipment 450,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-451,Spare equipment 451,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-452,Spare equipment 452,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-453,Spare equipment 453,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-454,Spare equipment 454,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-455,Spare equipment 455,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-456,Spare equipment 456,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-457,Spare equipment 457,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-458,Spare equipment 458,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-459,Spare equipment 459,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-460,Spare equipment 460,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-461,Spare equipment 461,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-462,Spare equipment 462,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-463,Spare equipment 463,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-464,Spare equipment 464,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-465,Spare equipment 465,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-466,Spare equipment 466,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-467,Spare equipment 467,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-468,Spare equipment 468,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-469,Spare equipment 469,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-470,Spare equipment 470,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-471,Spare equipment 471,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-472,Spare equipment 472,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-473,Spare equipment 473,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-474,Spare equipment 474,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-475,Spare equipment 475,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-476,Spare equipment 476,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-477,Spare equipment 477,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-478,Spare equipment 478,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-479,Spare equipment 479,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-480,Spare equipment 480,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-481,Spare equipment 481,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-482,Spare equipment 482,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-483,Spare equipment 483,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-484,Spare equipment 484,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-485,Spare equipment 485,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-486,Spare equipment 486,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-487,Spare equipment 487,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-488,Spare equipment 488,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-489,Spare equipment 489,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-490,Spare equipment 490,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-491,Spare equipment 491,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-492,Spare equipment 492,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-493,Spare equipment 493,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-494,Spare equipment 494,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-495,Spare equipment 495,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-496,Spare equipment 496,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-497,Spare equipment 497,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-498,Spare equipment 498,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-499,Spare equipment 499,Okpella Cement Plant,Unassigned,Placeholder,,false,true
+CEM-SPARE-500,Spare equipment 500,Okpella Cement Plant,Unassigned,Placeholder,,false,true
