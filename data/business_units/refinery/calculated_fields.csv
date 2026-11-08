@@ -1,0 +1,9 @@
+field_id,field_name,formula,uom,aggregation,daily_target,period_target,target_direction,status,evaluation_order,mtd_aggregation,ytd_aggregation,dashboard,dashboard_group,chart
+CF1,Average Butamer Feed,[DP1],Derived,Maximum,350.0,350.0,High,active,1,Maximum,Maximum,true,Operations,line
+CF2,Peak Reactor Temperature,[DP2],Derived,Minimum,170.0,170.0,High,active,2,Minimum,Minimum,true,Operations,line
+CF3,Minimum Reactor Pressure,[DP3],Derived,Average,185.0,185.0,High,active,3,Average,Average,true,Operations,line
+CF4,iC4 Improvement,([L1]+[L2])/2,Derived,Maximum,25.0,25.0,High,active,4,Maximum,Maximum,true,Operations,line
+CF5,Field-DCS Feed Deviation,ABS([F1]-[DP1]),Derived,Minimum,1.8,1.8,High,active,5,Minimum,Minimum,true,Operations,line
+CF6,Reactor Temperature Rise,ABS([DP3]-[DP2]),Derived,Average,65.0,65.0,High,active,6,Average,Average,true,Operations,line
+CF7,Product Quality Index,([L6]+[L7])/2,Derived,Maximum,165.0,165.0,High,active,7,Maximum,Maximum,true,Operations,line
+CF8,Butamer Throughput Performance,[DP20],Derived,Minimum,11.0,11.0,High,active,8,Minimum,Minimum,true,Operations,line
