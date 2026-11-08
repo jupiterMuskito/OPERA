@@ -1,0 +1,3 @@
+timestamp,business_unit,user,action,details
+2026-11-08T15:10:31+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-08T15:11:22+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
