@@ -1,8 +1,8 @@
 id,name,active,placeholder,register_file,notes
-cement,Cement,true,false,registers/OKPELLA_Master_Workbook_v8.xlsx,Okpella register hierarchy
+cement,Cement,true,false,registers/OKPELLA_Master_Workbook_v8.xlsx,Okpella hierarchy cloned to Obajana and Ibese
 refinery,Refinery,true,false,registers/DANGOTE_REFINERY_Master_Workbook_v1.xlsx,Includes Butamer
 fertilizer,Fertilizer,true,false,registers/DANGOTE_FERTILISER_Master_Workbook_v1.xlsx,
-nasco,NASCO,true,false,,Salt and Sugar sections
+nascon,NASCON,true,false,,Salt and Sugar sections
 bu5,BU5,false,true,,Inactive placeholder
 bu6,BU6,false,true,,Inactive placeholder
 bu7,BU7,false,true,,Inactive placeholder
