@@ -1,0 +1,18 @@
+{
+  "plants": [
+    "Refinery Complex"
+  ],
+  "units": [
+    "Butamer Unit",
+    "CCR",
+    "CDU"
+  ],
+  "equipment_types": [
+    "Column",
+    "Compressor",
+    "Dryer",
+    "Heater",
+    "Pump",
+    "Reactor"
+  ]
+}

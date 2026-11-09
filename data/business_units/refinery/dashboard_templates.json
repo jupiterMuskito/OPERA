@@ -1,0 +1,208 @@
+{
+  "Plant Overview": [
+    {
+      "id": "plant-performance",
+      "name": "Plant Performance",
+      "chart_fields": [
+        "DP1",
+        "DP5",
+        "L6",
+        "F1"
+      ],
+      "table_fields": [
+        "DP1",
+        "DP5",
+        "DP8",
+        "L6",
+        "L17",
+        "F1"
+      ],
+      "chart_type": "Line",
+      "period_mode": "Selected Period"
+    }
+  ],
+  "Equipment Overview": [
+    {
+      "id": "condition-monitoring",
+      "name": "Condition Monitoring",
+      "chart_fields": [
+        "F1",
+        "F3",
+        "F4",
+        "DP2"
+      ],
+      "table_fields": [
+        "F1",
+        "F3",
+        "F4",
+        "DP2"
+      ],
+      "chart_type": "Line",
+      "period_mode": "Selected Period"
+    },
+    {
+      "id": "process-performance",
+      "name": "Process Performance",
+      "chart_fields": [
+        "DP1",
+        "DP2",
+        "DP5",
+        "DP20"
+      ],
+      "table_fields": [
+        "DP1",
+        "DP2",
+        "DP5",
+        "DP20"
+      ],
+      "chart_type": "Area",
+      "period_mode": "Selected Period"
+    },
+    {
+      "id": "quality-compliance",
+      "name": "Quality & Compliance",
+      "chart_fields": [
+        "L1",
+        "L6",
+        "L12",
+        "L17"
+      ],
+      "table_fields": [
+        "L1",
+        "L6",
+        "L12",
+        "L17"
+      ],
+      "chart_type": "Box Plot",
+      "period_mode": "Selected Period"
+    },
+    {
+      "id": "reliability",
+      "name": "Reliability",
+      "chart_fields": [
+        "F3",
+        "F4",
+        "F5",
+        "F7"
+      ],
+      "table_fields": [
+        "F3",
+        "F4",
+        "F5",
+        "F7"
+      ],
+      "chart_type": "Scatter",
+      "period_mode": "Selected Period"
+    }
+  ],
+  "Operations Dashboard": [
+    {
+      "id": "current",
+      "name": "Current",
+      "chart_fields": [
+        "CF1",
+        "CF2",
+        "CF3",
+        "CF4"
+      ],
+      "table_fields": [
+        "CF1",
+        "CF2",
+        "CF3",
+        "CF4",
+        "CF5",
+        "CF6"
+      ],
+      "chart_type": "Line",
+      "period_mode": "Current"
+    },
+    {
+      "id": "period-total",
+      "name": "Period Total",
+      "chart_fields": [
+        "CF1",
+        "CF4",
+        "CF6",
+        "CF8"
+      ],
+      "table_fields": [
+        "CF1",
+        "CF2",
+        "CF3",
+        "CF4",
+        "CF5",
+        "CF6",
+        "CF7",
+        "CF8"
+      ],
+      "chart_type": "Bar",
+      "period_mode": "Period Total"
+    },
+    {
+      "id": "month-to-date",
+      "name": "Month-to-Date",
+      "chart_fields": [
+        "CF1",
+        "CF2",
+        "CF4",
+        "CF8"
+      ],
+      "table_fields": [
+        "CF1",
+        "CF2",
+        "CF4",
+        "CF5",
+        "CF8"
+      ],
+      "chart_type": "Area",
+      "period_mode": "Month-to-Date"
+    },
+    {
+      "id": "year-to-date",
+      "name": "Year-to-Date",
+      "chart_fields": [
+        "CF1",
+        "CF2",
+        "CF4",
+        "CF8"
+      ],
+      "table_fields": [
+        "CF1",
+        "CF2",
+        "CF4",
+        "CF5",
+        "CF8"
+      ],
+      "chart_type": "Line",
+      "period_mode": "Year-to-Date"
+    },
+    {
+      "id": "quality",
+      "name": "Quality",
+      "chart_fields": [
+        "CF4",
+        "CF7"
+      ],
+      "table_fields": [
+        "CF4",
+        "CF7"
+      ],
+      "chart_type": "Box Plot",
+      "period_mode": "Selected Period"
+    },
+    {
+      "id": "reliability",
+      "name": "Reliability",
+      "chart_fields": [
+        "CF5",
+        "CF6"
+      ],
+      "table_fields": [
+        "CF5",
+        "CF6"
+      ],
+      "chart_type": "Scatter",
+      "period_mode": "Selected Period"
+    }
+  ]
+}
