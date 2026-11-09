@@ -1,3 +1,11 @@
 timestamp,business_unit,user,action,details
 2026-11-08T15:10:31+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
 2026-11-08T15:11:22+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:00:46+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:01:32+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:01:55+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:04:29+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:04:40+00:00,shared,buadmin,login,"{""role"": ""BU Admin""}"
+2026-11-09T10:05:22+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:06:43+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
+2026-11-09T10:08:43+00:00,shared,viewer,login,"{""role"": ""Viewer""}"
