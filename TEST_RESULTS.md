@@ -1,38 +1,43 @@
-# OPERA v3.0.0 — Test Results
+# OPERA v3.1.0 — Test Results
 
-Tested on 2026-11-08 with Python 3.12.
+Tested on 2026-11-09 with Python 3.12.
 
-## Automated suite
+## Automated Suite
 
 ```text
-..........                                                               [100%]
-10 passed in 8.12s
+..............                                                           [100%]
+14 passed
 ```
 
 Coverage:
 
-1. CPP-style safe formula functions and ordered calculated fields.
-2. Unsafe formula/code rejection.
-3. High/Low target interpretation.
-4. Locked atomic CSV append and spreadsheet-formula-injection protection.
-5. Placeholder TA entry, validation, calculation and Excel round-trip (same shared path used by TB–TG).
-6. PBKDF2 password verification and role/BU access controls.
-7. Cement v8 schema/load checks: required sheets, expected row counts and zero warnings.
-8. P23 Cement risk generation and valid PDF bytes.
-9. Cement equipment provenance: all 67 workbook equipment IDs plus 500 CEM-SPARE placeholders.
-10. Streamlit login-page startup without an exception.
+1. Safe formula functions, ordered calculated fields and unsafe-code rejection.
+2. High/Low target interpretation.
+3. Locked atomic CSV append and spreadsheet-formula-injection protection.
+4. Placeholder TA entry, validation, calculation and Excel round-trip (the same shared path is used by TB–TG).
+5. PBKDF2 password verification and role/business-unit access controls.
+6. Cement v8 schema/load checks: required sheets, expected row counts and zero warnings.
+7. P23 Cement risk generation and valid PDF bytes.
+8. Cement hierarchy provenance and three-plant cloning: 67 Okpella, 67 Obajana and 67 Ibese named records, plus 500 unchanged spares.
+9. Obajana and Ibese named equipment are cloned records and do not use `CEM-SPARE-*` identifiers.
+10. NASCON business-unit ID, display name, data folder and access lists.
+11. Dashboard template schema for Plant Overview, Equipment Overview and Operations Dashboard, including chart fields, table fields and chart type.
+12. Editable equipment validation lists covering Plant, Unit / Section and Equipment Type.
+13. Event Log Field Data update columns and optional Lesson Bank event reference.
+14. Streamlit login → Business Unit → OPERA Home startup.
 
-## Additional checks
+## Additional Checks
 
-- `python -m py_compile app.py opera/*.py scripts/seed_data.py`: passed.
-- Local Streamlit launch: passed.
+- Reproducible `scripts/seed_data.py` run: passed.
+- `python -m compileall app.py opera scripts tests`: passed.
+- Streamlit launch: passed.
 - `/_stcore/health`: returned `ok`.
-- Generic PDF export: generated one readable page; text extraction verified title, subtitle and table values.
-- Static credential scan: no old RA test password, `TEST_PASS`, Analyst AI, old rounds renderer or SOP renderer found.
-- Static Python secret scan: no literal assigned password or token found.
-- Cement P23 result: 22 applicable hazards.
-- Generated active-BU data per BU: 120 DCS rows, 30 Lab rows, 120 Field rows, zero TA–TG sample rows, 60 active input fields and eight calculated fields.
+- Page-logic smoke test: OPERA Home, Plant Overview, Equipment Overview, Operations Dashboard, Data Input, Event Log, Data Analysis, Data Output, Operating Parameters, Risk Assessment, Lesson Bank, and Admin / Super Admin all completed without application exceptions.
+- Static UI scan: no user-facing reference to the removed implementation-style label.
+- Static naming scan: the corrected NASCON business-unit name is used throughout application data and documentation.
+- Generated active-business-unit data per BU: 120 DCS rows, 30 Lab rows, 120 Field rows, zero TA–TG sample rows, 60 active input fields and eight calculated fields.
+- Cement equipment package: 201 named plant records (67 per plant) plus 500 spares.
 
-## Dependency note
+## Dependency Note
 
-The host sandbox contains unrelated preinstalled packages with version conflicts. The deployment requirements explicitly constrain Streamlit and `protobuf<7`; a clean Streamlit Community Cloud environment resolves from this package's `requirements.txt`.
+The host sandbox has an unrelated preinstalled NumPy/PyArrow binary mismatch. Deployment requirements explicitly pin a compatible pair (`numpy>=1.26,<2`, `pyarrow>=17,<18`) with Streamlit 1.53+. The route smoke test therefore bypassed only the host's broken dataframe serializer while exercising all OPERA page logic; the automated suite, application compilation and Streamlit health check ran normally.

@@ -1,15 +1,18 @@
-# OPERA v3.0.0 — Build Notes
+# OPERA v3.1.0 — Build Notes
 
-## Final-review objectives included
+## Update objectives included
 
-- BU → Plant → Unit/Section → Equipment hierarchy.
-- Selectable dashboard templates on Equipment Overview and Operations Dashboard.
-- Excel, CSV and PDF export preparation with audit entries.
-- Event picture attachments, data-table/report formats, notifications and automatic user/time capture.
-- JSON preset save/download/upload.
-- No-code BU cloning, placeholder activation and configuration.
-- Login, configuration, input/upload, risk and export audit coverage.
-- Lesson Bank linked to Event Log IDs.
+- Operational Intelligence visual language applied across sign-in, navigation, page headers, cards, forms, tables and charts.
+- Consistent chart cards with a two-column individual-axis grid, plus an explicit same-axis option for every chart type.
+- Admin-managed Plant Overview, Equipment Overview and Operations Dashboard templates: template name, chart fields, table fields and chart type.
+- Plant Overview charts shown before the data table.
+- Fixed, editable Plant, Unit / Section and Equipment Type validation lists; equipment editing uses dropdowns from those lists.
+- Event Log can send an update for any active Field Data (`F`) field for later Field-vs-DCS analysis.
+- Lesson Bank entries are independent; linking to an Event Log entry is optional.
+- Obajana Cement Plant and Ibese Cement Plant added by cloning all 67 named Okpella equipment records without consuming spares.
+- NASCON naming applied to the business-unit ID, display name, access lists, data records and reproducible seed script.
+- Change-Business-Unit and Sign-Out controls use permanently visible text/icons; Operations KPI cards have fixed aligned dimensions.
+- Excel, CSV and PDF export preparation with audit entries remains available.
 - OPERA branding; no Analyst AI, old rounds page or SOP portal page.
 - Excel-register-backed Risk Assessment with optional GitHub persistence during Community Cloud testing.
 
@@ -32,7 +35,7 @@ This list was prepared before excluding obsolete material. Source files in OneDr
 - RA register activation/history pattern and optional GitHub-commit persistence, with hard-coded test/admin credentials removed.
 - Butamer 6-hourly Field model and Field vs DCS Monitor/Critical comparison logic; shutdown dates come from Event Log events tagged `Shutdown`.
 - Operational Intelligence safe formula concepts, profiles, presets and report/export patterns.
-- CPP ordered calculated fields, formula functions, On Hold behaviour, targets/direction, Current/Period/MTD/YTD views, KPI card semantics, sign-off fields, trend granularity, comparison, regression/forecast, and blue/red visual language. Plotly replaces Chart.js.
+- Ordered calculated fields, formula functions, On Hold behaviour, targets/direction, Current/Period/MTD/YTD views, KPI card semantics, sign-off fields, trend granularity, comparison, regression/forecast, and the approved blue/red visual language. Plotly is used for Streamlit-native interactive charts.
 - Current portal BU configuration and no-code cloning concept, rewritten for locked CSV storage.
 
 ### Delete or exclude from deployment
@@ -41,7 +44,7 @@ This list was prepared before excluding obsolete material. Source files in OneDr
 - Old Digital Operator Rounds and SOP Knowledge Portal pages; relevant Butamer logic is integrated into Data Input, Data Analysis, Event Log and Lesson Bank instead.
 - `ai_agent.py` and all Copilot Analyst AI UI/connectors.
 - RA v5.3 test account, printed test password, built-in admin hash and separate admin password page.
-- Packaging BU and separate Sugar/NASCON entries; NASCO now contains Salt and Sugar sections.
+- Packaging BU and the separate Sugar entry; NASCON contains the Salt and Sugar sections.
 - RA default-register source generators; approved Excel workbooks are used directly.
 - Duplicate `__init__` files, download stubs, old generated packages, caches and local secrets.
 
@@ -62,9 +65,9 @@ No schema mismatch required a loader workaround. The workbook is copied as-is. C
 
 ## Assumptions and review items
 
-- Cement named equipment is real Okpella register data and supersedes the earlier general-knowledge assumption.
-- Refinery, Fertilizer and NASCO named operational equipment remains an initial industry-based list and must be reviewed by each plant. Every BU retains 500 spare equipment records for controlled activation.
-- NASCO has no approved risk workbook in the supplied sources; risk generation remains blocked until an approved Excel register is uploaded.
+- Cement named equipment is real Okpella register data and supersedes the earlier general-knowledge assumption. Obajana and Ibese are configuration clones of that hierarchy and should be checked against each plant's approved master data.
+- Refinery, Fertilizer and NASCON named operational equipment remains an initial industry-based list and must be reviewed by each plant. Every BU retains 500 spare equipment records for controlled activation.
+- NASCON has no approved risk workbook in the supplied sources; risk generation remains blocked until an approved Excel register is uploaded.
 - Sample data is synthetic and is only for functional testing. Deliberate outliers are marked in each active BU's `flags.csv`.
 - Streamlit's native immediate toast is combined with a persistent notification centre. Notification rows remain until read; native toast display duration is controlled by Streamlit rather than fixed at exactly 60 seconds.
 - The DCS connector expects an HTTPS JSON array or `{ "data": [...] }` and requires the endpoint to emit OPERA column names. Production authentication tokens belong in Streamlit Secrets.
