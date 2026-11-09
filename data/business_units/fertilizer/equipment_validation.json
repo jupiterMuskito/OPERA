@@ -1,0 +1,19 @@
+{
+  "plants": [
+    "Fertilizer Plant"
+  ],
+  "units": [
+    "Ammonia Unit",
+    "Bagging",
+    "Granulation",
+    "Urea Unit"
+  ],
+  "equipment_types": [
+    "Bagging Machine",
+    "Compressor",
+    "Furnace",
+    "Granulator",
+    "Reactor",
+    "Stripper"
+  ]
+}
