@@ -1,0 +1,16 @@
+{
+  "plants": [
+    "NASCON Plant"
+  ],
+  "units": [
+    "Salt",
+    "Sugar"
+  ],
+  "equipment_types": [
+    "Centrifuge",
+    "Dryer",
+    "Evaporator",
+    "Mill",
+    "Packing Line"
+  ]
+}

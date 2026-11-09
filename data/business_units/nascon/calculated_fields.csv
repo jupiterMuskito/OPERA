@@ -1,0 +1,9 @@
+field_id,field_name,formula,uom,aggregation,daily_target,period_target,target_direction,status,evaluation_order,mtd_aggregation,ytd_aggregation,dashboard,dashboard_group,chart
+CF1,Average Salt Brine Feed,[DP1],Derived,Maximum,100,100,High,active,1,Maximum,Maximum,true,Operations,line
+CF2,Peak Dryer Temperature,[DP2],Derived,Minimum,105,105,High,active,2,Minimum,Minimum,true,Operations,line
+CF3,Minimum Evaporator Vacuum,[DP3],Derived,Average,30,30,High,active,3,Average,Average,true,Operations,line
+CF4,Sugar Quality Index,([L1]+[L2])/2,Derived,Maximum,160,160,High,active,4,Maximum,Maximum,true,Operations,line
+CF5,Field-DCS Evaporator Deviation,ABS([F1]-[DP1]),Derived,Minimum,70,70,High,active,5,Minimum,Minimum,true,Operations,line
+CF6,Mill Extraction Index,ABS([DP3]-[DP2]),Derived,Average,28,28,High,active,6,Average,Average,true,Operations,line
+CF7,Salt Quality Index,([L6]+[L7])/2,Derived,Maximum,280,280,High,active,7,Maximum,Maximum,true,Operations,line
+CF8,Packing Performance,[DP20],Derived,Minimum,95,95,High,active,8,Minimum,Minimum,true,Operations,line
