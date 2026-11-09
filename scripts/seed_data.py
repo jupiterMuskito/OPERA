@@ -12,15 +12,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from opera.auth import hash_password
 from opera.storage import BASE_COLUMNS, SOURCES, atomic_write_csv
+from opera.dashboard import default_templates
 
 DATA = ROOT / "data"
 RNG = np.random.default_rng(20261108)
 
 BUS = [
-    {"id": "cement", "name": "Cement", "active": "true", "placeholder": "false", "register_file": "registers/OKPELLA_Master_Workbook_v8.xlsx", "notes": "Okpella register hierarchy"},
+    {"id": "cement", "name": "Cement", "active": "true", "placeholder": "false", "register_file": "registers/OKPELLA_Master_Workbook_v8.xlsx", "notes": "Okpella hierarchy cloned to Obajana and Ibese"},
     {"id": "refinery", "name": "Refinery", "active": "true", "placeholder": "false", "register_file": "registers/DANGOTE_REFINERY_Master_Workbook_v1.xlsx", "notes": "Includes Butamer"},
     {"id": "fertilizer", "name": "Fertilizer", "active": "true", "placeholder": "false", "register_file": "registers/DANGOTE_FERTILISER_Master_Workbook_v1.xlsx", "notes": ""},
-    {"id": "nasco", "name": "NASCO", "active": "true", "placeholder": "false", "register_file": "", "notes": "Salt and Sugar sections"},
+    {"id": "nascon", "name": "NASCON", "active": "true", "placeholder": "false", "register_file": "", "notes": "Salt and Sugar sections"},
 ] + [{"id": f"bu{i}", "name": f"BU{i}", "active": "false", "placeholder": "true", "register_file": "", "notes": "Inactive placeholder"} for i in range(5, 10)]
 
 EQUIPMENT = {
@@ -38,13 +39,13 @@ EQUIPMENT = {
                    ("FER-STRIP-01", "Urea Stripper", "Fertilizer Plant", "Urea Unit", "Stripper"),
                    ("FER-GRAN-01", "Urea Granulator", "Fertilizer Plant", "Granulation", "Granulator"),
                    ("FER-BAG-01", "Bagging Line 1", "Fertilizer Plant", "Bagging", "Bagging Machine")],
-    "nasco": [("NAS-SALT-EVAP-01", "Salt Evaporator 1", "NASCO Plant", "Salt", "Evaporator"),
-              ("NAS-SALT-DRY-01", "Salt Dryer 1", "NASCO Plant", "Salt", "Dryer"),
-              ("NAS-SALT-PACK-01", "Salt Packing Line 1", "NASCO Plant", "Salt", "Packing Line"),
-              ("NAS-SUGAR-MILL-01", "Sugar Mill 1", "NASCO Plant", "Sugar", "Mill"),
-              ("NAS-SUGAR-EVAP-01", "Sugar Evaporator 1", "NASCO Plant", "Sugar", "Evaporator"),
-              ("NAS-SUGAR-CENT-01", "Sugar Centrifuge 1", "NASCO Plant", "Sugar", "Centrifuge"),
-              ("NAS-SUGAR-PACK-01", "Sugar Packing Line 1", "NASCO Plant", "Sugar", "Packing Line")],
+    "nascon": [("NAS-SALT-EVAP-01", "Salt Evaporator 1", "NASCON Plant", "Salt", "Evaporator"),
+              ("NAS-SALT-DRY-01", "Salt Dryer 1", "NASCON Plant", "Salt", "Dryer"),
+              ("NAS-SALT-PACK-01", "Salt Packing Line 1", "NASCON Plant", "Salt", "Packing Line"),
+              ("NAS-SUGAR-MILL-01", "Sugar Mill 1", "NASCON Plant", "Sugar", "Mill"),
+              ("NAS-SUGAR-EVAP-01", "Sugar Evaporator 1", "NASCON Plant", "Sugar", "Evaporator"),
+              ("NAS-SUGAR-CENT-01", "Sugar Centrifuge 1", "NASCON Plant", "Sugar", "Centrifuge"),
+              ("NAS-SUGAR-PACK-01", "Sugar Packing Line 1", "NASCON Plant", "Sugar", "Packing Line")],
 }
 
 FIELD_NAMES = {
@@ -60,7 +61,7 @@ FIELD_NAMES = {
 "DCS": [("Natural Gas Feed Flow","Nm³/h",50000,140000,100000),("Primary Reformer Outlet Temperature","°C",700,900,820),("Secondary Reformer Outlet Temperature","°C",850,1100,980),("Synthesis Gas Compressor Discharge Pressure","bar",120,180,155),("Ammonia Converter Inlet Temperature","°C",300,450,380),("Ammonia Converter Outlet Temperature","°C",430,560,500),("Ammonia Production Rate","t/d",1200,3300,2500),("CO2 Compressor Discharge Pressure","bar",120,180,155),("Urea Reactor Pressure","bar",130,175,155),("Urea Reactor Temperature","°C",165,205,185),("Stripper Top Temperature","°C",150,205,180),("Carbamate Condenser Temperature","°C",140,195,170),("Granulator Bed Temperature","°C",90,120,105),("Granulator Feed Rate","t/h",40,180,130),("Fluid Bed Cooler Outlet Temperature","°C",35,65,48),("Ammonia Storage Level","%",15,90,60),("Cooling Water Supply Temperature","°C",25,38,31),("Steam Header Pressure","bar",35,125,80),("Plant Power Demand","MW",20,85,55),("Bagging Rate","t/h",30,180,120)],
 "Lab": [("Ammonia Product Purity","%",99.0,100,99.8),("Ammonia Water Content","%",0,0.5,0.2),("Urea Nitrogen Content","%",45.5,46.8,46.3),("Urea Moisture","%",0.1,0.8,0.4),("Urea Biuret","%",0.3,1.5,0.9),("Urea Formaldehyde","%",0.1,0.8,0.4),("Granule Size 2–4 mm","%",85,100,95),("Crushing Strength","kg/granule",1.5,4.5,3),("Bulk Density","kg/m³",700,820,760),("Cooling Water pH","pH",6.5,9.0,7.8),("Boiler Water Conductivity","µS/cm",0,50,15),("Boiler Water Silica","mg/L",0,0.5,0.1),("Condensate Iron","mg/L",0,0.2,0.05),("Natural Gas Methane","%",80,100,92),("Natural Gas Sulfur","mg/Nm³",0,15,3),("Process Condensate Ammonia","mg/L",0,100,20),("Prill Temperature","°C",35,65,48),("Product Dust","%",0,1.0,0.3),("Oil in Ammonia","mg/kg",0,10,2),("CO2 Purity","%",95,100,99)],
 "Field": [("Primary Reformer Tube Skin Temperature","°C",650,980,850),("Reformer Burner Flame Quality","index",0,10,8),("Syngas Compressor Bearing Temperature","°C",35,90,62),("Syngas Compressor Vibration","mm/s",0.2,7,2.5),("Ammonia Pump Seal Temperature","°C",30,90,58),("Ammonia Area Detector","ppm",0,25,2),("Urea Reactor Local Pressure","bar",130,175,155),("Stripper Vibration","mm/s",0.2,7,2.5),("Granulator Vibration","mm/s",0.2,8,3),("Granulator Bed Visual Level","%",20,85,55),("Fluid Bed Fan Bearing Temperature","°C",35,90,60),("Conveyor Belt Drift","mm",0,35,8),("Bucket Elevator Bearing Temperature","°C",35,90,58),("Bagging Air Pressure","bar",4.5,8,6.2),("Dust Collector Differential Pressure","mbar",5,35,18),("Cooling Tower Fan Vibration","mm/s",0.2,8,3),("Steam Trap Temperature","°C",80,190,130),("Valve Packing Leak Index","index",0,10,1),("Housekeeping Dust Level","mg/m³",0,10,3),("Product Storage Temperature","°C",25,55,38)]},
-"nasco": {
+"nascon": {
 "DCS": [("Salt Brine Feed Flow","m³/h",20,180,100),("Salt Evaporator Temperature","°C",70,125,105),("Salt Evaporator Vacuum","kPa abs",10,65,30),("Salt Dryer Inlet Temperature","°C",100,220,160),("Salt Dryer Outlet Temperature","°C",45,95,70),("Salt Packing Rate","t/h",5,45,28),("Sugar Cane Feed Rate","t/h",80,420,280),("Mill Extraction","%",85,99,95),("Mixed Juice Flow","m³/h",50,350,220),("Clarifier Temperature","°C",85,110,98),("Sugar Evaporator Brix","°Bx",45,72,62),("Vacuum Pan Pressure","kPa abs",8,35,18),("Massecuite Temperature","°C",55,85,70),("Centrifuge Speed","rpm",700,1500,1100),("Sugar Dryer Outlet Temperature","°C",35,65,48),("Sugar Packing Rate","t/h",10,90,60),("Boiler Steam Pressure","bar",15,55,35),("Boiler Steam Temperature","°C",250,460,380),("Power Demand","MW",2,35,18),("Warehouse Silo Level","%",10,95,65)],
 "Lab": [("Salt NaCl Purity","%",97,100,99.2),("Salt Moisture","%",0.0,1.0,0.3),("Salt Insoluble Matter","%",0,0.5,0.1),("Salt Iodine","mg/kg",30,70,50),("Salt Particle Size Pass","%",85,100,95),("Brine Density","kg/m³",1100,1250,1180),("Brine Calcium","mg/L",0,100,30),("Brine Magnesium","mg/L",0,80,20),("Sugar Polarisation","°Z",98,100,99.5),("Sugar Moisture","%",0,0.15,0.05),("Sugar Colour","IU",20,300,120),("Sugar Ash","%",0,0.15,0.05),("Reducing Sugars","%",0,0.1,0.03),("Cane Brix","°Bx",12,24,18),("Cane Pol","%",10,22,16),("Bagasse Moisture","%",42,55,48),("Mixed Juice Purity","%",75,92,85),("Final Molasses Brix","°Bx",75,90,83),("Final Molasses Purity","%",25,45,35),("Process Water pH","pH",6.5,9,7.5)],
 "Field": [("Salt Evaporator Body Temperature","°C",70,130,105),("Salt Dryer Bearing Temperature","°C",35,90,60),("Salt Dryer Vibration","mm/s",0.2,8,3),("Salt Conveyor Belt Drift","mm",0,35,8),("Salt Packing Air Pressure","bar",4.5,8,6.2),("Mill Roller Bearing Temperature","°C",35,95,65),("Mill Gearbox Vibration","mm/s",0.2,8,3),("Juice Pump Vibration","mm/s",0.2,8,3),("Clarifier Mud Level","%",10,85,45),("Evaporator Tube Condition Index","index",0,10,8),("Vacuum Pan Local Pressure","kPa abs",8,35,18),("Centrifuge Bearing Temperature","°C",35,90,60),("Centrifuge Vibration","mm/s",0.2,8,3),("Sugar Dryer Bearing Temperature","°C",35,90,58),("Sugar Conveyor Belt Drift","mm",0,35,8),("Sugar Packing Air Pressure","bar",4.5,8,6.2),("Boiler Feed Pump Vibration","mm/s",0.2,8,3),("Boiler Drum Local Level","%",20,80,50),("Bagasse Conveyor Condition","index",0,10,8),("Warehouse Dust Level","mg/m³",0,10,3)]}
@@ -70,7 +71,7 @@ CALC_NAMES = {
     "cement": ["Average Kiln Feed Rate","Peak Kiln Feed Rate","Minimum Kiln Speed","Clinker Quality Index","Kiln Field-DCS Deviation","Thermal Stability Index","Cement Strength Index","Packing Performance"],
     "refinery": ["Average Butamer Feed","Peak Reactor Temperature","Minimum Reactor Pressure","iC4 Improvement","Field-DCS Feed Deviation","Reactor Temperature Rise","Product Quality Index","Butamer Throughput Performance"],
     "fertilizer": ["Average Gas Feed","Peak Reformer Temperature","Minimum Urea Pressure","Product Quality Index","Field-DCS Pressure Deviation","Converter Temperature Rise","Granulation Quality Index","Bagging Performance"],
-    "nasco": ["Average Salt Brine Feed","Peak Dryer Temperature","Minimum Evaporator Vacuum","Sugar Quality Index","Field-DCS Evaporator Deviation","Mill Extraction Index","Salt Quality Index","Packing Performance"],
+    "nascon": ["Average Salt Brine Feed","Peak Dryer Temperature","Minimum Evaporator Vacuum","Sugar Quality Index","Field-DCS Evaporator Deviation","Mill Extraction Index","Salt Quality Index","Packing Performance"],
 }
 
 
@@ -87,7 +88,10 @@ def cement_equipment(register: Path) -> list[tuple[str, str, str, str, str]]:
         section = rec.get("LocationArea1") or ("All process areas" if rec.get("LocationScope") == "All process areas" else "Plant-wide")
         out.append((rec["EquipmentID"], rec["EquipmentName"], "Okpella Cement Plant", section, rec.get("EquipmentType") or "Equipment"))
     wb.close()
-    return out
+    clones = []
+    for prefix, plant in [("OBJ", "Obajana Cement Plant"), ("IBE", "Ibese Cement Plant")]:
+        clones.extend([(f"{prefix}-{equipment_id}", name, plant, section, equipment_type) for equipment_id, name, _, section, equipment_type in out])
+    return out + clones
 
 
 def seed() -> None:
@@ -96,9 +100,9 @@ def seed() -> None:
     pwd = "ChangeMe!2026"
     users = [
         {"username":"superadmin","display_name":"OPERA Super Admin","password_hash":hash_password(pwd, "00112233445566778899aabbccddeeff"),"role":"Super Admin","business_units":"*","active":"true","must_change_password":"true","failed_attempts":"0","lock_until":""},
-        {"username":"buadmin","display_name":"BU Administrator","password_hash":hash_password(pwd, "11112222333344445555666677778888"),"role":"BU Admin","business_units":"cement;refinery;fertilizer;nasco","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
-        {"username":"operator","display_name":"Shift Operator","password_hash":hash_password(pwd, "abcdefabcdefabcdefabcdefabcdefab"),"role":"Operator","business_units":"cement;refinery;fertilizer;nasco","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
-        {"username":"viewer","display_name":"Read Only Viewer","password_hash":hash_password(pwd, "fedcbafedcbafedcbafedcbafedcbafe"),"role":"Viewer","business_units":"cement;refinery;fertilizer;nasco","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
+        {"username":"buadmin","display_name":"BU Administrator","password_hash":hash_password(pwd, "11112222333344445555666677778888"),"role":"BU Admin","business_units":"cement;refinery;fertilizer;nascon","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
+        {"username":"operator","display_name":"Shift Operator","password_hash":hash_password(pwd, "abcdefabcdefabcdefabcdefabcdefab"),"role":"Operator","business_units":"cement;refinery;fertilizer;nascon","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
+        {"username":"viewer","display_name":"Read Only Viewer","password_hash":hash_password(pwd, "fedcbafedcbafedcbafedcbafedcbafe"),"role":"Viewer","business_units":"cement;refinery;fertilizer;nascon","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
     ]
     atomic_write_csv(DATA / "shared" / "users.csv", pd.DataFrame(users))
     cement_reg = ROOT / "registers" / "OKPELLA_Master_Workbook_v8.xlsx"
@@ -110,8 +114,8 @@ def seed() -> None:
             named = EQUIPMENT[bu]
         else:
             named = [(f"{bu.upper()}-CONFIG-001", "Configure equipment", f"{bu.upper()} Plant", "Configure unit/section", "Equipment")]
-        rows = [{"equipment_id":i,"equipment_name":n,"plant":p,"unit_section":u,"equipment_type":t,"section_tag":u if bu=="nasco" else "","active":"true","placeholder":"false"} for i,n,p,u,t in named]
-        prefix = {"cement":"CEM","refinery":"REF","fertilizer":"FER","nasco":"NAS"}.get(bu, bu.upper())
+        rows = [{"equipment_id":i,"equipment_name":n,"plant":p,"unit_section":u,"equipment_type":t,"section_tag":u if bu=="nascon" else "","active":"true","placeholder":"false"} for i,n,p,u,t in named]
+        prefix = {"cement":"CEM","refinery":"REF","fertilizer":"FER","nascon":"NAS"}.get(bu, bu.upper())
         rows += [{"equipment_id":f"{prefix}-SPARE-{i:03d}","equipment_name":f"Spare equipment {i:03d}","plant":named[0][2],"unit_section":"Unassigned","equipment_type":"Placeholder","section_tag":"","active":"false","placeholder":"true"} for i in range(1,501)]
         atomic_write_csv(folder / "equipment.csv", pd.DataFrame(rows))
         reg_rows=[]
@@ -157,7 +161,7 @@ def seed() -> None:
                              "ytd_aggregation":["Average","Maximum","Minimum"][i%3],"dashboard":"true","dashboard_group":"Operations","chart":"line"})
         atomic_write_csv(folder / "calculated_fields.csv", pd.DataFrame(calc,columns=["field_id","field_name","formula","uom","aggregation","daily_target","period_target","target_direction","status","evaluation_order","mtd_aggregation","ytd_aggregation","dashboard","dashboard_group","chart"]))
         for name,columns in {
-            "events.csv":["event_id","timestamp","event_date","event_time","event_types","format","plant","unit_section","equipment","title","details","picture_path","reported_by","notification_sent"],
+            "events.csv":["event_id","timestamp","event_date","event_time","event_types","format","plant","unit_section","equipment","title","details","picture_path","reported_by","notification_sent","field_update_sent","field_update_ids"],
             "flags.csv":["timestamp","date","time","field_id","value","flag_type","message","status"],
             "lessons.csv":["lesson_id","timestamp","event_id","unit_section","lesson","entered_by"],
             "notifications.csv":["id","timestamp","recipient","level","message","created_by","read_by"],
@@ -174,6 +178,13 @@ def seed() -> None:
             atomic_write_csv(folder/"flags.csv",pd.DataFrame(sample_flags))
         (folder/"presets.json").write_text("{}",encoding="utf-8")
         (folder/"pipeline.json").write_text('{"url":"","token_secret_name":""}',encoding="utf-8")
+        (folder/"dashboard_templates.json").write_text(__import__("json").dumps(default_templates(), indent=2), encoding="utf-8")
+        hierarchy = {
+            "plants": sorted({row["plant"] for row in rows if row["plant"]}),
+            "units": sorted({row["unit_section"] for row in rows if row["unit_section"] and row["unit_section"] != "Unassigned"}),
+            "equipment_types": sorted({row["equipment_type"] for row in rows if row["equipment_type"] and row["equipment_type"] != "Placeholder"}),
+        }
+        (folder/"equipment_validation.json").write_text(__import__("json").dumps(hierarchy, indent=2), encoding="utf-8")
 
 if __name__ == "__main__":
     seed()
