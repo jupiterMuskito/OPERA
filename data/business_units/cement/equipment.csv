@@ -66,6 +66,140 @@ EQ64,Battery / UPS Room,Okpella Cement Plant,CCR Building,High Voltage Electrica
 EQ65,Main Transformer,Okpella Cement Plant,Main Substation and Transformer Yard,High Voltage Electrical Equipment,,true,false
 EQ66,Scaffolding (Temporary Works),Okpella Cement Plant,Plant-wide,Scaffolding / Temporary Works,,true,false
 EQ67,Gypsum / Additive Store,Okpella Cement Plant,"23 Gypsum Additives and Correctives Preblending, storage and conveying",Confined Space/Storage Vessel,,true,false
+OBJ-EQ01,Limestone Crusher,Obajana Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+OBJ-EQ02,Raw Mill,Obajana Cement Plant,41 Raw Material Grinding,Rotating/Grinding Equipment,,true,false
+OBJ-EQ03,Preheater Tower / Cyclones,Obajana Cement Plant,51 Preheater and Precalciner,Static Process Vessel,,true,false
+OBJ-EQ04,Rotary Kiln,Obajana Cement Plant,56 Rotary Kiln and Tertiary Air Duct,Rotating Thermal Equipment,,true,false
+OBJ-EQ05,Clinker Cooler,Obajana Cement Plant,57 Clinker Cooler,Rotating/Mechanical Equipment,,true,false
+OBJ-EQ06,Coal Mill,Obajana Cement Plant,73 Coal Grinding and Dust Dosing,Rotating/Grinding Equipment,,true,false
+OBJ-EQ07,Cement Mill,Obajana Cement Plant,84A Cement Grinding A,Rotating/Grinding Equipment,,true,false
+OBJ-EQ08,Cement Silo,Obajana Cement Plant,86 Cement Silos and Bulk Loading,Confined Space/Storage Vessel,,true,false
+OBJ-EQ09,Bag Filter / Dust Collector,Obajana Cement Plant,All process areas,Static/Confined Space Equipment,,true,false
+OBJ-EQ10,Belt Conveyor,Obajana Cement Plant,All process areas,Rotating/Moving Equipment,,true,false
+OBJ-EQ11,Bucket Elevator,Obajana Cement Plant,42 Raw Meal Homogenizing Silo,Rotating/Moving Equipment,,true,false
+OBJ-EQ12,Packing Plant / Bagging Machine,Obajana Cement Plant,87A Packing and Loading Plant (Line 1 & 2),Rotating/Mechanical Equipment,,true,false
+OBJ-EQ13,Air Compressor,Obajana Cement Plant,Air Compressor Room,Pressurized Equipment,,true,false
+OBJ-EQ14,Electrical Substation / MCC,Obajana Cement Plant,Plant-wide,High Voltage Electrical Equipment,,true,false
+OBJ-EQ15,Overhead Crane,Obajana Cement Plant,Mechanical Workshop,Lifting Equipment,,true,false
+OBJ-EQ16,Weighbridge,Obajana Cement Plant,Weigh Bridge,Static Equipment,,true,false
+OBJ-EQ17,Cooling Tower,Obajana Cement Plant,Water Cooling,Static/Rotating Equipment,,true,false
+OBJ-EQ18,Mobile Equipment (Loader/Forklift),Obajana Cement Plant,02 Limestone/Correctives Crushing and Conveying,Mobile Plant,,true,false
+OBJ-EQ19,Calciner,Obajana Cement Plant,51 Preheater and Precalciner,Static Process Vessel,,true,false
+OBJ-EQ20,Blast Hole Drill Rig,Obajana Cement Plant,Quarry and Haul Roads,Mobile Drilling Equipment,,true,false
+OBJ-EQ21,Quarry Excavator,Obajana Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+OBJ-EQ22,Haul Truck,Obajana Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+OBJ-EQ23,Explosives Magazine,Obajana Cement Plant,Explosives Magazine,Explosives Storage Facility,,true,false
+OBJ-EQ24,Stacker,Obajana Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Rotating/Moving Equipment,,true,false
+OBJ-EQ25,Reclaimer,Obajana Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Rotating/Moving Equipment,,true,false
+OBJ-EQ26,Roller Press,Obajana Cement Plant,41 Raw Material Grinding,Rotating/Mechanical Equipment,,true,false
+OBJ-EQ27,Electrostatic Precipitator (ESP),Obajana Cement Plant,54 Exhaust Gas Treatment,High Voltage Electrical Equipment,,true,false
+OBJ-EQ28,Cement Mill Separator,Obajana Cement Plant,84A Cement Grinding A,Rotating/Mechanical Equipment,,true,false
+OBJ-EQ29,Clinker Storage Dome,Obajana Cement Plant,66 Clinker Silo and Conveying,Confined Space/Storage Vessel,,true,false
+OBJ-EQ30,Bulk Cement Loading Station,Obajana Cement Plant,86 Cement Silos and Bulk Loading,Static Equipment,,true,false
+OBJ-EQ31,Quality Control Laboratory,Obajana Cement Plant,Quality Control Laboratory,Laboratory Equipment,,true,false
+OBJ-EQ32,Water Treatment Plant,Obajana Cement Plant,Water Treatment,Water Treatment Equipment,,true,false
+OBJ-EQ33,Diesel Generator,Obajana Cement Plant,Diesel Generator / Power House,Power Generation Equipment,,true,false
+OBJ-EQ34,Fuel Oil Storage Tank,Obajana Cement Plant,Fuel Oil Storage and Pumping,Bulk Storage Tank,,true,false
+OBJ-EQ35,Maintenance Workshop,Obajana Cement Plant,Mechanical Workshop,Workshop Machinery,,true,false
+OBJ-EQ36,Fire Water Pump House,Obajana Cement Plant,Fire Water Pump House,Fire Safety Equipment,,true,false
+OBJ-EQ37,Water Tanker (Dust Suppression),Obajana Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+OBJ-EQ38,Raw Meal Silo,Obajana Cement Plant,42 Raw Meal Homogenizing Silo,Confined Space/Storage Vessel,,true,false
+OBJ-EQ39,Coal Storage / Hopper,Obajana Cement Plant,71-1 Coal Crushing and Conveying,Confined Space/Storage Vessel,,true,false
+OBJ-EQ40,Kiln Main Burner,Obajana Cement Plant,56 Rotary Kiln and Tertiary Air Duct,Burner Equipment,,true,false
+OBJ-EQ41,Calciner Burner,Obajana Cement Plant,51 Preheater and Precalciner,Burner Equipment,,true,false
+OBJ-EQ42,RDF Feeding System,Obajana Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+OBJ-EQ43,Tyre Feeding System (Midkiln),Obajana Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+OBJ-EQ44,Fuel Shredder,Obajana Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+OBJ-EQ45,Alternative Fuel Storage Hall,Obajana Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+OBJ-EQ46,Nucleonic Level Gauge,Obajana Cement Plant,42 Raw Meal Homogenizing Silo,Radioactive Source Equipment,,true,false
+OBJ-EQ47,Cross-Belt Analyser,Obajana Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Radioactive Source Equipment,,true,false
+OBJ-EQ48,Waste Heat Recovery Boiler,Obajana Cement Plant,Waste Heat Recovery Plant,Waste Heat Recovery Equipment,,true,false
+OBJ-EQ49,Steam Turbine (WHR),Obajana Cement Plant,Waste Heat Recovery Plant,Waste Heat Recovery Equipment,,true,false
+OBJ-EQ50,Gas Conditioning Tower,Obajana Cement Plant,Gas Conditioning Tower,Static Process Vessel,,true,false
+OBJ-EQ51,CEMS Analyser Cabinet,Obajana Cement Plant,54 Exhaust Gas Treatment,Laboratory Equipment,,true,false
+OBJ-EQ52,Blending / Homogenising Silo,Obajana Cement Plant,42 Raw Meal Homogenizing Silo,Confined Space/Storage Vessel,,true,false
+OBJ-EQ53,Primary Crusher,Obajana Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+OBJ-EQ54,Secondary Crusher,Obajana Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+OBJ-EQ55,Apron Feeder,Obajana Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Moving Equipment,,true,false
+OBJ-EQ56,Screw Conveyor,Obajana Cement Plant,All process areas,Rotating/Moving Equipment,,true,false
+OBJ-EQ57,Air Slide Conveyor,Obajana Cement Plant,42 Raw Meal Homogenizing Silo,Rotating/Moving Equipment,,true,false
+OBJ-EQ58,Drag Chain Conveyor,Obajana Cement Plant,51 Preheater and Precalciner,Rotating/Moving Equipment,,true,false
+OBJ-EQ59,Process Fan (ID/Booster),Obajana Cement Plant,41 Raw Material Grinding,Static/Rotating Equipment,,true,false
+OBJ-EQ60,Rotary Air Lock / Valve,Obajana Cement Plant,All process areas,Rotating/Mechanical Equipment,,true,false
+OBJ-EQ61,Palletiser / Bag Stacker,Obajana Cement Plant,87A Packing and Loading Plant (Line 1 & 2),Rotating/Mechanical Equipment,,true,false
+OBJ-EQ62,Rail Wagon Loading Station,Obajana Cement Plant,Rail Siding and Wagon Loading,Static Equipment,,true,false
+OBJ-EQ63,Main Stores / Warehouse,Obajana Cement Plant,Store Area,Warehouse / Stores Equipment,,true,false
+OBJ-EQ64,Battery / UPS Room,Obajana Cement Plant,CCR Building,High Voltage Electrical Equipment,,true,false
+OBJ-EQ65,Main Transformer,Obajana Cement Plant,Main Substation and Transformer Yard,High Voltage Electrical Equipment,,true,false
+OBJ-EQ66,Scaffolding (Temporary Works),Obajana Cement Plant,Plant-wide,Scaffolding / Temporary Works,,true,false
+OBJ-EQ67,Gypsum / Additive Store,Obajana Cement Plant,"23 Gypsum Additives and Correctives Preblending, storage and conveying",Confined Space/Storage Vessel,,true,false
+IBE-EQ01,Limestone Crusher,Ibese Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+IBE-EQ02,Raw Mill,Ibese Cement Plant,41 Raw Material Grinding,Rotating/Grinding Equipment,,true,false
+IBE-EQ03,Preheater Tower / Cyclones,Ibese Cement Plant,51 Preheater and Precalciner,Static Process Vessel,,true,false
+IBE-EQ04,Rotary Kiln,Ibese Cement Plant,56 Rotary Kiln and Tertiary Air Duct,Rotating Thermal Equipment,,true,false
+IBE-EQ05,Clinker Cooler,Ibese Cement Plant,57 Clinker Cooler,Rotating/Mechanical Equipment,,true,false
+IBE-EQ06,Coal Mill,Ibese Cement Plant,73 Coal Grinding and Dust Dosing,Rotating/Grinding Equipment,,true,false
+IBE-EQ07,Cement Mill,Ibese Cement Plant,84A Cement Grinding A,Rotating/Grinding Equipment,,true,false
+IBE-EQ08,Cement Silo,Ibese Cement Plant,86 Cement Silos and Bulk Loading,Confined Space/Storage Vessel,,true,false
+IBE-EQ09,Bag Filter / Dust Collector,Ibese Cement Plant,All process areas,Static/Confined Space Equipment,,true,false
+IBE-EQ10,Belt Conveyor,Ibese Cement Plant,All process areas,Rotating/Moving Equipment,,true,false
+IBE-EQ11,Bucket Elevator,Ibese Cement Plant,42 Raw Meal Homogenizing Silo,Rotating/Moving Equipment,,true,false
+IBE-EQ12,Packing Plant / Bagging Machine,Ibese Cement Plant,87A Packing and Loading Plant (Line 1 & 2),Rotating/Mechanical Equipment,,true,false
+IBE-EQ13,Air Compressor,Ibese Cement Plant,Air Compressor Room,Pressurized Equipment,,true,false
+IBE-EQ14,Electrical Substation / MCC,Ibese Cement Plant,Plant-wide,High Voltage Electrical Equipment,,true,false
+IBE-EQ15,Overhead Crane,Ibese Cement Plant,Mechanical Workshop,Lifting Equipment,,true,false
+IBE-EQ16,Weighbridge,Ibese Cement Plant,Weigh Bridge,Static Equipment,,true,false
+IBE-EQ17,Cooling Tower,Ibese Cement Plant,Water Cooling,Static/Rotating Equipment,,true,false
+IBE-EQ18,Mobile Equipment (Loader/Forklift),Ibese Cement Plant,02 Limestone/Correctives Crushing and Conveying,Mobile Plant,,true,false
+IBE-EQ19,Calciner,Ibese Cement Plant,51 Preheater and Precalciner,Static Process Vessel,,true,false
+IBE-EQ20,Blast Hole Drill Rig,Ibese Cement Plant,Quarry and Haul Roads,Mobile Drilling Equipment,,true,false
+IBE-EQ21,Quarry Excavator,Ibese Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+IBE-EQ22,Haul Truck,Ibese Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+IBE-EQ23,Explosives Magazine,Ibese Cement Plant,Explosives Magazine,Explosives Storage Facility,,true,false
+IBE-EQ24,Stacker,Ibese Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Rotating/Moving Equipment,,true,false
+IBE-EQ25,Reclaimer,Ibese Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Rotating/Moving Equipment,,true,false
+IBE-EQ26,Roller Press,Ibese Cement Plant,41 Raw Material Grinding,Rotating/Mechanical Equipment,,true,false
+IBE-EQ27,Electrostatic Precipitator (ESP),Ibese Cement Plant,54 Exhaust Gas Treatment,High Voltage Electrical Equipment,,true,false
+IBE-EQ28,Cement Mill Separator,Ibese Cement Plant,84A Cement Grinding A,Rotating/Mechanical Equipment,,true,false
+IBE-EQ29,Clinker Storage Dome,Ibese Cement Plant,66 Clinker Silo and Conveying,Confined Space/Storage Vessel,,true,false
+IBE-EQ30,Bulk Cement Loading Station,Ibese Cement Plant,86 Cement Silos and Bulk Loading,Static Equipment,,true,false
+IBE-EQ31,Quality Control Laboratory,Ibese Cement Plant,Quality Control Laboratory,Laboratory Equipment,,true,false
+IBE-EQ32,Water Treatment Plant,Ibese Cement Plant,Water Treatment,Water Treatment Equipment,,true,false
+IBE-EQ33,Diesel Generator,Ibese Cement Plant,Diesel Generator / Power House,Power Generation Equipment,,true,false
+IBE-EQ34,Fuel Oil Storage Tank,Ibese Cement Plant,Fuel Oil Storage and Pumping,Bulk Storage Tank,,true,false
+IBE-EQ35,Maintenance Workshop,Ibese Cement Plant,Mechanical Workshop,Workshop Machinery,,true,false
+IBE-EQ36,Fire Water Pump House,Ibese Cement Plant,Fire Water Pump House,Fire Safety Equipment,,true,false
+IBE-EQ37,Water Tanker (Dust Suppression),Ibese Cement Plant,Quarry and Haul Roads,Mobile Plant,,true,false
+IBE-EQ38,Raw Meal Silo,Ibese Cement Plant,42 Raw Meal Homogenizing Silo,Confined Space/Storage Vessel,,true,false
+IBE-EQ39,Coal Storage / Hopper,Ibese Cement Plant,71-1 Coal Crushing and Conveying,Confined Space/Storage Vessel,,true,false
+IBE-EQ40,Kiln Main Burner,Ibese Cement Plant,56 Rotary Kiln and Tertiary Air Duct,Burner Equipment,,true,false
+IBE-EQ41,Calciner Burner,Ibese Cement Plant,51 Preheater and Precalciner,Burner Equipment,,true,false
+IBE-EQ42,RDF Feeding System,Ibese Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+IBE-EQ43,Tyre Feeding System (Midkiln),Ibese Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+IBE-EQ44,Fuel Shredder,Ibese Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+IBE-EQ45,Alternative Fuel Storage Hall,Ibese Cement Plant,Alternative Fuel Storage and Feeding,Alternative Fuel Handling System,,true,false
+IBE-EQ46,Nucleonic Level Gauge,Ibese Cement Plant,42 Raw Meal Homogenizing Silo,Radioactive Source Equipment,,true,false
+IBE-EQ47,Cross-Belt Analyser,Ibese Cement Plant,22 Limestone Mix Preblending Storage and Conveying,Radioactive Source Equipment,,true,false
+IBE-EQ48,Waste Heat Recovery Boiler,Ibese Cement Plant,Waste Heat Recovery Plant,Waste Heat Recovery Equipment,,true,false
+IBE-EQ49,Steam Turbine (WHR),Ibese Cement Plant,Waste Heat Recovery Plant,Waste Heat Recovery Equipment,,true,false
+IBE-EQ50,Gas Conditioning Tower,Ibese Cement Plant,Gas Conditioning Tower,Static Process Vessel,,true,false
+IBE-EQ51,CEMS Analyser Cabinet,Ibese Cement Plant,54 Exhaust Gas Treatment,Laboratory Equipment,,true,false
+IBE-EQ52,Blending / Homogenising Silo,Ibese Cement Plant,42 Raw Meal Homogenizing Silo,Confined Space/Storage Vessel,,true,false
+IBE-EQ53,Primary Crusher,Ibese Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+IBE-EQ54,Secondary Crusher,Ibese Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Impact Equipment,,true,false
+IBE-EQ55,Apron Feeder,Ibese Cement Plant,02 Limestone/Correctives Crushing and Conveying,Rotating/Moving Equipment,,true,false
+IBE-EQ56,Screw Conveyor,Ibese Cement Plant,All process areas,Rotating/Moving Equipment,,true,false
+IBE-EQ57,Air Slide Conveyor,Ibese Cement Plant,42 Raw Meal Homogenizing Silo,Rotating/Moving Equipment,,true,false
+IBE-EQ58,Drag Chain Conveyor,Ibese Cement Plant,51 Preheater and Precalciner,Rotating/Moving Equipment,,true,false
+IBE-EQ59,Process Fan (ID/Booster),Ibese Cement Plant,41 Raw Material Grinding,Static/Rotating Equipment,,true,false
+IBE-EQ60,Rotary Air Lock / Valve,Ibese Cement Plant,All process areas,Rotating/Mechanical Equipment,,true,false
+IBE-EQ61,Palletiser / Bag Stacker,Ibese Cement Plant,87A Packing and Loading Plant (Line 1 & 2),Rotating/Mechanical Equipment,,true,false
+IBE-EQ62,Rail Wagon Loading Station,Ibese Cement Plant,Rail Siding and Wagon Loading,Static Equipment,,true,false
+IBE-EQ63,Main Stores / Warehouse,Ibese Cement Plant,Store Area,Warehouse / Stores Equipment,,true,false
+IBE-EQ64,Battery / UPS Room,Ibese Cement Plant,CCR Building,High Voltage Electrical Equipment,,true,false
+IBE-EQ65,Main Transformer,Ibese Cement Plant,Main Substation and Transformer Yard,High Voltage Electrical Equipment,,true,false
+IBE-EQ66,Scaffolding (Temporary Works),Ibese Cement Plant,Plant-wide,Scaffolding / Temporary Works,,true,false
+IBE-EQ67,Gypsum / Additive Store,Ibese Cement Plant,"23 Gypsum Additives and Correctives Preblending, storage and conveying",Confined Space/Storage Vessel,,true,false
 CEM-SPARE-001,Spare equipment 001,Okpella Cement Plant,Unassigned,Placeholder,,false,true
 CEM-SPARE-002,Spare equipment 002,Okpella Cement Plant,Unassigned,Placeholder,,false,true
 CEM-SPARE-003,Spare equipment 003,Okpella Cement Plant,Unassigned,Placeholder,,false,true
