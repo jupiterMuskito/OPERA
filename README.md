@@ -24,20 +24,20 @@ All seeded accounts use the temporary password `ChangeMe!2026`.
 | Username | Role | Business-unit access |
 |---|---|---|
 | `superadmin` | Super Admin | All; forced password change on first login |
-| `buadmin` | BU Admin | Cement, Refinery, Fertilizer, NASCO |
-| `operator` | Operator | Cement, Refinery, Fertilizer, NASCO |
-| `viewer` | Viewer | Cement, Refinery, Fertilizer, NASCO |
+| `buadmin` | BU Admin | Cement, Refinery, Fertilizer, NASCON |
+| `operator` | Operator | Cement, Refinery, Fertilizer, NASCON |
+| `viewer` | Viewer | Cement, Refinery, Fertilizer, NASCON |
 
 Change or disable every seeded account before production. Passwords in `users.csv` are PBKDF2-SHA256 hashes; five failed attempts lock an account for 15 minutes. Matching users can be overridden through Streamlit Secrets.
 
 ## Business units and hierarchy
 
-- Active: Cement, Refinery, Fertilizer and NASCO.
-- NASCO contains Salt and Sugar sections.
+- Active: Cement, Refinery, Fertilizer and NASCON.
+- NASCON contains Salt and Sugar sections.
 - Refinery contains the Butamer unit.
 - BU5–BU9 are inactive placeholders. A Super Admin can name and activate a placeholder or clone an existing BU without code.
-- Equipment follows `Business unit → Plant → Unit/Section → Equipment`.
-- Cement's 67 named equipment items and section assignments come from the unmodified `OKPELLA_Master_Workbook_v8.xlsx`; 500 `CEM-SPARE-*` placeholders are retained.
+- Equipment follows `Business Unit → Plant → Unit / Section → Equipment`.
+- Cement has three configured plants: Okpella Cement Plant, Obajana Cement Plant and Ibese Cement Plant. Obajana and Ibese each use cloned named equipment records—not spare placeholders—from the 67-item Okpella hierarchy. The 500 `CEM-SPARE-*` placeholders remain available for future equipment only.
 
 ## Main application flow
 
@@ -47,15 +47,16 @@ Change or disable every seeded account before production. Passwords in `users.cs
 
 Modules:
 
-- Plant Overview, Equipment Overview and Operations Dashboard
+- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, chart fields, table fields and chart type
+- Chart layouts for every supported chart type: split into a two-column individual-axis grid or place fields on the same axis
 - Data Input: manual, validated bulk upload and DCS JSON connector
-- Event Log: report, table or picture events; stored notifications
+- Event Log: report, table or picture events; stored notifications; optional update of any active Field Data (`F`) field
 - Data Analysis: multi-field comparison, statistics, forecast, and Field vs DCS Monitor/Critical checks with shutdown-day exclusion
 - Data Output: calculated fields and input/calculated/merged Excel downloads
 - Operating Parameters: Process and Quality
 - Risk Assessment: deterministic, Excel-register-backed assessments and PDFs
-- Lesson Bank: lessons linked to Event Log events
-- Admin / Super Admin: BUs, users, fields, UOM, ranges, targets, formulas, constants, equipment, registers, DCS connector, presets, audit and backups
+- Lesson Bank: independent lessons with an optional Event Log reference
+- Admin / Super Admin: BUs, users, fields, formulas, dashboard templates, validated equipment hierarchy lists, registers, DCS connector, presets, audit and backups
 
 ## Data and calculated fields
 
@@ -73,7 +74,7 @@ The deployment keeps approved registers as Excel workbooks and does not modify t
 - Refinery: `registers/DANGOTE_REFINERY_Master_Workbook_v1.xlsx`
 - Fertilizer: `registers/DANGOTE_FERTILISER_Master_Workbook_v1.xlsx`
 
-NASCO and new BUs require an approved register upload before risk assessments can be generated. Register uploads are validated before activation. Optional GitHub commit persistence is available through `[github]` secrets for Community Cloud testing.
+NASCON and new BUs require an approved register upload before risk assessments can be generated. Register uploads are validated before activation. Optional GitHub commit persistence is available through `[github]` secrets for Community Cloud testing.
 
 ## Community Cloud persistence warning
 
