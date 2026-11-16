@@ -13,6 +13,39 @@ RED = "#CF3430"
 CHART_COLORS = [BLUE, "#2F7DE1", "#6B8FD8", "#E8964A", RED, "#3B9B7A", "#7A5AF8", "#2AA5A0"]
 CHART_TYPES = ["Line", "Area", "Bar", "Scatter", "Box Plot"]
 AXIS_MODES = ["Split Into Individual Axes", "Place on the Same Axis"]
+TREND_RULES = {
+    "1 Hour": "1h",
+    "6 Hours": "6h",
+    "12 Hours": "12h",
+    "Daily": "1D",
+    "Weekly": "1W",
+    "Monthly": "ME",
+    "Yearly": "YE",
+}
+
+EQUIPMENT_FIELD_KEYWORDS = {
+    "pump": ["flow", "pressure", "vibration", "bearing", "seal", "current", "power"],
+    "heater": ["temperature", "pressure", "flow", "fuel", "oxygen", "tube skin"],
+    "furnace": ["temperature", "pressure", "flow", "fuel", "oxygen", "tube skin"],
+    "reformer": ["temperature", "pressure", "flow", "fuel", "tube skin"],
+    "reactor": ["temperature", "pressure", "level", "flow", "ratio", "differential"],
+    "compressor": ["pressure", "vibration", "bearing", "flow", "speed", "temperature"],
+    "fan": ["pressure", "vibration", "bearing", "flow", "speed", "temperature"],
+    "mill": ["feed", "power", "vibration", "bearing", "differential", "outlet", "speed"],
+    "crusher": ["feed", "power", "vibration", "bearing", "current", "speed"],
+    "cooler": ["temperature", "fan", "grate", "pressure", "vibration"],
+    "dryer": ["temperature", "moisture", "differential", "pressure", "vibration"],
+    "column": ["temperature", "pressure", "level", "reflux", "flow"],
+    "stripper": ["temperature", "pressure", "level", "flow", "vibration"],
+    "centrifuge": ["speed", "vibration", "bearing", "temperature"],
+    "granulator": ["temperature", "feed", "vibration", "size"],
+    "packing": ["packing", "rate", "air pressure", "dust"],
+    "bagging": ["bagging", "rate", "air pressure", "dust"],
+    "evaporator": ["temperature", "vacuum", "pressure", "brix", "flow"],
+    "conveyor": ["belt", "drift", "bearing", "temperature"],
+    "elevator": ["bearing", "temperature", "boot"],
+    "silo": ["level", "dust", "temperature"],
+}
 
 
 def default_templates() -> dict[str, list[dict[str, Any]]]:
@@ -34,12 +67,12 @@ def default_templates() -> dict[str, list[dict[str, Any]]]:
             {"id": "reliability", "name": "Reliability", "chart_fields": ["F3", "F4", "F5", "F7"], "table_fields": ["F3", "F4", "F5", "F7"], "equipment_fields": {}, "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
         "Operations Dashboard": [
-            {"id": "current", "name": "Current", "chart_fields": ["CF1", "CF2", "CF3", "CF4"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6"], "chart_type": "Line", "period_mode": "Current"},
-            {"id": "period-total", "name": "Period Total", "chart_fields": ["CF1", "CF4", "CF6", "CF8"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6", "CF7", "CF8"], "chart_type": "Bar", "period_mode": "Period Total"},
-            {"id": "month-to-date", "name": "Month-to-Date", "chart_fields": ["CF1", "CF2", "CF4", "CF8"], "table_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_type": "Area", "period_mode": "Month-to-Date"},
-            {"id": "year-to-date", "name": "Year-to-Date", "chart_fields": ["CF1", "CF2", "CF4", "CF8"], "table_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_type": "Line", "period_mode": "Year-to-Date"},
-            {"id": "quality", "name": "Quality", "chart_fields": ["CF4", "CF7"], "table_fields": ["CF4", "CF7"], "chart_type": "Box Plot", "period_mode": "Selected Period"},
-            {"id": "reliability", "name": "Reliability", "chart_fields": ["CF5", "CF6"], "table_fields": ["CF5", "CF6"], "chart_type": "Scatter", "period_mode": "Selected Period"},
+            {"id": "current", "name": "Current", "kpi_fields": ["CF1", "CF2", "CF3", "CF4"], "chart_fields": ["CF1", "CF2", "CF3", "CF4"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6"], "chart_type": "Line", "period_mode": "Current"},
+            {"id": "period-total", "name": "Period Total", "kpi_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6", "CF7", "CF8"], "chart_fields": ["CF1", "CF4", "CF6", "CF8"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6", "CF7", "CF8"], "chart_type": "Bar", "period_mode": "Period Total"},
+            {"id": "month-to-date", "name": "Month-to-Date", "kpi_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_fields": ["CF1", "CF2", "CF4", "CF8"], "table_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_type": "Area", "period_mode": "Month-to-Date"},
+            {"id": "year-to-date", "name": "Year-to-Date", "kpi_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_fields": ["CF1", "CF2", "CF4", "CF8"], "table_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_type": "Line", "period_mode": "Year-to-Date"},
+            {"id": "quality", "name": "Quality", "kpi_fields": ["CF4", "CF7"], "chart_fields": ["CF4", "CF7"], "table_fields": ["CF4", "CF7"], "chart_type": "Box Plot", "period_mode": "Selected Period"},
+            {"id": "reliability", "name": "Reliability", "kpi_fields": ["CF5", "CF6"], "chart_fields": ["CF5", "CF6"], "table_fields": ["CF5", "CF6"], "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
     }
 
@@ -71,6 +104,63 @@ def fields_for_equipment(template: dict[str, Any], equipment_id: str) -> tuple[l
     chart_fields = override.get("chart_fields", template.get("chart_fields", []))
     table_fields = override.get("table_fields", template.get("table_fields", []))
     return list(chart_fields or []), list(table_fields or [])
+
+
+def intelligent_equipment_fields(
+    equipment_record: dict[str, Any] | pd.Series,
+    registry: pd.DataFrame,
+    available_ids: set[str] | None = None,
+    limit: int = 6,
+) -> list[str]:
+    """Rank active fields against equipment name/type semantics for a useful default overview."""
+    if registry.empty:
+        return []
+    record = dict(equipment_record)
+    equipment_text = " ".join(str(record.get(key, "")) for key in ("equipment_type", "equipment_name")).lower()
+    keywords: list[str] = []
+    for equipment_key, field_keywords in EQUIPMENT_FIELD_KEYWORDS.items():
+        if equipment_key in equipment_text:
+            keywords.extend(field_keywords)
+    if not keywords:
+        keywords = ["temperature", "pressure", "flow", "vibration", "speed", "level", "power"]
+
+    work = registry.copy()
+    if "active" in work:
+        work = work[work["active"].astype(str).str.lower() == "true"]
+    if available_ids is not None:
+        work = work[work["field_id"].astype(str).isin(available_ids)]
+    if work.empty:
+        return []
+
+    source_priority = {"DCS": 3, "Field": 2, "Lab": 1}
+    scored: list[tuple[int, int, str]] = []
+    for position, row in enumerate(work.itertuples()):
+        name = str(row.field_name).lower()
+        score = sum(4 for keyword in keywords if keyword in name)
+        score += source_priority.get(str(getattr(row, "source", "")), 0)
+        scored.append((score, -position, str(row.field_id)))
+    scored.sort(reverse=True)
+    ranked = [field_id for score, _, field_id in scored if score > 0]
+    return ranked[:limit]
+
+
+def equipment_overview_fields(
+    template: dict[str, Any],
+    equipment_record: dict[str, Any] | pd.Series,
+    registry: pd.DataFrame,
+    available_ids: set[str],
+    limit: int = 6,
+) -> tuple[list[str], list[str]]:
+    """Use an Admin override first, otherwise intelligently map key fields to equipment."""
+    equipment_id = str(dict(equipment_record).get("equipment_id", ""))
+    overrides = template.get("equipment_fields", {})
+    if isinstance(overrides, dict) and equipment_id in overrides:
+        charts, tables = fields_for_equipment(template, equipment_id)
+        return ([field for field in charts if field in available_ids], [field for field in tables if field in available_ids])
+    mapped = intelligent_equipment_fields(equipment_record, registry, available_ids, limit)
+    if not mapped:
+        mapped = [field for field in template.get("chart_fields", []) if field in available_ids][:limit]
+    return mapped, mapped.copy()
 
 
 def hierarchy_path(bu: str):
@@ -161,3 +251,63 @@ def render_chart_grid(frame: pd.DataFrame, field_ids: list[str], chart_type: str
             with column:
                 with st.container(border=True):
                     st.plotly_chart(_figure(part, chart_type, False, name), width="stretch", key=f"{key}_{field_id}")
+
+
+def render_selectable_chart_grid(
+    frame: pd.DataFrame,
+    field_ids: list[str],
+    chart_type: str,
+    axis_mode: str,
+    key: str,
+) -> list[str]:
+    """Render a CPP-style grid whose headers (or combined legend selector) change displayed fields."""
+    view = normalise_long(frame)
+    if view.empty:
+        st.info("No chart data is available for the selected fields and period.")
+        return []
+    metadata = (
+        view[["field_id", "field_name", "uom"]]
+        .drop_duplicates("field_id")
+        .assign(field_id=lambda x: x["field_id"].astype(str))
+        .set_index("field_id")
+    )
+    available = metadata.index.tolist()
+    defaults = [str(field) for field in field_ids if str(field) in metadata.index] or available[: min(6, len(available))]
+    labels = {field: f"{metadata.at[field, 'field_name']} ({metadata.at[field, 'uom']})" for field in available}
+    reverse = {label: field for field, label in labels.items()}
+
+    if axis_mode == "Place on the Same Axis":
+        chosen_labels = st.multiselect(
+            "Chart Legend / Data Fields",
+            list(reverse),
+            default=[labels[field] for field in defaults],
+            key=f"{key}_legend_fields",
+            help="Select the chart legend fields to add or remove series.",
+        )
+        chosen = [reverse[label] for label in chosen_labels]
+        if chosen:
+            part = view[view["field_id"].astype(str).isin(chosen)]
+            st.plotly_chart(_figure(part, chart_type, True, "Selected Data Fields"), width="stretch", key=f"{key}_combined")
+        else:
+            st.info("Select at least one chart field.")
+        return chosen
+
+    chosen: list[str] = []
+    for start in range(0, len(defaults), 2):
+        columns = st.columns(2, gap="large")
+        for offset, (column, default) in enumerate(zip(columns, defaults[start:start + 2])):
+            slot = start + offset
+            with column:
+                with st.container(border=True):
+                    selected_label = st.selectbox(
+                        "Chart Header / Data Field",
+                        list(reverse),
+                        index=list(reverse).index(labels[default]),
+                        key=f"{key}_header_{slot}",
+                        help="Choose this chart header to change the data field shown in the chart.",
+                    )
+                    field_id = reverse[selected_label]
+                    chosen.append(field_id)
+                    part = view[view["field_id"].astype(str) == field_id]
+                    st.plotly_chart(_figure(part, chart_type, False, str(metadata.at[field_id, "field_name"])), width="stretch", key=f"{key}_slot_{slot}_{field_id}")
+    return chosen
