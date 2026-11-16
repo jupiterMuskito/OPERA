@@ -27,7 +27,7 @@ def test_p23_generates_risk_assessment_pdf():
     preset = next(p for p in register.presets if p["id"] == "P23")
     hazards = collect_hazards(register, preset["tags"], preset["et"], preset["mo"], preset["st"])
     assert len(hazards) >= 1
-    payload = {"serial":"TEST-P23","bu":"Cement","company":"OPERA","form_title":"RISK ASSESSMENT FORM","register_status":"Approved","register_source":"Bundled approved register","fingerprint":register.fingerprint,
+    payload = {"serial":"TEST-P23","bu":"Cement","company":"OPERA-X","form_title":"RISK ASSESSMENT FORM","register_status":"Approved","register_source":"Bundled approved register","fingerprint":register.fingerprint,
                "header":[("Preset",preset["n"]),("Equipment",preset["ref"])],"hazards":hazards,"excluded":set(),"categories":register.categories,
                "erp":["Raise alarm and stop work."],"assessed_by":"Test User","reviewed_by":"","generated":"2026-11-08T12:00:00+00:00"}
     pdf = build_pdf(payload)
