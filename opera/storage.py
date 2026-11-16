@@ -15,6 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_ROOT = Path(os.getenv("OPERA_DATA_DIR", ROOT / "data"))
 BASE_COLUMNS = ["Date", "Time", "Business unit", "Plant", "Unit/Section", "Equipment", "Recorded by", "Recorded at"]
 SOURCES = {"DCS": "DP", "Lab": "L", "Field": "F", "TA": "TA", "TB": "TB", "TC": "TC", "TD": "TD", "TE": "TE", "TF": "TF", "TG": "TG"}
+ATTACHMENT_TYPES = {
+    ".doc": "application/msword", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".txt": "text/plain", ".pdf": "application/pdf",
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
+    ".mp4": "video/mp4", ".mov": "video/quicktime", ".avi": "video/x-msvideo", ".mkv": "video/x-matroska", ".webm": "video/webm",
+}
 
 
 def utcnow() -> str:
@@ -144,16 +150,32 @@ def mark_notifications_read(bu: str, username: str) -> None:
     atomic_write_csv(p, frame)
 
 
-def save_attachment(bu: str, name: str, data: bytes) -> str:
+def save_attachment(bu: str, name: str, data: bytes, allowed_suffixes: Iterable[str] | None = None) -> str:
     suffix = Path(name).suffix.lower()
-    if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
-        raise ValueError("Only PNG, JPG, JPEG and WEBP pictures are supported.")
+    allowed = set(allowed_suffixes or ATTACHMENT_TYPES)
+    if suffix not in allowed:
+        raise ValueError("This attachment type is not supported.")
+    if len(data) > 50 * 1024 * 1024:
+        raise ValueError("Attachments must not exceed 50 MB.")
     folder = bu_dir(bu) / "attachments"
     folder.mkdir(parents=True, exist_ok=True)
     safe = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(name).name)
     target = folder / f"{uuid.uuid4().hex}_{safe}"
     atomic_write_bytes(target, data)
     return target.relative_to(DATA_ROOT).as_posix()
+
+
+def attachment_bytes(relative_path: str) -> bytes:
+    """Read an attachment while preventing traversal outside OPERA's data root."""
+    target = (DATA_ROOT / relative_path).resolve()
+    root = DATA_ROOT.resolve()
+    if root not in target.parents or not target.is_file():
+        raise FileNotFoundError("Attachment is unavailable.")
+    return target.read_bytes()
+
+
+def attachment_mime(name: str) -> str:
+    return ATTACHMENT_TYPES.get(Path(name).suffix.lower(), "application/octet-stream")
 
 
 def field_record(bu: str, field_id: str) -> dict[str, str] | None:
@@ -237,7 +259,7 @@ def save_validated_input(bu: str, source: str, frame: pd.DataFrame, user: str) -
 def template_bytes(bu: str, source: str, fields: list[str] | None = None) -> bytes:
     reg = registry(bu)
     active = reg[(reg["source"] == source) & (reg["active"].str.lower() == "true")]
-    selected = fields or active["field_id"].head(20).tolist()
+    selected = active["field_id"].head(20).tolist() if fields is None else [field for field in fields if field in set(active["field_id"])]
     eq = equipment(bu)
     first = eq[eq["placeholder"].str.lower() != "true"].iloc[0]
     row = {"Date": datetime.now().date().isoformat(), "Time": "06:00", "Business unit": bu, "Plant": first["plant"],
