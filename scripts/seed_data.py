@@ -101,7 +101,7 @@ def seed() -> None:
     atomic_write_csv(DATA / "shared" / "business_units.csv", pd.DataFrame(BUS))
     pwd = "ChangeMe!2026"
     users = [
-        {"username":"superadmin","display_name":"OPERA Super Admin","password_hash":hash_password(pwd, "00112233445566778899aabbccddeeff"),"role":"Super Admin","business_units":"*","active":"true","must_change_password":"true","failed_attempts":"0","lock_until":""},
+        {"username":"superadmin","display_name":"OPERA-X Super Admin","password_hash":hash_password(pwd, "00112233445566778899aabbccddeeff"),"role":"Super Admin","business_units":"*","active":"true","must_change_password":"true","failed_attempts":"0","lock_until":""},
         {"username":"buadmin","display_name":"BU Administrator","password_hash":hash_password(pwd, "11112222333344445555666677778888"),"role":"BU Admin","business_units":"cement;refinery;fertilizer;nascon","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
         {"username":"operator","display_name":"Shift Operator","password_hash":hash_password(pwd, "abcdefabcdefabcdefabcdefabcdefab"),"role":"Operator","business_units":"cement;refinery;fertilizer;nascon","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
         {"username":"viewer","display_name":"Read Only Viewer","password_hash":hash_password(pwd, "fedcbafedcbafedcbafedcbafedcbafe"),"role":"Viewer","business_units":"cement;refinery;fertilizer;nascon","active":"true","must_change_password":"false","failed_attempts":"0","lock_until":""},
@@ -200,4 +200,4 @@ def seed() -> None:
 
 if __name__ == "__main__":
     seed()
-    print("OPERA seed data created")
+    print("OPERA-X seed data created")
