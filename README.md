@@ -43,20 +43,21 @@ Change or disable every seeded account before production. Passwords in `users.cs
 
 `Login → Business Unit → OPERA Home → module`
 
-`Data Input → Event Log → Data Analysis → Data Output`
+`Operational Data → Input Data / Derived Data / Analyze Data`
 
 Modules:
 
 - Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, chart fields, table fields and chart type
 - Chart layouts for every supported chart type: split into a two-column individual-axis grid or place fields on the same axis
-- Data Input: manual, validated bulk upload and DCS JSON connector
+- Operational Data: one module with ordered **Input Data**, **Derived Data** and **Analyze Data** tabs
+- Input Data: manual entry, source-and-field-selective bulk templates, validated upload and DCS JSON connector
 - Event Log: report, table or picture events; stored notifications; optional update of any active Field Data (`F`) field
-- Data Analysis: multi-field comparison, statistics, forecast, and Field vs DCS Monitor/Critical checks with shutdown-day exclusion
-- Data Output: calculated fields and input/calculated/merged Excel downloads
-- Operating Parameters: Process and Quality
+- Analyze Data: grouped DCS / Field / QAQC / Others comparison, statistics, forecast, bounded response optimization, and Field vs DCS Monitor/Critical checks with shutdown-day exclusion
+- Derived Data: calculated fields and input/calculated/merged Excel downloads
+- Operating Parameters: all configured equipment, with DCS / Field / QAQC / Others field selectors; QAQC maps to Laboratory (`L`) fields
 - Risk Assessment: deterministic, Excel-register-backed assessments and PDFs
-- Lesson Bank: independent lessons with an optional Event Log reference
-- Admin / Super Admin: BUs, users, fields, formulas, dashboard templates, validated equipment hierarchy lists, registers, DCS connector, presets, audit and backups
+- Lesson Bank: titled, filterable lessons with optional Event Log references, Word/text/image/PDF/video supporting files, read counts and lesson PDF downloads
+- Admin / Super Admin: BUs, users, fields, documented formulas, friendly baseline constants, equipment-specific dashboard-template fields, validated equipment hierarchy lists, registers, DCS connector, presets, audit and backups
 
 ## Data and calculated fields
 
@@ -64,7 +65,7 @@ Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field 
 
 Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range and abnormal jumps. Flags are retained in `flags.csv`. CSV values are protected from spreadsheet-formula injection.
 
-The ordered formula engine supports field references such as `[DP1]`, baseline constants, arithmetic, comparisons and `IF`, `MIN`, `MAX`, `ABS`, `MOD`, and `ROUND`. Active BUs include eight named sample calculated fields. KPI cards show value, target, variance and On/Off Target status. Current, Period Total, MTD and YTD templates use Daily/Period targets and configured aggregation.
+The ordered formula engine supports field references such as `[DP1]`, baseline constants, arithmetic, comparisons and `IF`, `MIN`, `MAX`, `ABS`, `MOD`, and `ROUND`. Baseline constants are reusable numeric assumptions maintained through a name/value editor and referenced directly by name in formulas. Active BUs include eight named sample calculated fields. KPI cards show value, target, variance and On/Off Target status. Current, Period Total, MTD and YTD templates use Daily/Period targets and configured aggregation.
 
 ## Risk registers
 
