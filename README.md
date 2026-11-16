@@ -1,13 +1,13 @@
-# OPERA — Operational Excellence and Reliability Assistant
+# OPERA-X — Operational Excellence and Reliability Assistant
 
-OPERA is a role-based Streamlit application for operational dashboards, validated plant data, event and lesson management, calculated KPIs, operating parameters, and register-backed risk assessments.
+OPERA-X is a role-based Streamlit application for operational dashboards, validated plant data, event and lesson management, calculated KPIs, operating parameters, and register-backed risk assessments.
 
 ## Deployment
 
-1. Unzip the package without changing its folder structure.
-2. Create a new Streamlit Community Cloud app and select `app.py` as the entry point.
-3. Use Python 3.12 (`runtime.txt`). Dependencies are in `requirements.txt`.
-4. Optional: copy `.streamlit/secrets.example.toml` into Streamlit Cloud **App settings → Secrets**, replace every placeholder, and never commit a real `secrets.toml`.
+1. Unzip the deployment package without changing its folder structure.
+2. Create or update the Streamlit app and use `app.py` as the entry point.
+3. Use Python 3.12 (`runtime.txt`) and install `requirements.txt`.
+4. Optional: copy `.streamlit/secrets.example.toml` into Streamlit Cloud **App settings → Secrets**, replace all placeholders, and never commit a real `secrets.toml`.
 5. Start locally with:
 
 ```bash
@@ -15,7 +15,7 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-For a later server deployment, set `OPERA_DATA_DIR` to persistent storage. The CSV persistence, locking, atomic replacement, attachments, audit, notifications and risk-register uploads are isolated in the shared storage services.
+For persistent server storage, set `OPERAX_DATA_DIR`. Existing deployments that still define `OPERA_DATA_DIR` remain compatible, but should migrate to the new variable name.
 
 ## Seeded test logins
 
@@ -28,70 +28,59 @@ All seeded accounts use the temporary password `ChangeMe!2026`.
 | `operator` | Operator | Cement, Refinery, Fertilizer, NASCON |
 | `viewer` | Viewer | Cement, Refinery, Fertilizer, NASCON |
 
-Change or disable every seeded account before production. Passwords in `users.csv` are PBKDF2-SHA256 hashes; five failed attempts lock an account for 15 minutes. Matching users can be overridden through Streamlit Secrets.
-
-## Business units and hierarchy
-
-- Active: Cement, Refinery, Fertilizer and NASCON.
-- NASCON contains Salt and Sugar sections.
-- Refinery contains the Butamer unit.
-- BU5–BU9 are inactive placeholders. A Super Admin can name and activate a placeholder or clone an existing BU without code.
-- Equipment follows `Business Unit → Plant → Unit / Section → Equipment`.
-- Cement has three configured plants: Okpella Cement Plant, Obajana Cement Plant and Ibese Cement Plant. Obajana and Ibese each use cloned named equipment records—not spare placeholders—from the 67-item Okpella hierarchy. The 500 `CEM-SPARE-*` placeholders remain available for future equipment only.
+Change or disable every seeded account before production. Passwords are PBKDF2-SHA256 hashes; five failed attempts lock an account for 15 minutes. Matching users can be overridden through Streamlit Secrets.
 
 ## Main application flow
 
-`Login → Business Unit → OPERA Home → module`
+`Login → Business Unit → OPERA-X Home → module`
 
-`Operational Data → Input Data / Derived Data / Analyze Data`
+The fixed first ribbon carries OPERA-X branding. The fixed navigation bar directly contains navigation, notifications, **Change BU**, and **Sign Out**. The previous separate context/control ribbon has been removed.
 
 Modules:
 
-- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, KPI fields, chart fields, table fields and chart type
-- Chart layouts for every supported chart type: split into a two-column individual-axis grid or place fields on the same axis
-- Selectable chart headers, combined-chart legend fields and table-field selectors; Operations KPI card names are selectable data-field controls
-- Equipment Overview intelligently maps key parameters from the selected equipment name/type, supports exact-equipment Admin overrides, and includes a DCS / Field / QAQC / Others field-selection tool
-- Operational Data: one module with ordered **Input Data**, **Derived Data** and **Analyze Data** tabs
-- Input Data: manual entry, source-and-field-selective bulk templates, validated upload and DCS JSON connector
-- Event Log: report, table or picture events; stored notifications; optional update of any active Field Data (`F`) field
-- Analyze Data: grouped DCS / Field / QAQC / Others comparison, statistics, forecast, bounded response optimization, and **Instrument Check** Monitor/Critical checks; Instrument Check only compares Field and DCS readings and can exclude shutdown days
-- Derived Data: calculated fields and input/calculated/merged Excel downloads
-- Operating Parameters: all configured equipment, with DCS / Field / QAQC / Others field selectors; QAQC maps to Laboratory (`L`) fields
-- Risk Assessment: deterministic, Excel-register-backed assessments and PDFs
-- Lesson Bank: titled, filterable lessons with optional Event Log references, Word/text/image/PDF/video supporting files, read counts and lesson PDF downloads
-- Admin / Super Admin: BUs, users, fields, documented formulas, friendly baseline constants, equipment-specific dashboard-template fields, validated equipment hierarchy lists, registers, DCS connector, presets, audit and backups
+- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, KPI fields, chart fields, table fields, and chart type.
+- CPP-style charts: two-column individual-axis grids or combined same-axis charts.
+- Operational Data uses one ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**.
+- DCS endpoint setup and manual pipeline execution are under **Admin / Super Admin → DCS Connector**.
+- Event Log supports report, table, or picture events; notifications; and optional mapped Field Data updates.
+- Analyze Data supports grouped comparisons, statistics, forecast, bounded optimization, and Instrument Check.
+- Risk Assessment produces deterministic, register-backed OPERA-X PDF reports.
+- Lesson Bank supports event links, attachments, read counts, and OPERA-X PDF downloads.
 
-## Data and calculated fields
+## Data-field mapping
 
-Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field (`F1–F1000`), and placeholders `TA1–TG1000`. DCS, Lab and Field contain 20 realistic active sample fields for the four active BUs. The package includes a trailing 365-day test dataset from 16 November 2025 through 15 November 2026: DCS and Field are sampled every six hours and QAQC/Lab daily. Cement includes Okpella, Obajana and Ibese, with readings distributed across all 201 named equipment records. The seven placeholder sources have no sample rows; activate their fields in **Admin → Fields & formulas** before use.
+Every input field and placeholder (`DP`, `L`, `F`, and `TA`–`TG`) receives a deterministic default mapping to:
 
-Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range and abnormal jumps. Flags are retained in `flags.csv`. CSV values are protected from spreadsheet-formula injection.
+- at least one equipment record; and
+- at least one of **Plant Performance**, **Condition Monitoring**, **Process Performance**, **Quality and Compliance**, or **Reliability**.
 
-The ordered formula engine supports field references such as `[DP1]`, baseline constants, arithmetic, comparisons and `IF`, `MIN`, `MAX`, `ABS`, `MOD`, and `ROUND`. Baseline constants are reusable numeric assumptions maintained through a name/value editor and referenced directly by name in formulas. Active BUs include eight named sample calculated fields. KPI cards show value, target, variance and On/Off Target status. Current, Period Total, MTD and YTD templates use Daily/Period targets and configured aggregation. Trend granularity includes 1 hour, 6 hours, 12 hours, daily, weekly, monthly and yearly intervals.
+When equipment or a dashboard template is selected, related data-field dropdowns are automatically filtered by the applicable map. This applies to Plant Overview, Equipment Overview, Manual Entry, Bulk Upload, Event Log field updates, and Operating Parameters. Operations Dashboard KPI and chart controls remain filtered by the chosen Operations template.
+
+Administrators can update any active or placeholder field under **Admin / Super Admin → Field Mappings**. Only Admin overrides are persisted to `field_mappings.json`; defaults remain code-driven, so an upgrade does not need to replace production data files.
+
+## Data and persistence
+
+Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field (`F1–F1000`), and placeholders `TA1–TG1000`. Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range, and abnormal jumps. CSV values are protected from spreadsheet-formula injection.
+
+Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
 ## Risk registers
 
-The deployment keeps approved registers as Excel workbooks and does not modify them:
+Bundled approved Excel workbooks remain unchanged:
 
 - Cement: `registers/OKPELLA_Master_Workbook_v8.xlsx`
 - Refinery: `registers/DANGOTE_REFINERY_Master_Workbook_v1.xlsx`
 - Fertilizer: `registers/DANGOTE_FERTILISER_Master_Workbook_v1.xlsx`
 
-NASCON and new BUs require an approved register upload before risk assessments can be generated. Register uploads are validated before activation. Optional GitHub commit persistence is available through `[github]` secrets for Community Cloud testing.
-
-## Community Cloud persistence warning
-
-Local file changes can be lost when a Community Cloud container restarts. For testing, use the built-in download/backup functions and optional GitHub persistence for risk registers. For production, mount persistent server storage and set `OPERA_DATA_DIR`.
+NASCON and new BUs require an approved register upload before risk assessments can be generated.
 
 ## Tests
 
-Run:
-
 ```bash
-pytest
+pytest -q
 python -m py_compile app.py opera/*.py scripts/seed_data.py
 ```
 
-The included suite covers the formula engine, secure roles and hashes, locked CSV storage, bulk/placeholder-source validation, Excel round-trip, Cement hierarchy provenance, Cement v8 register loading and P23 risk/PDF generation, and Streamlit startup.
+The suite covers the formula engine, roles and password hashes, locked CSV storage, upload validation, Excel round-trip, field-mapping coverage and filtering, export branding metadata, dashboard configuration, Cement hierarchy/register behavior, risk/PDF generation, and Streamlit startup.
 
-See `BUILD_NOTES.md` and `TEST_RESULTS.md` for integration decisions and verification results.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, and `CHANGE_MANIFEST_v3.4.0_vs_v3.3.0.md`.

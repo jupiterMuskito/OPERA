@@ -15,10 +15,10 @@ from opera import auth, config, dashboard, dcs_connector, exports, formula, oper
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
 
-APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_icon.png"
-st.set_page_config(page_title="OPERA", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
+APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_x_icon.png"
+st.set_page_config(page_title="OPERA-X", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
 PAGES = [
-    "OPERA Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data",
+    "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data",
     "Event Log", "Operating Parameters", "Risk Assessment", "Lesson Bank", "Admin / Super Admin",
 ]
 
@@ -35,13 +35,14 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .stApp{background:var(--bg)}
 [data-testid="stHeader"]{background:rgba(238,243,250,.90);backdrop-filter:blur(8px)}
 [data-testid="stSidebar"]{display:none}
-.app-ribbon{background:linear-gradient(120deg,var(--blue-dark),var(--blue));color:#fff;border-radius:12px 12px 0 0;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(15,63,156,.14)}
+.st-key-brand_ribbon{position:sticky;top:2.8rem;z-index:1001;background:var(--bg);padding-top:.15rem}
+.app-ribbon{background:linear-gradient(120deg,var(--blue-dark),var(--blue));color:#fff;border-radius:12px 12px 0 0;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(15,63,156,.14)}
 .app-ribbon .name{font-size:1.45rem;font-weight:850;letter-spacing:.02em}.app-ribbon .tagline{font-size:.9rem;color:#E7F0FF;font-weight:600}
-.context-ribbon{background:#fff;border:1px solid var(--border);border-top:0;padding:.65rem 1rem;border-radius:0 0 10px 10px;color:var(--muted);font-size:.86rem}.context-ribbon strong{color:var(--blue-dark)}
-.st-key-primary_navigation{position:sticky;top:2.8rem;z-index:990;background:var(--bg);padding:.55rem 0 .15rem;margin-bottom:.55rem}
-.st-key-primary_navigation div[role="radiogroup"]{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.35rem;background:#fff;border:1px solid var(--border);border-radius:10px;padding:.45rem;box-shadow:0 8px 18px rgba(21,34,56,.08)}
+.st-key-primary_navigation{position:sticky;top:6.45rem;z-index:1000;background:#fff;border:1px solid var(--border);border-radius:0 0 10px 10px;padding:.42rem .5rem .5rem;margin-bottom:.65rem;box-shadow:0 8px 18px rgba(21,34,56,.08)}
+.st-key-primary_navigation div[role="radiogroup"]{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.28rem;background:#fff;padding:.1rem}
 .st-key-primary_navigation div[role="radiogroup"] label{border:1px solid transparent;border-radius:7px;padding:.34rem .45rem;margin:0;color:var(--blue-dark);font-weight:700;justify-content:center;text-align:center;min-height:2.35rem}
 .st-key-primary_navigation div[role="radiogroup"] label:has(input:checked){background:#E7F0FF;border-color:#AFC7EA}
+.nav-context{font-size:.76rem;color:var(--muted);padding:.1rem .25rem .25rem}.nav-context strong{color:var(--blue-dark)}
 .block-container{padding-top:2rem;padding-bottom:3rem;max-width:1500px}
 .opera-hero{padding:1.3rem 1.55rem;border-radius:12px;background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff;margin-bottom:1rem;box-shadow:0 8px 24px rgba(15,63,156,.15)}
 .opera-hero h1{margin:0;font-size:1.9rem;letter-spacing:-.02em}.opera-hero p{margin:.35rem 0 0;color:#E7F0FF;opacity:.94}
@@ -64,7 +65,7 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.metric-card{height:auto;min-height:150px}.st-key-primary_navigation{top:2.5rem}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.35rem;flex-direction:column}.home-card{height:auto;min-height:112px}}
+@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.home-card{height:auto;min-height:112px}}
 </style>
 """,
         unsafe_allow_html=True,
@@ -89,7 +90,7 @@ def do_login() -> None:
         st.markdown(
             """
 <div class="login-brand">
-  <div><div class="mark">O</div><h1>OPERA</h1><p>Operational Excellence and Reliability Assistant</p></div>
+  <div><div class="mark">OX</div><h1>OPERA-X</h1><p>Operational Excellence and Reliability Assistant</p></div>
   <div class="route">One Platform for All Plant Operational Data</div>
 </div>
 """,
@@ -97,7 +98,7 @@ def do_login() -> None:
         )
     with sign_in:
         with st.container(border=True):
-            st.markdown('<div class="login-heading"><h2>Sign In</h2><p>Use your OPERA account to continue.</p></div>', unsafe_allow_html=True)
+            st.markdown('<div class="login-heading"><h2>Sign In</h2><p>Use your OPERA-X account to continue.</p></div>', unsafe_allow_html=True)
             with st.form("login"):
                 username = st.text_input("Username", placeholder="Enter your username")
                 password = st.text_input("Password", type="password", placeholder="Enter your password")
@@ -123,7 +124,7 @@ def choose_bu(user: auth.User) -> None:
     labels = {row["name"]: row["id"] for _, row in bus.iterrows()}
     left, right = st.columns([3, 1], vertical_alignment="bottom")
     selected = left.selectbox("Business Unit", labels)
-    if right.button("Open OPERA", type="primary", width="stretch"):
+    if right.button("Open OPERA-X", type="primary", width="stretch"):
         st.session_state.bu = labels[selected]
         st.rerun()
     st.stop()
@@ -132,7 +133,7 @@ def choose_bu(user: auth.User) -> None:
 def password_change_gate(user: auth.User) -> None:
     if not user.must_change_password:
         return
-    hero("Password Change Required", "Replace the seeded Super Admin password before OPERA opens.")
+    hero("Password Change Required", "Replace the seeded Super Admin password before OPERA-X opens.")
     with st.form("force_password"):
         old = st.text_input("Current Password", type="password")
         new = st.text_input("New Password", type="password")
@@ -155,36 +156,12 @@ def top_navigation(user: auth.User, bu: str) -> str:
     bus = config.business_units()
     name = bus.loc[bus["id"] == bu, "name"].iloc[0] if (bus["id"] == bu).any() else bu
     unread = storage.unread_notifications(bu, user.username)
-    st.markdown(
-        '<div class="app-ribbon"><div class="name">OPERA</div>'
-        '<div class="tagline">Operational Excellence and Reliability Assistant · One Platform for All Plant Operational Data</div></div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f'<div class="context-ribbon"><strong>Business Unit:</strong> {name} &nbsp; · &nbsp; '
-        f'<strong>User:</strong> {user.display_name} &nbsp; · &nbsp; <strong>Role:</strong> {user.role}</div>',
-        unsafe_allow_html=True,
-    )
-    spacer, notice, change, signout = st.columns([3.2, 1.0, 1.35, 1.0], vertical_alignment="center")
-    spacer.caption("Workspace controls")
-    show_notifications = notice.toggle(f"🔔 {len(unread)}", key="show_notifications", help="Show unread notifications")
-    if change.button("⇄ Change BU", width="stretch", key="top_change_bu"):
-        st.session_state.pop("bu", None)
-        st.rerun()
-    if signout.button("↪ Sign Out", width="stretch", key="top_sign_out"):
-        storage.audit(bu, user.username, "logout")
-        st.session_state.clear()
-        st.rerun()
-    if show_notifications:
-        with st.container(border=True):
-            if unread.empty:
-                st.caption("No unread notifications.")
-            else:
-                for _, row in unread.head(10).iterrows():
-                    (st.error if row["level"] == "error" else st.success)(row["message"])
-                if st.button("Mark All as Read", key="top_mark_notifications"):
-                    storage.mark_notifications_read(bu, user.username)
-                    st.rerun()
+    with st.container(key="brand_ribbon"):
+        st.markdown(
+            '<div class="app-ribbon"><div class="name">OPERA-X</div>'
+            '<div class="tagline">Operational Excellence and Reliability Assistant · One Platform for All Plant Operational Data</div></div>',
+            unsafe_allow_html=True,
+        )
     available = [page for page in PAGES if page != "Admin / Super Admin" or auth.allowed(user, "configure")]
     requested = st.session_state.pop("requested_page", None)
     if requested in available:
@@ -193,7 +170,31 @@ def top_navigation(user: auth.User, bu: str) -> str:
     if current not in available:
         st.session_state.top_navigation = available[0]
     with st.container(key="primary_navigation"):
-        return st.radio("Navigation", available, horizontal=True, key="top_navigation", label_visibility="collapsed")
+        nav, notice, change, signout = st.columns([7.2, .65, 1.1, .85], vertical_alignment="center")
+        with nav:
+            st.markdown(
+                f'<div class="nav-context"><strong>{name}</strong> · {user.display_name} · {user.role}</div>',
+                unsafe_allow_html=True,
+            )
+            page = st.radio("Navigation", available, horizontal=True, key="top_navigation", label_visibility="collapsed")
+        show_notifications = notice.toggle(f"🔔 {len(unread)}", key="show_notifications", help="Show unread notifications")
+        if change.button("⇄ Change BU", width="stretch", key="top_change_bu"):
+            st.session_state.pop("bu", None)
+            st.rerun()
+        if signout.button("↪ Sign Out", width="stretch", key="top_sign_out"):
+            storage.audit(bu, user.username, "logout")
+            st.session_state.clear()
+            st.rerun()
+        if show_notifications:
+            if unread.empty:
+                st.caption("No unread notifications.")
+            else:
+                for _, row in unread.head(10).iterrows():
+                    (st.error if row["level"] == "error" else st.success)(row["message"])
+                if st.button("Mark All as Read", key="top_mark_notifications"):
+                    storage.mark_notifications_read(bu, user.username)
+                    st.rerun()
+        return page
 
 
 def source_frame(bu: str, source: str) -> pd.DataFrame:
@@ -207,6 +208,18 @@ def active_registry(bu: str, source: str | None = None) -> pd.DataFrame:
     registry = storage.registry(bu)
     registry = registry[registry["active"].str.lower() == "true"]
     return registry if source is None else registry[registry["source"] == source]
+
+
+def mapped_registry(
+    bu: str,
+    source: str | None = None,
+    equipment_id: str | None = None,
+    template_id: str | None = None,
+) -> pd.DataFrame:
+    """Return active fields mapped to the selected equipment/template context."""
+    registry = active_registry(bu, source)
+    mapped = dashboard.mapped_field_ids(bu, registry, equipment_id, template_id)
+    return registry[registry["field_id"].astype(str).isin(mapped)]
 
 
 def grouped_field_selector(
@@ -362,6 +375,8 @@ def kpi_cards(
         st.info("No calculated KPI data is available.")
         return []
     active = definitions[(definitions["status"].str.lower() != "disabled") & (definitions["dashboard"].str.lower() == "true")]
+    if field_ids is not None:
+        active = active[active["field_id"].astype(str).isin({str(field) for field in field_ids})]
     if active.empty:
         st.info("No calculated KPI fields are active for this dashboard.")
         return []
@@ -407,7 +422,7 @@ def kpi_cards(
 
 
 def page_home(bu: str, user: auth.User) -> None:
-    hero("OPERA Home", "One Platform for All Plant Operational Data")
+    hero("OPERA-X Home", "One Platform for All Plant Operational Data")
     data = long_data(bu)
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
@@ -424,7 +439,7 @@ def page_home(bu: str, user: auth.User) -> None:
         ("Plant Overview", "Plant-level trends, conditions and period reports"),
         ("Equipment Overview", "Equipment trends using configurable dashboard templates"),
         ("Operations Dashboard", "Aligned KPI cards, targets, period views and chart grids"),
-        ("Operational Data", "Input Data, Derived Data and Analyze Data in one workspace"),
+        ("Operational Data", "Manual Entry, Bulk Upload, Derived Data and Analyze Data in one ribbon"),
         ("Operating Parameters", "Process and QAQC trends across configured equipment"),
         ("Event Log", "Events, Field updates, pictures and notifications"),
         ("Risk Assessment", "Register-backed deterministic hazard assessment"),
@@ -456,7 +471,8 @@ def page_plant(bu: str, user: auth.User) -> None:
     if data.empty:
         st.info("No operational data is available.")
         return
-    view = period_filter(data[data["Plant"] == plant], "plant")
+    mapped_ids = dashboard.mapped_field_ids(bu, active_registry(bu), template_id=template["id"])
+    view = period_filter(data[(data["Plant"] == plant) & data["field_id"].astype(str).isin(mapped_ids)], "plant")
     if view.empty:
         st.info("This plant is configured, but it has no readings in the selected period.")
         return
@@ -493,7 +509,16 @@ def page_equipment(bu: str, user: auth.User) -> None:
     if data.empty:
         st.info("No operational data is available.")
         return
-    view = period_filter(data[data["Equipment"] == equipment_id], "equipment")
+    mapped_ids = dashboard.mapped_field_ids(
+        bu,
+        active_registry(bu),
+        equipment_id=equipment_id,
+        template_id=template["id"],
+    )
+    view = period_filter(
+        data[(data["Equipment"] == equipment_id) & data["field_id"].astype(str).isin(mapped_ids)],
+        "equipment",
+    )
     if view.empty:
         st.info("No readings are assigned to this equipment in the selected period.")
         return
@@ -503,7 +528,7 @@ def page_equipment(bu: str, user: auth.User) -> None:
     chart_fields = [field for field in configured_chart if field in available]
     if not chart_fields:
         chart_fields = list(view.groupby("field_id")["value"].count().sort_values(ascending=False).head(6).index)
-    st.caption("Key parameters are mapped from the selected equipment type. An Admin can replace this mapping for the exact equipment in Dashboard Templates.")
+    st.caption("The selected equipment and dashboard template automatically filter every data-field control. Admins can update these maps in Field Mappings.")
     with st.expander("Data Field Selection Tool — DCS · Field · QAQC · Others", expanded=False):
         selected_fields = grouped_field_selector(bu, f"equipment_fields_{equipment_id}", available, chart_fields)
     if selected_fields:
@@ -586,102 +611,114 @@ def page_operations(bu: str, user: auth.User) -> None:
             st.success("Preset saved.")
 
 
-def page_input(bu: str, user: auth.User, embedded: bool = False) -> None:
-    if not embedded:
-        hero("Input Data", "Manual QAQC and Field input · Selective bulk upload · DCS pipeline connector")
+def manual_entry_panel(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "input"):
         st.warning("Your role is view-only.")
         return
-    manual, bulk, pipeline = st.tabs(["Manual Entry", "Bulk Upload", "DCS Pipeline"])
+    equipment = storage.equipment(bu)
+    equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
+    if equipment.empty:
+        st.info("No active equipment is configured.")
+        return
+    equipment_label = st.selectbox(
+        "Equipment",
+        equipment.apply(lambda row: f"{row['equipment_id']} — {row['equipment_name']}", axis=1),
+        key="manual_equipment",
+    )
+    equipment_id = equipment_label.split(" — ", 1)[0]
+    equipment_row = equipment[equipment["equipment_id"] == equipment_id].iloc[0]
     source_names = lambda value: "QAQC (Laboratory)" if value == "Lab" else value
-    with manual:
-        source = st.selectbox("Source", list(storage.SOURCES), index=2, format_func=source_names)
-        registry = active_registry(bu, source)
-        if registry.empty:
-            st.info("No active fields are configured for this source. A BU Admin can activate fields in Admin.")
+    source = st.selectbox("Source", list(storage.SOURCES), index=2, format_func=source_names, key="manual_source")
+    registry = mapped_registry(bu, source, equipment_id=equipment_id)
+    if registry.empty:
+        st.info("No active data fields are mapped to this equipment and source. An Admin can update Field Mappings.")
+        return
+    field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in registry.itertuples()}
+    selected = st.multiselect("Data Fields", list(field_options), default=list(field_options)[:3], key="manual_fields")
+    with st.form("manual_input"):
+        first, second = st.columns(2)
+        day = first.date_input("Date", date.today())
+        time_value = second.time_input("Time", datetime.now().replace(minute=0, second=0, microsecond=0).time())
+        values = {field_options[label]: st.number_input(label, value=None, placeholder="Enter value") for label in selected}
+        save = st.form_submit_button("Validate and Save", type="primary")
+    if save:
+        row = {"Date": day.isoformat(), "Time": time_value.strftime("%H:%M"), "Business unit": bu, "Plant": equipment_row["plant"], "Unit/Section": equipment_row["unit_section"], "Equipment": equipment_id, **values}
+        clean, issues, flags = storage.validate_rows(bu, source, pd.DataFrame([row]))
+        if not issues.empty:
+            st.error("Validation failed.")
+            safe_dataframe(issues, hide_index=True)
         else:
-            equipment = storage.equipment(bu)
-            equipment = equipment[equipment["active"].str.lower() == "true"]
-            field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in registry.itertuples()}
-            selected = st.multiselect("Data Fields", list(field_options), default=list(field_options)[:3])
-            equipment_label = st.selectbox("Equipment", equipment.apply(lambda row: f"{row['equipment_id']} — {row['equipment_name']}", axis=1))
-            equipment_id = equipment_label.split(" — ", 1)[0]
-            equipment_row = equipment[equipment["equipment_id"] == equipment_id].iloc[0]
-            with st.form("manual_input"):
-                first, second = st.columns(2)
-                day = first.date_input("Date", date.today())
-                time_value = second.time_input("Time", datetime.now().replace(minute=0, second=0, microsecond=0).time())
-                values = {field_options[label]: st.number_input(label, value=None, placeholder="Enter value") for label in selected}
-                save = st.form_submit_button("Validate and Save", type="primary")
-            if save:
-                row = {"Date": day.isoformat(), "Time": time_value.strftime("%H:%M"), "Business unit": bu, "Plant": equipment_row["plant"], "Unit/Section": equipment_row["unit_section"], "Equipment": equipment_id, **values}
-                clean, issues, flags = storage.validate_rows(bu, source, pd.DataFrame([row]))
-                if not issues.empty:
-                    st.error("Validation failed.")
-                    safe_dataframe(issues, hide_index=True)
-                else:
-                    count, flag_count = storage.save_validated_input(bu, source, clean, user.username)
-                    storage.notify(bu, f"{count} {source} row saved ({flag_count} flags).", "error" if flag_count else "success", created_by=user.username)
-                    st.success(f"Saved {count} row; {flag_count} validation flag(s).")
-    with bulk:
-        source = st.selectbox("1. Select Source", list(storage.SOURCES), key="bulk_source", format_func=source_names)
-        registry = active_registry(bu, source)
-        field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in registry.itertuples()}
-        selected_labels = st.multiselect("2. Select Data Fields to Upload", list(field_options), key="bulk_fields")
-        selected_ids = [field_options[label] for label in selected_labels]
-        st.caption(f"The template will contain the six identification columns plus only {len(selected_ids)} selected data field(s).")
-        st.download_button("3. Download Tailored CSV Template", storage.template_bytes(bu, source, selected_ids), f"{bu}_{source}_selected_template.csv", "text/csv", disabled=not selected_ids)
-        upload = st.file_uploader("4. Upload Completed CSV or Excel", type=["csv", "xlsx"], key="bulk_file", disabled=not selected_ids)
-        if upload:
-            try:
-                frame = pd.read_csv(upload, dtype=str, keep_default_na=False) if upload.name.lower().endswith(".csv") else pd.read_excel(upload, dtype=str).fillna("")
-                clean, issues, flags = storage.validate_rows(bu, source, frame)
-                uploaded_fields = [column for column in frame.columns if column in set(registry["field_id"])]
-                selection_issues = []
-                for field in sorted(set(selected_ids) - set(uploaded_fields)):
-                    selection_issues.append({"row": 0, "field": field, "severity": "Error", "message": "Selected field is missing from the uploaded template"})
-                for field in sorted(set(uploaded_fields) - set(selected_ids)):
-                    selection_issues.append({"row": 0, "field": field, "severity": "Error", "message": "Field was not selected for this upload"})
-                if selection_issues:
-                    issues = pd.concat([issues, pd.DataFrame(selection_issues)], ignore_index=True)
-                st.markdown("#### Validation Report")
-                if issues.empty:
-                    st.success(f"{len(clean)} rows passed structural validation for the selected fields.")
-                else:
-                    safe_dataframe(issues, width="stretch", hide_index=True)
-                if not flags.empty:
-                    st.warning(f"{len(flags)} value(s) will be flagged but may still be saved.")
-                    safe_dataframe(flags, hide_index=True)
-                if st.button("Save Validated Rows", disabled=not issues.empty, type="primary"):
-                    count, flag_count = storage.save_validated_input(bu, source, clean, user.username)
-                    storage.audit(bu, user.username, "bulk_upload", {"source": source, "fields": selected_ids, "rows": count, "flags": flag_count})
-                    st.success(f"Saved {count} rows.")
-            except Exception as exc:
-                st.error(f"Upload could not be read: {exc}")
-    with pipeline:
-        settings = storage.json_setting(storage.bu_dir(bu) / "pipeline.json", {})
-        st.code(settings.get("url") or "DCS endpoint not configured")
-        if st.button("Pull DCS Data Now", disabled=not bool(settings.get("url"))):
-            try:
-                token = ""
-                if settings.get("token_secret_name"):
-                    token = str(st.secrets.get("dcs", {}).get(settings["token_secret_name"], ""))
-                count, flag_count = dcs_connector.ingest(bu, settings["url"], token, user.username)
-                st.success(f"Ingested {count} rows; {flag_count} flags.")
-            except Exception as exc:
-                st.error(f"DCS pull failed: {exc}")
+            count, flag_count = storage.save_validated_input(bu, source, clean, user.username)
+            storage.notify(bu, f"{count} {source} row saved ({flag_count} flags).", "error" if flag_count else "success", created_by=user.username)
+            st.success(f"Saved {count} row; {flag_count} validation flag(s).")
+
+
+def bulk_upload_panel(bu: str, user: auth.User) -> None:
+    if not auth.allowed(user, "input"):
+        st.warning("Your role is view-only.")
+        return
+    equipment = storage.equipment(bu)
+    equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
+    if equipment.empty:
+        st.info("No active equipment is configured.")
+        return
+    equipment_options = {f"{row.equipment_id} — {row.equipment_name}": row.equipment_id for row in equipment.itertuples()}
+    equipment_label = st.selectbox("1. Select Equipment Mapping Scope", list(equipment_options), key="bulk_equipment")
+    equipment_id = equipment_options[equipment_label]
+    source_names = lambda value: "QAQC (Laboratory)" if value == "Lab" else value
+    source = st.selectbox("2. Select Source", list(storage.SOURCES), key="bulk_source", format_func=source_names)
+    registry = mapped_registry(bu, source, equipment_id=equipment_id)
+    field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in registry.itertuples()}
+    selected_labels = st.multiselect("3. Select Mapped Data Fields to Upload", list(field_options), key="bulk_fields")
+    selected_ids = [field_options[label] for label in selected_labels]
+    st.caption(f"The template will contain the six identification columns plus only {len(selected_ids)} mapped data field(s).")
+    st.download_button(
+        "4. Download Tailored CSV Template",
+        storage.template_bytes(bu, source, selected_ids, equipment_id=equipment_id),
+        f"{bu}_{source}_{equipment_id}_selected_template.csv",
+        "text/csv",
+        disabled=not selected_ids,
+    )
+    upload = st.file_uploader("5. Upload Completed CSV or Excel", type=["csv", "xlsx"], key="bulk_file", disabled=not selected_ids)
+    if upload:
+        try:
+            frame = pd.read_csv(upload, dtype=str, keep_default_na=False) if upload.name.lower().endswith(".csv") else pd.read_excel(upload, dtype=str).fillna("")
+            clean, issues, flags = storage.validate_rows(bu, source, frame)
+            uploaded_fields = [column for column in frame.columns if column in set(registry["field_id"])]
+            selection_issues = []
+            for field in sorted(set(selected_ids) - set(uploaded_fields)):
+                selection_issues.append({"row": 0, "field": field, "severity": "Error", "message": "Selected field is missing from the uploaded template"})
+            for field in sorted(set(uploaded_fields) - set(selected_ids)):
+                selection_issues.append({"row": 0, "field": field, "severity": "Error", "message": "Field was not selected for this upload"})
+            if selection_issues:
+                issues = pd.concat([issues, pd.DataFrame(selection_issues)], ignore_index=True)
+            st.markdown("#### Validation Report")
+            if issues.empty:
+                st.success(f"{len(clean)} rows passed structural validation for the selected fields.")
+            else:
+                safe_dataframe(issues, width="stretch", hide_index=True)
+            if not flags.empty:
+                st.warning(f"{len(flags)} value(s) will be flagged but may still be saved.")
+                safe_dataframe(flags, hide_index=True)
+            if st.button("Save Validated Rows", disabled=not issues.empty, type="primary"):
+                count, flag_count = storage.save_validated_input(bu, source, clean, user.username)
+                storage.audit(bu, user.username, "bulk_upload", {"source": source, "equipment_scope": equipment_id, "fields": selected_ids, "rows": count, "flags": flag_count})
+                st.success(f"Saved {count} rows.")
+        except Exception as exc:
+            st.error(f"Upload could not be read: {exc}")
 
 
 def page_operational_data(bu: str, user: auth.User) -> None:
-    hero("Operational Data", "Input Data · Derived Data · Analyze Data")
-    input_tab, derived_tab, analyze_tab = st.tabs(["Input Data", "Derived Data", "Analyze Data"])
-    with input_tab:
-        page_input(bu, user, embedded=True)
+    hero("Operational Data", "Manual Entry · Bulk Upload · Derived Data · Analyze Data")
+    manual_tab, bulk_tab, derived_tab, analyze_tab = st.tabs(["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"])
+    with manual_tab:
+        manual_entry_panel(bu, user)
+    with bulk_tab:
+        bulk_upload_panel(bu, user)
     with derived_tab:
         page_output(bu, user, embedded=True)
     with analyze_tab:
         page_analysis(bu, user, embedded=True)
-
 
 def page_events(bu: str, user: auth.User) -> None:
     hero("Event Log", "Filter, print and export events · Optional Field Data update · Pictures · Notifications")
@@ -715,9 +752,9 @@ def page_events(bu: str, user: auth.User) -> None:
             equipment_row = equipment[equipment["equipment_id"] == equipment_id].iloc[0]
             picture = st.file_uploader("Picture Attachment", type=["png", "jpg", "jpeg", "webp"], disabled=event_format != "Picture")
             send_field_update = st.checkbox("Send a Field Data Update With This Event", value=False)
-            field_registry = active_registry(bu, "Field")
+            field_registry = mapped_registry(bu, "Field", equipment_id=equipment_id)
             field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in field_registry.itertuples()}
-            selected_fields = st.multiselect("Field Data Fields", list(field_options), disabled=not send_field_update, help="Choose any active F field to store with the event for later comparison with DCS data.")
+            selected_fields = st.multiselect("Field Data Fields", list(field_options), disabled=not send_field_update, help="Choose an active F field mapped to this equipment for later comparison with DCS data.")
             with st.form("event_input"):
                 first, second = st.columns(2)
                 day = first.date_input("Event Date", date.today())
@@ -912,11 +949,12 @@ def page_parameters(bu: str, user: auth.User) -> None:
     all_data = long_data(bu)
     base = all_data[all_data["Equipment"] == equipment_id] if not all_data.empty else pd.DataFrame()
     available_ids = set(base["field_id"].astype(str)) if not base.empty else set()
-    registry = active_registry(bu)
+    registry = mapped_registry(bu, equipment_id=equipment_id)
     defaults = []
     for sources in [("DCS",), ("Field",), ("Lab",)]:
         defaults.extend(registry[registry["source"].isin(sources) & registry["field_id"].isin(available_ids)]["field_id"].head(2).tolist())
-    selected_ids = grouped_field_selector(bu, "parameters_fields", None, defaults)
+    mapped_ids = set(registry["field_id"].astype(str))
+    selected_ids = grouped_field_selector(bu, "parameters_fields", mapped_ids, defaults)
     process, quality = st.tabs(["Process", "Quality / QAQC"])
     with process:
         process_ids = [field for field in selected_ids if not field.startswith("L")]
@@ -988,7 +1026,7 @@ def page_risk(bu: str, user: auth.User) -> None:
         if st.button("Prepare Printable PDF"):
             now = datetime.now(timezone.utc)
             serial = make_serial(now, context.get("equipment", ""), "")
-            payload = {"serial": serial, "bu": bu.title(), "company": "OPERA — DANGOTE INDUSTRIES", "form_title": "RISK ASSESSMENT FORM", "register_status": "Approved", "register_source": source, "fingerprint": register.fingerprint, "header": [("Assessment No.", serial), ("Preset / Job", context.get("preset")), ("Description", context.get("description")), ("Location", context.get("location")), ("Equipment", context.get("equipment")), ("Motion / Status", f"{context.get('motion')} / {context.get('status')}")], "hazards": hazards, "excluded": set(excluded), "categories": register.categories, "erp": ["Raise alarm and stop work.", "Make the area safe without personal exposure.", "Notify the control room and emergency response team.", "Provide first aid only when trained and safe."], "assessed_by": user.display_name, "reviewed_by": "", "generated": now.isoformat(timespec="seconds")}
+            payload = {"serial": serial, "bu": bu.title(), "company": "OPERA-X — DANGOTE INDUSTRIES", "form_title": "RISK ASSESSMENT FORM", "register_status": "Approved", "register_source": source, "fingerprint": register.fingerprint, "header": [("Assessment No.", serial), ("Preset / Job", context.get("preset")), ("Description", context.get("description")), ("Location", context.get("location")), ("Equipment", context.get("equipment")), ("Motion / Status", f"{context.get('motion')} / {context.get('status')}")], "hazards": hazards, "excluded": set(excluded), "categories": register.categories, "erp": ["Raise alarm and stop work.", "Make the area safe without personal exposure.", "Notify the control room and emergency response team.", "Provide first aid only when trained and safe."], "assessed_by": user.display_name, "reviewed_by": "", "generated": now.isoformat(timespec="seconds")}
             st.session_state.risk_pdf = build_pdf(payload)
             st.session_state.risk_serial = serial
             storage.append_rows(storage.bu_dir(bu) / "risk_assessments.csv", [{"serial": serial, "timestamp": storage.utcnow(), "preset": context.get("preset"), "job_type": ";".join(context.get("tags", [])), "location": context.get("location"), "equipment": context.get("equipment"), "hazard_count": len(hazards) - len(excluded), "assessed_by": user.username}])
@@ -1147,7 +1185,7 @@ def template_admin(bu: str, user: auth.User) -> None:
         equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
         scope_options = {"Template Default (all equipment without an override)": ""}
         scope_options.update({f"{row.equipment_id} — {row.equipment_name}": row.equipment_id for row in equipment.itertuples()})
-        scope_label = st.selectbox("Key Parameter Mapping Scope", list(scope_options), help="Choose an equipment record to replace OPERA's intelligent default key-parameter mapping for that equipment.")
+        scope_label = st.selectbox("Key Parameter Mapping Scope", list(scope_options), help="Choose an equipment record to replace OPERA-X's intelligent default key-parameter mapping for that equipment.")
         scope_id = scope_options[scope_label]
         if scope_id:
             defaults_chart, defaults_table = dashboard.fields_for_equipment(selected, scope_id)
@@ -1177,6 +1215,64 @@ def template_admin(bu: str, user: auth.User) -> None:
             dashboard.save_templates(bu, templates)
             storage.audit(bu, user.username, "dashboard_template_changed", {"module": module, "template": selected["id"], "equipment": scope_id or "default"})
             st.success("Dashboard template saved.")
+
+
+def field_mapping_admin(bu: str, user: auth.User) -> None:
+    st.markdown("#### Data Field Mapping")
+    st.caption("Every input and placeholder field has a deterministic default map. Saving here creates an Admin override used by every equipment- and template-aware data-field dropdown.")
+    registry = storage.registry(bu)
+    if registry.empty:
+        st.info("No data fields are configured.")
+        return
+    first, second = st.columns(2)
+    source = first.selectbox("Source", sorted(registry["source"].astype(str).unique()), key="mapping_source")
+    state = second.selectbox("Field Status", ["Active", "Placeholder / Inactive", "All"], key="mapping_status")
+    candidates = registry[registry["source"].astype(str) == source]
+    if state == "Active":
+        candidates = candidates[candidates["active"].astype(str).str.lower() == "true"]
+    elif state == "Placeholder / Inactive":
+        candidates = candidates[candidates["active"].astype(str).str.lower() != "true"]
+    field_options = {
+        f"{row.field_id} — {row.field_name} ({'Active' if str(row.active).lower() == 'true' else 'Placeholder / Inactive'})": str(row.field_id)
+        for row in candidates.itertuples()
+    }
+    if not field_options:
+        st.info("No fields match this filter.")
+        return
+    field_label = st.selectbox("Data Field", list(field_options), key="mapping_field")
+    field_id = field_options[field_label]
+    row = candidates[candidates["field_id"].astype(str) == field_id].iloc[0]
+    equipment = storage.equipment(bu)
+    equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
+    equipment_options = {f"{item.equipment_id} — {item.equipment_name}": str(item.equipment_id) for item in equipment.itertuples()}
+    template_options = {name: template_id for template_id, name in dashboard.MAPPING_TEMPLATES.items()}
+    current = dashboard.field_mapping(bu, field_id, str(row["source"]), str(row["field_name"]), equipment)
+    equipment_reverse = {value: label for label, value in equipment_options.items()}
+    template_reverse = {value: label for label, value in template_options.items()}
+    selected_equipment_labels = st.multiselect(
+        "Mapped Equipment",
+        list(equipment_options),
+        default=[equipment_reverse[item] for item in current["equipment_ids"] if item in equipment_reverse],
+        key=f"mapping_equipment_{source}_{field_id}",
+    )
+    selected_template_labels = st.multiselect(
+        "Mapped Dashboard Templates",
+        list(template_options),
+        default=[template_reverse[item] for item in current["template_ids"] if item in template_reverse],
+        key=f"mapping_templates_{source}_{field_id}",
+    )
+    if st.button("Save Data Field Mapping", type="primary"):
+        try:
+            equipment_ids = [equipment_options[label] for label in selected_equipment_labels]
+            template_ids = [template_options[label] for label in selected_template_labels]
+            dashboard.save_field_mapping(bu, field_id, equipment_ids, template_ids)
+            storage.audit(bu, user.username, "field_mapping_changed", {"field_id": field_id, "equipment_ids": equipment_ids, "template_ids": template_ids})
+            st.success("Data field mapping saved and applied to equipment/template field selectors.")
+        except Exception as exc:
+            st.error(str(exc))
+    placeholders = int((registry["active"].astype(str).str.lower() != "true").sum())
+    overrides = len(dashboard.load_field_mapping_overrides(bu))
+    st.caption(f"Mapping coverage: {len(registry):,} of {len(registry):,} fields · {placeholders:,} placeholders covered · {overrides:,} Admin override(s).")
 
 
 def equipment_admin(bu: str, user: auth.User) -> None:
@@ -1222,11 +1318,11 @@ def equipment_admin(bu: str, user: auth.User) -> None:
 
 
 def page_admin(bu: str, user: auth.User) -> None:
-    hero("Admin / Super Admin", "Business units · Users · Fields · Dashboard templates · Equipment · Storage · Audit")
+    hero("Admin / Super Admin", "Business units · Users · Fields · Mappings · Dashboard templates · Equipment · DCS · Storage · Audit")
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
-    tabs = st.tabs(["Business Units", "Users & Roles", "Fields & Formulas", "Dashboard Templates", "Equipment", "Risk Registers", "DCS Connector", "Presets", "Audit & Backup"])
+    tabs = st.tabs(["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Risk Registers", "DCS Connector", "Presets", "Audit & Backup"])
     with tabs[0]:
         safe_dataframe(config.business_units(), width="stretch", hide_index=True)
         if user.role == "Super Admin":
@@ -1313,10 +1409,12 @@ def page_admin(bu: str, user: auth.User) -> None:
             except Exception as exc:
                 st.error(str(exc))
     with tabs[3]:
-        template_admin(bu, user)
+        field_mapping_admin(bu, user)
     with tabs[4]:
-        equipment_admin(bu, user)
+        template_admin(bu, user)
     with tabs[5]:
+        equipment_admin(bu, user)
+    with tabs[6]:
         register, source, problem = risk_store.resolve(bu)
         st.write(f"Current: {source or problem}")
         st.write(f"Fingerprint: {register.fingerprint if register else '—'}")
@@ -1338,7 +1436,7 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success(f"Committed: {url}")
             except Exception as exc:
                 st.error(str(exc))
-    with tabs[6]:
+    with tabs[7]:
         settings = storage.json_setting(storage.bu_dir(bu) / "pipeline.json", {})
         url = st.text_input("DCS JSON Endpoint", settings.get("url", ""))
         token_name = st.text_input("Secret Key Under [dcs]", settings.get("token_secret_name", ""))
@@ -1346,7 +1444,18 @@ def page_admin(bu: str, user: auth.User) -> None:
             storage.save_json(storage.bu_dir(bu) / "pipeline.json", {"url": url, "token_secret_name": token_name})
             storage.audit(bu, user.username, "dcs_connector_configured", {"url": url})
             st.success("Connector settings saved; token value remains in Secrets.")
-    with tabs[7]:
+        st.markdown("#### Pipeline Run")
+        st.code(settings.get("url") or "DCS endpoint not configured")
+        if st.button("Pull DCS Data Now", disabled=not bool(settings.get("url")), key="admin_pull_dcs"):
+            try:
+                token = ""
+                if settings.get("token_secret_name"):
+                    token = str(st.secrets.get("dcs", {}).get(settings["token_secret_name"], ""))
+                count, flag_count = dcs_connector.ingest(bu, settings["url"], token, user.username)
+                st.success(f"Ingested {count} rows; {flag_count} flags.")
+            except Exception as exc:
+                st.error(f"DCS pull failed: {exc}")
+    with tabs[8]:
         presets = config.load_presets(bu)
         st.json(presets)
         st.download_button("Download Presets JSON", config.export_presets(bu), f"{bu}_presets.json", "application/json")
@@ -1357,7 +1466,7 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success(f"Imported {count} preset(s).")
             except Exception as exc:
                 st.error(str(exc))
-    with tabs[8]:
+    with tabs[9]:
         audit = storage.read_csv(storage.bu_dir(bu) / "audit_log.csv")
         safe_dataframe(audit.sort_values("timestamp", ascending=False) if not audit.empty else audit, width="stretch", hide_index=True)
         if st.button("Prepare Business Unit Backup ZIP"):
@@ -1386,7 +1495,7 @@ def main() -> None:
         st.rerun()
     page = top_navigation(user, bu)
     routes = {
-        "OPERA Home": page_home, "Plant Overview": page_plant, "Equipment Overview": page_equipment,
+        "OPERA-X Home": page_home, "Plant Overview": page_plant, "Equipment Overview": page_equipment,
         "Operations Dashboard": page_operations, "Operational Data": page_operational_data, "Event Log": page_events,
         "Operating Parameters": page_parameters, "Risk Assessment": page_risk, "Lesson Bank": page_lessons,
         "Admin / Super Admin": page_admin,
