@@ -1,25 +1,25 @@
 from __future__ import annotations
 
 import io
-import json
 import uuid
 import zipfile
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-from opera import auth, config, dashboard, dcs_connector, exports, formula, risk_store, storage
+from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, risk_store, storage
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
 
-st.set_page_config(page_title="OPERA", page_icon="⚙️", layout="wide", initial_sidebar_state="expanded")
+APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_icon.png"
+st.set_page_config(page_title="OPERA", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
 PAGES = [
-    "OPERA Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Data Input",
-    "Event Log", "Data Analysis", "Data Output", "Operating Parameters", "Risk Assessment",
-    "Lesson Bank", "Admin / Super Admin",
+    "OPERA Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data",
+    "Event Log", "Operating Parameters", "Risk Assessment", "Lesson Bank", "Admin / Super Admin",
 ]
 
 
@@ -34,15 +34,10 @@ def styles() -> None:
 html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;color:var(--text)}
 .stApp{background:var(--bg)}
 [data-testid="stHeader"]{background:rgba(238,243,250,.90);backdrop-filter:blur(8px)}
-[data-testid="stSidebar"]{background:var(--panel-alt);border-right:1px solid var(--border)}
-[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
-[data-testid="stSidebar"] label,[data-testid="stSidebar"] span{color:var(--text)}
-[data-testid="stSidebar"] .stButton button{
-  color:var(--blue-dark)!important;background:#FFFFFF!important;border:1px solid var(--border)!important;
-  font-weight:700;box-shadow:0 1px 2px rgba(15,63,156,.05)
-}
-[data-testid="stSidebar"] .stButton button:hover{border-color:var(--blue)!important;background:#EAF1FC!important;color:var(--blue-dark)!important}
-[data-testid="stSidebar"] [data-testid="stSidebarNav"]{padding-top:.4rem}
+[data-testid="stSidebar"]{display:none}
+.top-brand{font-size:1.15rem;font-weight:800;color:var(--blue-dark);padding:.35rem 0}.top-brand span{font-weight:500;color:var(--muted);font-size:.82rem;margin-left:.55rem}
+div[role="radiogroup"]{display:flex;flex-wrap:wrap;gap:.25rem;background:#fff;border:1px solid var(--border);border-radius:10px;padding:.35rem .5rem;margin-bottom:1rem}
+div[role="radiogroup"] label{border-radius:7px;padding:.2rem .45rem;margin:0;color:var(--blue-dark);font-weight:650}
 .block-container{padding-top:2rem;padding-bottom:3rem;max-width:1500px}
 .opera-hero{padding:1.3rem 1.55rem;border-radius:12px;background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff;margin-bottom:1rem;box-shadow:0 8px 24px rgba(15,63,156,.15)}
 .opera-hero h1{margin:0;font-size:1.9rem;letter-spacing:-.02em}.opera-hero p{margin:.35rem 0 0;color:#E7F0FF;opacity:.94}
@@ -50,7 +45,7 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .login-brand .mark{width:58px;height:58px;border-radius:15px;background:#fff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:800;box-shadow:0 10px 24px rgba(0,0,0,.12)}
 .login-brand h1{font-size:3rem;line-height:1;margin:1rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:.82rem;color:#E7F0FF;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem}
 .login-heading{margin:.35rem 0 1.2rem}.login-heading h2{margin:0;color:var(--text);font-size:1.7rem}.login-heading p{color:var(--muted);margin:.35rem 0 0}
-.flow,.panel-note{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;color:#334E68}
+.panel-note{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;color:#334E68}
 .badge-good,.badge-bad,.badge-neutral{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-weight:700;font-size:.75rem;margin-top:.35rem}.badge-good{background:#E4ECF9;color:var(--blue-dark)}.badge-bad{background:#FBE5E5;color:#9F1F2A}.badge-neutral{background:#EDF1F5;color:#44576B}
 .small-note{color:#60758A;font-size:.82rem;margin-top:.2rem}
 .stButton>button,.stDownloadButton>button{border-radius:8px;border:1px solid var(--blue);font-weight:650;min-height:2.45rem}
@@ -61,7 +56,6 @@ div[data-testid="stMetric"]{background:#fff;border:1px solid var(--border);paddi
 div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-soft);border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(21,34,56,.04)}
 .metric-card{border:1px solid var(--border);border-top:4px solid var(--blue);background:#fff;border-radius:10px;padding:1rem;min-height:170px;height:170px;box-sizing:border-box;box-shadow:0 2px 8px rgba(21,34,56,.04);display:flex;flex-direction:column;justify-content:flex-start}
 .metric-card.bad{border-top-color:var(--red)}.metric-value{font-size:1.65rem;font-weight:750;color:var(--blue-dark);line-height:1.15;margin:.45rem 0 .25rem}.metric-title{font-size:.82rem;color:var(--muted);font-weight:700;min-height:2.25rem}.metric-meta{font-size:.8rem;color:var(--muted)}
-.module-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;min-height:105px;height:105px;box-sizing:border-box}.module-card strong{color:var(--blue-dark)}.module-card p{color:var(--muted);font-size:.87rem;margin:.35rem 0 0}
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
@@ -91,7 +85,7 @@ def do_login() -> None:
             """
 <div class="login-brand">
   <div><div class="mark">O</div><h1>OPERA</h1><p>Operational Excellence and Reliability Assistant</p></div>
-  <div class="route">Operational intelligence · Reliability · Continuous improvement</div>
+  <div class="route">One Platform for All Plant Operational Data</div>
 </div>
 """,
             unsafe_allow_html=True,
@@ -111,7 +105,6 @@ def do_login() -> None:
                     st.session_state.user = user
                     storage.audit("shared", user.username, "login", {"role": user.role})
                     st.rerun()
-            st.caption("Testing credentials are documented in README.md. Change all seeded passwords before production.")
     st.stop()
 
 
@@ -123,7 +116,7 @@ def choose_bu(user: auth.User) -> None:
         st.error("No active business unit is assigned to this account.")
         st.stop()
     labels = {row["name"]: row["id"] for _, row in bus.iterrows()}
-    left, right = st.columns([2, 1])
+    left, right = st.columns([3, 1], vertical_alignment="bottom")
     selected = left.selectbox("Business Unit", labels)
     if right.button("Open OPERA", type="primary", width="stretch"):
         st.session_state.bu = labels[selected]
@@ -153,33 +146,38 @@ def password_change_gate(user: auth.User) -> None:
     st.stop()
 
 
-def sidebar(user: auth.User, bu: str) -> str:
+def top_navigation(user: auth.User, bu: str) -> str:
     bus = config.business_units()
     name = bus.loc[bus["id"] == bu, "name"].iloc[0] if (bus["id"] == bu).any() else bu
-    st.sidebar.markdown("## ⚙️ OPERA")
-    st.sidebar.caption(f"{name} · {user.role}")
     unread = storage.unread_notifications(bu, user.username)
-    with st.sidebar.expander(f"Notifications ({len(unread)})", expanded=False):
-        if unread.empty:
-            st.caption("No unread notifications.")
-        else:
-            for _, row in unread.head(10).iterrows():
-                (st.error if row["level"] == "error" else st.success)(row["message"])
-            if st.button("Mark All as Read", width="stretch"):
-                storage.mark_notifications_read(bu, user.username)
-                st.rerun()
-    available = [page for page in PAGES if page != "Admin / Super Admin" or auth.allowed(user, "configure")]
-    page = st.sidebar.radio("Navigate", available)
-    st.sidebar.divider()
-    if st.sidebar.button("⇄  Change Business Unit", width="stretch"):
+    brand, notice, change, signout = st.columns([3.2, 1.1, 1.35, 1.0], vertical_alignment="center")
+    brand.markdown(f'<div class="top-brand">OPERA <span>{name} · {user.role}</span></div>', unsafe_allow_html=True)
+    show_notifications = notice.toggle(f"🔔 {len(unread)}", key="show_notifications", help="Show unread notifications")
+    if change.button("⇄ Change BU", width="stretch"):
         st.session_state.pop("bu", None)
         st.rerun()
-    if st.sidebar.button("↪  Sign Out", width="stretch"):
+    if signout.button("↪ Sign Out", width="stretch"):
         storage.audit(bu, user.username, "logout")
         st.session_state.clear()
         st.rerun()
-    st.sidebar.caption("Data Input → Event Log → Data Analysis → Data Output")
-    return page
+    if show_notifications:
+        with st.container(border=True):
+            if unread.empty:
+                st.caption("No unread notifications.")
+            else:
+                for _, row in unread.head(10).iterrows():
+                    (st.error if row["level"] == "error" else st.success)(row["message"])
+                if st.button("Mark All as Read", key="top_mark_notifications"):
+                    storage.mark_notifications_read(bu, user.username)
+                    st.rerun()
+    available = [page for page in PAGES if page != "Admin / Super Admin" or auth.allowed(user, "configure")]
+    requested = st.session_state.pop("requested_page", None)
+    if requested in available:
+        st.session_state.top_navigation = requested
+    current = st.session_state.get("top_navigation")
+    if current not in available:
+        st.session_state.top_navigation = available[0]
+    return st.radio("Navigation", available, horizontal=True, key="top_navigation", label_visibility="collapsed")
 
 
 def source_frame(bu: str, source: str) -> pd.DataFrame:
@@ -195,10 +193,38 @@ def active_registry(bu: str, source: str | None = None) -> pd.DataFrame:
     return registry if source is None else registry[registry["source"] == source]
 
 
+def grouped_field_selector(
+    bu: str,
+    key: str,
+    available_ids: set[str] | None = None,
+    default_ids: list[str] | None = None,
+) -> list[str]:
+    groups = operational.grouped_registry(active_registry(bu), available_ids)
+    defaults = set(default_ids or [])
+    selected: list[str] = []
+    columns = st.columns(4, gap="small")
+    for column, (group_name, group) in zip(columns, groups.items()):
+        label_map = dashboard.field_label_map(group)
+        labels = list(label_map.values())
+        default_labels = [label_map[field] for field in label_map if field in defaults]
+        with column:
+            chosen = st.multiselect(group_name, labels, default=default_labels, key=f"{key}_{group_name.lower()}")
+        selected.extend(label.split(" — ", 1)[0] for label in chosen)
+    registry = active_registry(bu).set_index("field_id")
+    readable = [f"{field} — {registry.at[field, 'field_name']}" for field in selected if field in registry.index]
+    st.caption("Selected data fields: " + (" · ".join(readable) if readable else "None"))
+    return list(dict.fromkeys(selected))
+
+
+def display_data_table(frame: pd.DataFrame, bu: str, **kwargs: Any) -> None:
+    calculated = storage.read_csv(storage.bu_dir(bu) / "calculated_fields.csv")
+    st.dataframe(operational.target_styler(frame, storage.registry(bu), calculated), **kwargs)
+
+
 def long_data(bu: str, sources: list[str] | None = None) -> pd.DataFrame:
     items: list[pd.DataFrame] = []
     registry = active_registry(bu).set_index("field_id")
-    for source in sources or ["DCS", "Lab", "Field"]:
+    for source in sources or list(storage.SOURCES):
         frame = source_frame(bu, source)
         if frame.empty:
             continue
@@ -300,7 +326,7 @@ def kpi_cards(frame: pd.DataFrame, definitions: pd.DataFrame, period: bool = Fal
 
 
 def page_home(bu: str, user: auth.User) -> None:
-    hero("OPERA Home", "Operational intelligence · Reliability · Continuous improvement")
+    hero("OPERA Home", "One Platform for All Plant Operational Data")
     data = long_data(bu)
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
@@ -312,21 +338,28 @@ def page_home(bu: str, user: auth.User) -> None:
     ]
     for column, label, value in zip(columns, ["Readings", "Open Flags", "Events", "Lessons", "Unread Notifications"], values):
         column.metric(label, f"{value:,}")
-    st.markdown("### Operating Flow")
-    st.markdown('<div class="flow"><b>Data Input</b> → validation and flags → <b>Event Log</b> → <b>Data Analysis</b> → <b>Data Output</b> → audited export</div>', unsafe_allow_html=True)
     st.markdown("### Modules")
     cards = [
         ("Plant Overview", "Plant-level trends, conditions and period reports"),
         ("Equipment Overview", "Equipment trends using configurable dashboard templates"),
         ("Operations Dashboard", "Aligned KPI cards, targets, period views and chart grids"),
+        ("Operational Data", "Input Data, Derived Data and Analyze Data in one workspace"),
+        ("Operating Parameters", "Process and QAQC trends across configured equipment"),
+        ("Event Log", "Events, Field updates, pictures and notifications"),
         ("Risk Assessment", "Register-backed deterministic hazard assessment"),
-        ("Lesson Bank", "Independent lessons with optional event references"),
-        ("Admin", "No-code fields, charts, templates, equipment and validation lists"),
+        ("Lesson Bank", "Searchable lessons, files and PDF downloads"),
     ]
+    if auth.allowed(user, "configure"):
+        cards.append(("Admin / Super Admin", "No-code fields, charts, templates, equipment and validation lists"))
     for start in range(0, len(cards), 3):
         cols = st.columns(3, gap="medium")
         for col, (title, text) in zip(cols, cards[start:start + 3]):
-            col.markdown(f'<div class="module-card"><strong>{title}</strong><p>{text}</p></div>', unsafe_allow_html=True)
+            with col.container(border=True):
+                st.markdown(f"**{title}**")
+                st.caption(text)
+                if st.button(f"Open {title}", key=f"home_{title}", width="stretch"):
+                    st.session_state.requested_page = title
+                    st.rerun()
 
 
 def page_plant(bu: str, user: auth.User) -> None:
@@ -357,7 +390,7 @@ def page_plant(bu: str, user: auth.User) -> None:
     summary = view[view["field_id"].isin(table_fields)].groupby(["field_id", "field_name", "uom"], as_index=False).agg(Average=("value", "mean"), Minimum=("value", "min"), Maximum=("value", "max"), Readings=("value", "count"))
     summary["Target"] = summary["field_id"].map(active_registry(bu).set_index("field_id")["target"])
     st.markdown("### Data Table")
-    st.dataframe(summary, width="stretch", hide_index=True)
+    display_data_table(summary, bu, width="stretch", hide_index=True)
     export_panel(summary, f"{plant} Plant Overview", bu, user, "plant")
 
 
@@ -382,18 +415,20 @@ def page_equipment(bu: str, user: auth.User) -> None:
     if view.empty:
         st.info("No readings are assigned to this equipment in the selected period.")
         return
+    configured_chart, configured_table = dashboard.fields_for_equipment(template, equipment_id)
     available = set(view["field_id"].astype(str))
-    chart_fields = [field for field in template.get("chart_fields", []) if field in available]
+    chart_fields = [field for field in configured_chart if field in available]
     if not chart_fields:
         chart_fields = list(view.groupby("field_id")["value"].count().sort_values(ascending=False).head(6).index)
     chart_type, axis_mode = chart_controls(template.get("chart_type", "Line"), "equipment")
     st.markdown("### Charts")
     dashboard.render_chart_grid(view, chart_fields, chart_type, axis_mode, "equipment")
-    table_fields = [field for field in template.get("table_fields", []) if field in available] or chart_fields
-    summary = view[view["field_id"].isin(table_fields)].groupby(["field_id", "field_name", "uom"], as_index=False)["value"].agg(["mean", "min", "max", "std"]).reset_index()
-    summary.columns = ["Field ID", "Data Field", "UOM", "Average", "Minimum", "Maximum", "Standard Deviation"]
+    table_fields = [field for field in configured_table if field in available] or chart_fields
+    summary = view[view["field_id"].isin(table_fields)].groupby(["field_id", "field_name", "uom"], as_index=False).agg(
+        Average=("value", "mean"), Minimum=("value", "min"), Maximum=("value", "max"), **{"Standard Deviation": ("value", "std")}
+    ).rename(columns={"field_id": "Field ID", "field_name": "Data Field", "uom": "UOM"})
     st.markdown("### Data Table")
-    st.dataframe(summary, width="stretch", hide_index=True)
+    display_data_table(summary, bu, width="stretch", hide_index=True)
     export_panel(summary, f"{equipment_id} {template['name']}", bu, user, "equipment")
 
 
@@ -446,7 +481,7 @@ def page_operations(bu: str, user: auth.User) -> None:
         records.append({"KPI": row["field_name"], "Value": formula.aggregate(view[field_id], method), "Target": row["period_target"], "UOM": row["uom"], "Status": row["status"]})
     report = pd.DataFrame(records)
     st.markdown("### Data Table")
-    st.dataframe(report, width="stretch", hide_index=True)
+    display_data_table(report, bu, width="stretch", hide_index=True)
     st.markdown("#### Report Sign-Off")
     first, second, third = st.columns(3)
     prepared = first.text_input("Prepared By", user.display_name)
@@ -461,14 +496,16 @@ def page_operations(bu: str, user: auth.User) -> None:
             st.success("Preset saved.")
 
 
-def page_input(bu: str, user: auth.User) -> None:
-    hero("Data Input", "Manual Lab and Field input · Validated bulk upload · DCS pipeline connector")
+def page_input(bu: str, user: auth.User, embedded: bool = False) -> None:
+    if not embedded:
+        hero("Input Data", "Manual QAQC and Field input · Selective bulk upload · DCS pipeline connector")
     if not auth.allowed(user, "input"):
         st.warning("Your role is view-only.")
         return
     manual, bulk, pipeline = st.tabs(["Manual Entry", "Bulk Upload", "DCS Pipeline"])
+    source_names = lambda value: "QAQC (Laboratory)" if value == "Lab" else value
     with manual:
-        source = st.selectbox("Source", list(storage.SOURCES), index=2)
+        source = st.selectbox("Source", list(storage.SOURCES), index=2, format_func=source_names)
         registry = active_registry(bu, source)
         if registry.empty:
             st.info("No active fields are configured for this source. A BU Admin can activate fields in Admin.")
@@ -497,16 +534,29 @@ def page_input(bu: str, user: auth.User) -> None:
                     storage.notify(bu, f"{count} {source} row saved ({flag_count} flags).", "error" if flag_count else "success", created_by=user.username)
                     st.success(f"Saved {count} row; {flag_count} validation flag(s).")
     with bulk:
-        source = st.selectbox("Source", list(storage.SOURCES), key="bulk_source")
-        st.download_button("Download CSV Template", storage.template_bytes(bu, source), f"{bu}_{source}_template.csv", "text/csv")
-        upload = st.file_uploader("Upload Completed CSV or Excel", type=["csv", "xlsx"], key="bulk_file")
+        source = st.selectbox("1. Select Source", list(storage.SOURCES), key="bulk_source", format_func=source_names)
+        registry = active_registry(bu, source)
+        field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in registry.itertuples()}
+        selected_labels = st.multiselect("2. Select Data Fields to Upload", list(field_options), key="bulk_fields")
+        selected_ids = [field_options[label] for label in selected_labels]
+        st.caption(f"The template will contain the six identification columns plus only {len(selected_ids)} selected data field(s).")
+        st.download_button("3. Download Tailored CSV Template", storage.template_bytes(bu, source, selected_ids), f"{bu}_{source}_selected_template.csv", "text/csv", disabled=not selected_ids)
+        upload = st.file_uploader("4. Upload Completed CSV or Excel", type=["csv", "xlsx"], key="bulk_file", disabled=not selected_ids)
         if upload:
             try:
                 frame = pd.read_csv(upload, dtype=str, keep_default_na=False) if upload.name.lower().endswith(".csv") else pd.read_excel(upload, dtype=str).fillna("")
                 clean, issues, flags = storage.validate_rows(bu, source, frame)
+                uploaded_fields = [column for column in frame.columns if column in set(registry["field_id"])]
+                selection_issues = []
+                for field in sorted(set(selected_ids) - set(uploaded_fields)):
+                    selection_issues.append({"row": 0, "field": field, "severity": "Error", "message": "Selected field is missing from the uploaded template"})
+                for field in sorted(set(uploaded_fields) - set(selected_ids)):
+                    selection_issues.append({"row": 0, "field": field, "severity": "Error", "message": "Field was not selected for this upload"})
+                if selection_issues:
+                    issues = pd.concat([issues, pd.DataFrame(selection_issues)], ignore_index=True)
                 st.markdown("#### Validation Report")
                 if issues.empty:
-                    st.success(f"{len(clean)} rows passed structural validation.")
+                    st.success(f"{len(clean)} rows passed structural validation for the selected fields.")
                 else:
                     st.dataframe(issues, width="stretch", hide_index=True)
                 if not flags.empty:
@@ -514,7 +564,7 @@ def page_input(bu: str, user: auth.User) -> None:
                     st.dataframe(flags, hide_index=True)
                 if st.button("Save Validated Rows", disabled=not issues.empty, type="primary"):
                     count, flag_count = storage.save_validated_input(bu, source, clean, user.username)
-                    storage.audit(bu, user.username, "bulk_upload", {"source": source, "rows": count, "flags": flag_count})
+                    storage.audit(bu, user.username, "bulk_upload", {"source": source, "fields": selected_ids, "rows": count, "flags": flag_count})
                     st.success(f"Saved {count} rows.")
             except Exception as exc:
                 st.error(f"Upload could not be read: {exc}")
@@ -530,6 +580,17 @@ def page_input(bu: str, user: auth.User) -> None:
                 st.success(f"Ingested {count} rows; {flag_count} flags.")
             except Exception as exc:
                 st.error(f"DCS pull failed: {exc}")
+
+
+def page_operational_data(bu: str, user: auth.User) -> None:
+    hero("Operational Data", "Input Data · Derived Data · Analyze Data")
+    input_tab, derived_tab, analyze_tab = st.tabs(["Input Data", "Derived Data", "Analyze Data"])
+    with input_tab:
+        page_input(bu, user, embedded=True)
+    with derived_tab:
+        page_output(bu, user, embedded=True)
+    with analyze_tab:
+        page_analysis(bu, user, embedded=True)
 
 
 def page_events(bu: str, user: auth.User) -> None:
@@ -602,28 +663,29 @@ def page_events(bu: str, user: auth.User) -> None:
                     st.success(f"Event {event_id} saved" + (" with a Field Data update." if send_field_update else "."))
 
 
-def page_analysis(bu: str, user: auth.User) -> None:
-    hero("Data Analysis", "Compare fields on one axis or in an individual-axis chart grid · Field vs DCS")
+def page_analysis(bu: str, user: auth.User, embedded: bool = False) -> None:
+    if not embedded:
+        hero("Analyze Data", "Compare Any Data Field · Field vs DCS · Bounded optimization")
     data = long_data(bu)
-    compare, dcs_tab = st.tabs(["Field Comparison", "Field vs DCS"])
+    compare, dcs_tab, optimization_tab = st.tabs(["Compare Any Data Field", "Field vs DCS", "Optimization"])
     with compare:
+        st.markdown("#### Compare Any Data Field")
         if data.empty:
             st.info("No data is available.")
         else:
-            registry = active_registry(bu)
-            label_map = dashboard.field_label_map(registry)
-            available_ids = list(dict.fromkeys(data["field_id"].astype(str).tolist()))
-            labels = [label_map[field] for field in available_ids if field in label_map]
-            selected_labels = st.multiselect("Select at Least Two Data Fields", labels, default=labels[:2])
-            selected_ids = [label.split(" — ", 1)[0] for label in selected_labels]
+            available_ids = set(data["field_id"].astype(str))
+            defaults = list(data[data["source"].isin(["DCS", "Field"])]["field_id"].drop_duplicates().head(2))
+            selected_ids = grouped_field_selector(bu, "analysis_compare", available_ids, defaults)
             analysis = st.selectbox("Analysis Type", ["Trend", "Prediction", "Mean", "Average", "Standard Deviation", "Minimum / Maximum"])
             chart_type, axis_mode = chart_controls("Line", "analysis")
             view = period_filter(data[data["field_id"].isin(selected_ids)], "analysis") if selected_ids else pd.DataFrame()
             if len(selected_ids) < 2:
-                st.info("Select two or more fields.")
-            elif not view.empty:
+                st.info("Select two or more fields across DCS, Field, QAQC or Others.")
+            elif view.empty:
+                st.info("No readings are available for the selected fields and period.")
+            else:
                 dashboard.render_chart_grid(view, selected_ids, chart_type, axis_mode, "analysis")
-                summary = view.groupby(["field_id", "field_name", "uom"])["value"].agg(["count", "mean", "std", "min", "max"]).reset_index()
+                summary = view.groupby(["field_id", "field_name", "uom"], as_index=False).agg(count=("value", "count"), mean=("value", "mean"), std=("value", "std"), min=("value", "min"), max=("value", "max"))
                 if analysis == "Prediction":
                     horizon = st.slider("Forecast Horizon (Periods)", 1, 30, 7)
                     forecasts = []
@@ -633,8 +695,8 @@ def page_analysis(bu: str, user: auth.User) -> None:
                         if len(values) >= 2:
                             slope, intercept = np.polyfit(x, values, 1)
                             forecasts.append({"Field ID": field_id, "Data Field": name, "Trend Slope": slope, "Forecast End": intercept + slope * (len(values) + horizon - 1)})
-                    st.dataframe(pd.DataFrame(forecasts), hide_index=True)
-                st.dataframe(summary, width="stretch", hide_index=True)
+                    display_data_table(pd.DataFrame(forecasts), bu, hide_index=True)
+                display_data_table(summary, bu, width="stretch", hide_index=True)
                 export_panel(summary, f"{analysis} Analysis", bu, user, "analysis")
     with dcs_tab:
         field_registry = active_registry(bu, "Field")
@@ -663,14 +725,56 @@ def page_analysis(bu: str, user: auth.User) -> None:
             chart["uom"] = chart["field_id"].map(units)
             chart_type, axis_mode = chart_controls("Line", "field_dcs")
             dashboard.render_chart_grid(chart, [field_id, dcs_id], chart_type, axis_mode, "field_dcs")
-            st.dataframe(comparison, width="stretch", hide_index=True)
+            display_data_table(comparison, bu, width="stretch", hide_index=True)
             export_panel(comparison, "Field vs DCS", bu, user, "field_dcs")
         else:
             st.info("No paired readings are available for this selection.")
+    with optimization_tab:
+        st.markdown("#### Bounded Response Optimization")
+        st.caption("This decision-support tool fits a linear response model from aligned historical readings, then applies bounds to maximize, minimize or match an outcome. Review operational and safety constraints before use.")
+        if data.empty:
+            st.info("No data is available for optimization.")
+        else:
+            available_ids = set(data["field_id"].astype(str))
+            default_decisions = list(data[data["source"] == "DCS"]["field_id"].drop_duplicates().head(2))
+            decision_ids = grouped_field_selector(bu, "optimization_decisions", available_ids, default_decisions)
+            label_map = dashboard.field_label_map(active_registry(bu))
+            outcome_options = [label_map[field] for field in data["field_id"].astype(str).drop_duplicates() if field in label_map and field not in decision_ids]
+            if outcome_options:
+                outcome_label = st.selectbox("Outcome Data Field", outcome_options)
+                outcome_id = outcome_label.split(" — ", 1)[0]
+                objective = st.selectbox("Optimization Goal", ["Maximize outcome", "Minimize outcome", "Match target outcome"])
+                target_value = st.number_input("Target Outcome", value=0.0, disabled=objective != "Match target outcome")
+                aligned = operational.prepare_optimization_frame(data, decision_ids, outcome_id)
+                bounds = {}
+                if decision_ids:
+                    st.markdown("##### Decision Bounds")
+                    for field_id in decision_ids:
+                        observed = pd.to_numeric(aligned.get(field_id, pd.Series(dtype=float)), errors="coerce").dropna()
+                        low_default = float(observed.min()) if not observed.empty else 0.0
+                        high_default = float(observed.max()) if not observed.empty else 0.0
+                        left, right = st.columns(2)
+                        bounds[field_id] = (left.number_input(f"{field_id} Minimum", value=low_default, key=f"opt_low_{field_id}"), right.number_input(f"{field_id} Maximum", value=high_default, key=f"opt_high_{field_id}"))
+                if st.button("Run Optimization", type="primary", disabled=not decision_ids):
+                    try:
+                        result = operational.optimize_linear_response(aligned, decision_ids, outcome_id, objective, target_value, bounds)
+                        st.session_state.optimization_result = (outcome_id, result)
+                        storage.audit(bu, user.username, "optimization_run", {"outcome": outcome_id, "decisions": decision_ids, "objective": objective})
+                    except Exception as exc:
+                        st.error(f"Optimization could not be completed: {exc}")
+                if "optimization_result" in st.session_state:
+                    saved_outcome, result = st.session_state.optimization_result
+                    st.metric(f"Predicted {saved_outcome}", f"{result['predicted_outcome']:,.3f}", delta=f"{result['predicted_outcome'] - result['baseline_outcome']:+,.3f} vs model baseline")
+                    st.caption(f"Model fit: {result['rows']} aligned readings · R² {result['r_squared']:.3f}")
+                    recommendations = pd.DataFrame([{"Data Field": field, "Recommended Setting": value, "Model Coefficient": result["coefficients"][field]} for field, value in result["recommendation"].items()])
+                    display_data_table(recommendations, bu, width="stretch", hide_index=True)
+            else:
+                st.info("Select fewer decision fields so an outcome remains available.")
 
 
-def page_output(bu: str, user: auth.User) -> None:
-    hero("Data Output", "Calculated fields · Selected-duration results · Input, calculated and merged Excel downloads")
+def page_output(bu: str, user: auth.User, embedded: bool = False) -> None:
+    if not embedded:
+        hero("Derived Data", "Calculated fields · Selected-duration results · Input, calculated and merged Excel downloads")
     frame, definitions, errors = calculated_data(bu)
     if errors:
         st.warning(" | ".join(errors))
@@ -690,7 +794,7 @@ def page_output(bu: str, user: auth.User) -> None:
         status, variance = formula.target_status(value, target, metadata["target_direction"])
         rows.append({"Business Unit": bu, "Calculated Field": field_id, "Name": metadata["field_name"], method: value, "UOM": metadata["uom"], "Target": metadata["period_target"], "Variance": variance, "Status": status})
     result = pd.DataFrame(rows)
-    st.dataframe(result, width="stretch", hide_index=True)
+    display_data_table(result, bu, width="stretch", hide_index=True)
     export_panel(result, "Calculated Data Output", bu, user, "output")
     st.markdown("#### Complete Excel Workbooks")
     if st.button("Prepare Input, Calculated and Merged Excel"):
@@ -704,45 +808,55 @@ def page_output(bu: str, user: auth.User) -> None:
 
 
 def page_parameters(bu: str, user: auth.User) -> None:
-    hero("Operating Parameters", "Process and quality trends, tables, summaries and exports")
-    process, quality = st.tabs(["Process", "Quality"])
+    hero("Operating Parameters", "Select any configured equipment and fields grouped as DCS, Field, QAQC and Others")
+    equipment = storage.equipment(bu)
+    equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
+    if equipment.empty:
+        st.info("No active equipment is configured.")
+        return
+    equipment_labels = {f"{row.equipment_id} — {row.equipment_name} ({row.plant} / {row.unit_section})": row.equipment_id for row in equipment.itertuples()}
+    equipment_label = st.selectbox("Equipment", list(equipment_labels), key="parameters_equipment")
+    equipment_id = equipment_labels[equipment_label]
+    all_data = long_data(bu)
+    base = all_data[all_data["Equipment"] == equipment_id] if not all_data.empty else pd.DataFrame()
+    available_ids = set(base["field_id"].astype(str)) if not base.empty else set()
+    registry = active_registry(bu)
+    defaults = []
+    for sources in [("DCS",), ("Field",), ("Lab",)]:
+        defaults.extend(registry[registry["source"].isin(sources) & registry["field_id"].isin(available_ids)]["field_id"].head(2).tolist())
+    selected_ids = grouped_field_selector(bu, "parameters_fields", None, defaults)
+    process, quality = st.tabs(["Process", "Quality / QAQC"])
     with process:
-        data = long_data(bu, ["DCS", "Field"])
-        if data.empty:
-            st.info("No process data is available.")
+        process_ids = [field for field in selected_ids if not field.startswith("L")]
+        view = base[base["field_id"].isin(process_ids)] if not base.empty and process_ids else pd.DataFrame()
+        if view.empty:
+            st.info("This equipment has no readings for the selected process fields.")
         else:
-            equipment = st.selectbox("Equipment", sorted(data["Equipment"].unique()), key="proc_eq")
-            base = data[data["Equipment"] == equipment]
-            fields = list(base.groupby("field_id")["value"].count().sort_values(ascending=False).head(8).index)
-            registry = active_registry(bu)
-            labels = dashboard.field_label_map(registry)
-            selected_labels = st.multiselect("Data Fields", [labels[field] for field in fields if field in labels], default=[labels[field] for field in fields[:4] if field in labels], key="proc_fields")
-            selected_ids = [label.split(" — ", 1)[0] for label in selected_labels]
-            view = period_filter(base[base["field_id"].isin(selected_ids)], "process_params")
+            view = period_filter(view, "process_params")
             view_format = st.selectbox("View Format", ["Trend", "Table", "Summary"], key="proc_view")
             if view_format == "Trend":
                 chart_type, axis_mode = chart_controls("Line", "process_params")
-                dashboard.render_chart_grid(view, selected_ids, chart_type, axis_mode, "process_params")
+                dashboard.render_chart_grid(view, process_ids, chart_type, axis_mode, "process_params")
             elif view_format == "Table":
-                st.dataframe(view, width="stretch", hide_index=True)
+                display_data_table(view, bu, width="stretch", hide_index=True)
             else:
-                st.dataframe(view.groupby(["field_id", "field_name", "uom"])["value"].agg(["mean", "min", "max"]).reset_index(), hide_index=True)
+                summary = view.groupby(["field_id", "field_name", "uom"], as_index=False).agg(mean=("value", "mean"), min=("value", "min"), max=("value", "max"))
+                display_data_table(summary, bu, hide_index=True)
             export_panel(view, "Process Operating Parameters", bu, user, "proc_params")
     with quality:
-        data = long_data(bu, ["Lab"])
-        if data.empty:
-            st.info("No quality data is available.")
+        qa_ids = [field for field in selected_ids if field.startswith("L")]
+        view = base[base["field_id"].isin(qa_ids)] if not base.empty and qa_ids else pd.DataFrame()
+        if view.empty:
+            st.info("This equipment has no readings for the selected QAQC fields.")
         else:
-            fields = sorted(data["field_name"].unique())
-            selected_fields = st.multiselect("Data Fields", fields, default=fields[:2], key="quality_fields")
-            view = period_filter(data[data["field_name"].isin(selected_fields)], "quality_params")
+            view = period_filter(view, "quality_params")
             view_format = st.selectbox("View Format", ["Trend", "Table", "Distribution"], key="qual_view")
             if view_format in {"Trend", "Distribution"}:
                 chart_type, axis_mode = chart_controls("Line" if view_format == "Trend" else "Box Plot", "quality_params")
-                dashboard.render_chart_grid(view, list(view["field_id"].unique()), chart_type, axis_mode, "quality_params")
+                dashboard.render_chart_grid(view, qa_ids, chart_type, axis_mode, "quality_params")
             else:
-                st.dataframe(view, width="stretch", hide_index=True)
-            export_panel(view, "Quality Operating Parameters", bu, user, "qual_params")
+                display_data_table(view, bu, width="stretch", hide_index=True)
+            export_panel(view, "QAQC Operating Parameters", bu, user, "qual_params")
 
 
 def page_risk(bu: str, user: auth.User) -> None:
@@ -793,24 +907,68 @@ def page_risk(bu: str, user: auth.User) -> None:
 
 
 def page_lessons(bu: str, user: auth.User) -> None:
-    hero("Lesson Bank", "Capture independent lessons and optionally reference an Event Log entry")
-    lessons = storage.read_csv(storage.bu_dir(bu) / "lessons.csv")
+    hero("Lesson Bank", "Capture, filter, view and download lessons with supporting files")
+    path = storage.bu_dir(bu) / "lessons.csv"
+    lessons = storage.read_csv(path)
+    required = ["lesson_id", "timestamp", "event_id", "unit_section", "equipment", "lesson_title", "lesson", "attachment_path", "attachment_name", "attachment_type", "read_count", "entered_by"]
+    for column in required:
+        if column not in lessons:
+            lessons[column] = ""
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     review, entry = st.tabs(["Review Lessons", "Input Lesson"])
     with review:
         if lessons.empty:
             st.info("No lessons have been recorded.")
         else:
+            first, second, third = st.columns(3)
             units = sorted([item for item in lessons["unit_section"].unique() if item])
-            unit = st.selectbox("Unit / Section", ["All"] + units)
-            view = lessons if unit == "All" else lessons[lessons["unit_section"] == unit]
-            links = ["All", "Unlinked"] + sorted([item for item in view["event_id"].unique() if item])
-            event_filter = st.selectbox("Event Reference", links)
-            if event_filter == "Unlinked":
-                view = view[view["event_id"] == ""]
-            elif event_filter != "All":
-                view = view[view["event_id"] == event_filter]
-            st.dataframe(view, width="stretch", hide_index=True)
+            equipment_items = sorted([item for item in lessons["equipment"].unique() if item])
+            unit = first.selectbox("Unit / Section", ["All"] + units)
+            equipment_filter = second.selectbox("Equipment", ["All"] + equipment_items)
+            order = third.selectbox("Sort", ["Newest", "Most Read"])
+            view = lessons.copy()
+            if unit != "All":
+                view = view[view["unit_section"] == unit]
+            if equipment_filter != "All":
+                view = view[view["equipment"] == equipment_filter]
+            if order == "Most Read":
+                view = view.assign(_reads=pd.to_numeric(view["read_count"], errors="coerce").fillna(0)).sort_values(["_reads", "timestamp"], ascending=[False, False]).drop(columns="_reads")
+            else:
+                view = view.sort_values("timestamp", ascending=False)
+            display_columns = ["lesson_id", "lesson_title", "unit_section", "equipment", "event_id", "read_count", "entered_by", "timestamp"]
+            st.dataframe(view[display_columns], width="stretch", hide_index=True)
+            labels = {f"{row.lesson_id} — {row.lesson_title or 'Untitled lesson'}": row.lesson_id for row in view.itertuples()}
+            if labels:
+                selected_label = st.selectbox("Saved Lesson", list(labels))
+                if st.button("View Selected Lesson", type="primary"):
+                    lesson_id = labels[selected_label]
+                    index = lessons[lessons["lesson_id"] == lesson_id].index[0]
+                    reads = pd.to_numeric(lessons.at[index, "read_count"], errors="coerce")
+                    lessons.at[index, "read_count"] = str(int(0 if pd.isna(reads) else reads) + 1)
+                    storage.atomic_write_csv(path, lessons[required])
+                    st.session_state.viewed_lesson_id = lesson_id
+                lesson_id = st.session_state.get("viewed_lesson_id")
+                selected_rows = lessons[lessons["lesson_id"] == lesson_id] if lesson_id else pd.DataFrame()
+                if not selected_rows.empty:
+                    row = selected_rows.iloc[0]
+                    with st.container(border=True):
+                        st.markdown(f"### {row['lesson_title'] or 'Untitled lesson'}")
+                        st.caption(f"{row['unit_section']} · {row['equipment'] or 'No equipment'} · Event {row['event_id'] or 'Unlinked'} · {row['read_count']} read(s)")
+                        st.write(row["lesson"])
+                        metadata = {"Lesson ID": row["lesson_id"], "Unit / Section": row["unit_section"], "Equipment": row["equipment"], "Event": row["event_id"], "Entered By": row["entered_by"], "Recorded": row["timestamp"], "Attachment": row["attachment_name"]}
+                        pdf = exports.lesson_pdf_bytes(row["lesson_title"] or row["lesson_id"], metadata, row["lesson"])
+                        st.download_button("Download Lesson as PDF", pdf, f"{row['lesson_id']}.pdf", "application/pdf")
+                        if row["attachment_path"]:
+                            try:
+                                payload = storage.attachment_bytes(row["attachment_path"])
+                                mime = row["attachment_type"] or storage.attachment_mime(row["attachment_name"])
+                                if str(mime).startswith("image/"):
+                                    st.image(payload, caption=row["attachment_name"])
+                                elif str(mime).startswith("video/"):
+                                    st.video(payload)
+                                st.download_button("Download Supporting File", payload, row["attachment_name"], mime)
+                            except Exception as exc:
+                                st.warning(f"Supporting file is unavailable: {exc}")
     with entry:
         if not auth.allowed(user, "lessons"):
             st.warning("Your role cannot add lessons.")
@@ -821,19 +979,34 @@ def page_lessons(bu: str, user: auth.User) -> None:
                 event_labels = {f"{row.event_id} — {row.title}": row for row in events.itertuples()}
                 label = st.selectbox("Event", list(event_labels))
                 event_row = event_labels[label]
-                unit_section = event_row.unit_section
-                st.caption(f"Unit / Section: {unit_section}")
+                unit_section, equipment_id = event_row.unit_section, event_row.equipment
+                st.caption(f"Unit / Section: {unit_section} · Equipment: {equipment_id}")
             else:
                 equipment = storage.equipment(bu)
-                unit_options = sorted([item for item in equipment["unit_section"].unique() if item and item != "Unassigned"])
-                unit_section = st.selectbox("Unit / Section", unit_options)
+                equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
+                equipment_labels = {f"{row.equipment_id} — {row.equipment_name}": row for row in equipment.itertuples()}
+                equipment_label = st.selectbox("Equipment", list(equipment_labels))
+                equipment_row = equipment_labels[equipment_label]
+                equipment_id, unit_section = equipment_row.equipment_id, equipment_row.unit_section
+            title = st.text_input("Lesson Title")
             lesson = st.text_area("Lesson Learned")
-            if st.button("Save Lesson", type="primary") and lesson.strip():
-                lesson_id = f"LES-{uuid.uuid4().hex[:8].upper()}"
-                event_id = event_row.event_id if event_row else ""
-                storage.append_rows(storage.bu_dir(bu) / "lessons.csv", [{"lesson_id": lesson_id, "timestamp": storage.utcnow(), "event_id": event_id, "unit_section": unit_section, "lesson": lesson, "entered_by": user.username}])
-                storage.audit(bu, user.username, "lesson_created", {"lesson_id": lesson_id, "event_id": event_id or None})
-                st.success(f"Lesson {lesson_id} saved" + (f" and linked to {event_id}." if event_id else " without an event link."))
+            attachment = st.file_uploader("Supporting File (Word, text, image, PDF or video)", type=[suffix.lstrip(".") for suffix in storage.ATTACHMENT_TYPES])
+            if st.button("Save Lesson", type="primary"):
+                if not title.strip() or not lesson.strip():
+                    st.error("Enter a lesson title and lesson details.")
+                else:
+                    try:
+                        lesson_id = f"LES-{uuid.uuid4().hex[:8].upper()}"
+                        event_id = event_row.event_id if event_row else ""
+                        attachment_path = storage.save_attachment(bu, attachment.name, attachment.getvalue()) if attachment else ""
+                        attachment_name = attachment.name if attachment else ""
+                        attachment_type = storage.attachment_mime(attachment_name) if attachment else ""
+                        row = {"lesson_id": lesson_id, "timestamp": storage.utcnow(), "event_id": event_id, "unit_section": unit_section, "equipment": equipment_id, "lesson_title": title.strip(), "lesson": lesson, "attachment_path": attachment_path, "attachment_name": attachment_name, "attachment_type": attachment_type, "read_count": "0", "entered_by": user.username}
+                        storage.append_rows(path, [row], required)
+                        storage.audit(bu, user.username, "lesson_created", {"lesson_id": lesson_id, "event_id": event_id or None, "attachment": attachment_name})
+                        st.success(f"Lesson {lesson_id} saved" + (f" and linked to {event_id}." if event_id else " without an event link."))
+                    except Exception as exc:
+                        st.error(f"Lesson could not be saved: {exc}")
 
 
 def add_user_form(current: auth.User) -> None:
@@ -874,21 +1047,35 @@ def template_admin(bu: str, user: auth.User) -> None:
     label_map = dashboard.field_label_map(registry)
     reverse = {label: field_id for field_id, label in label_map.items()}
     name = st.text_input("Template Name", selected["name"])
-    chart_labels = st.multiselect("Data Fields Shown on Charts", list(reverse), default=[label_map[field] for field in selected.get("chart_fields", []) if field in label_map])
-    table_labels = st.multiselect("Data Fields Shown in the Table", list(reverse), default=[label_map[field] for field in selected.get("table_fields", []) if field in label_map])
+    scope_id = ""
+    defaults_chart, defaults_table = selected.get("chart_fields", []), selected.get("table_fields", [])
+    if module == "Equipment Overview":
+        equipment = storage.equipment(bu)
+        equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
+        scope_options = {"Template Default (all equipment without an override)": ""}
+        scope_options.update({f"{row.equipment_id} — {row.equipment_name}": row.equipment_id for row in equipment.itertuples()})
+        scope_label = st.selectbox("Field Configuration Scope", list(scope_options), help="Choose an equipment record to override this template's default chart and table fields.")
+        scope_id = scope_options[scope_label]
+        if scope_id:
+            defaults_chart, defaults_table = dashboard.fields_for_equipment(selected, scope_id)
+    chart_labels = st.multiselect("Data Fields Shown on Charts", list(reverse), default=[label_map[field] for field in defaults_chart if field in label_map], key=f"admin_chart_{module}_{selected['id']}_{scope_id}")
+    table_labels = st.multiselect("Data Fields Shown in the Table", list(reverse), default=[label_map[field] for field in defaults_table if field in label_map], key=f"admin_table_{module}_{selected['id']}_{scope_id}")
     chart_type = st.selectbox("Chart Type", dashboard.CHART_TYPES, index=dashboard.CHART_TYPES.index(selected.get("chart_type", "Line")) if selected.get("chart_type", "Line") in dashboard.CHART_TYPES else 0, key="admin_template_chart")
     if st.button("Save Dashboard Template", type="primary"):
         if not name.strip():
             st.error("Enter a template name.")
         else:
             selected["name"] = name.strip()
-            selected["chart_fields"] = [reverse[label] for label in chart_labels]
-            selected["table_fields"] = [reverse[label] for label in table_labels]
+            chart_ids, table_ids = [reverse[label] for label in chart_labels], [reverse[label] for label in table_labels]
+            if module == "Equipment Overview" and scope_id:
+                selected.setdefault("equipment_fields", {})[scope_id] = {"chart_fields": chart_ids, "table_fields": table_ids}
+            else:
+                selected["chart_fields"], selected["table_fields"] = chart_ids, table_ids
             selected["chart_type"] = chart_type
             module_templates[index] = selected
             templates[module] = module_templates
             dashboard.save_templates(bu, templates)
-            storage.audit(bu, user.username, "dashboard_template_changed", {"module": module, "template": selected["id"]})
+            storage.audit(bu, user.username, "dashboard_template_changed", {"module": module, "template": selected["id"], "equipment": scope_id or "default"})
             st.success("Dashboard template saved.")
 
 
@@ -993,6 +1180,7 @@ def page_admin(bu: str, user: auth.User) -> None:
             calculated_field = st.selectbox("Calculated Field", definitions["field_id"])
             row = definitions[definitions["field_id"] == calculated_field].iloc[0]
             calculated_name = st.text_input("Calculated Field Name", row["field_name"])
+            st.info("Formulas can reference input or earlier calculated fields with square brackets, for example [DP1] or [CF1]. Supported operators are +, −, ×, ÷, //, %, powers and comparisons. Available functions: IF, MIN, MAX, ABS, MOD and ROUND. Example: ROUND(([DP1] + [F1]) / 2, 2). Baseline constants may be referenced by their name, for example B_capacity.")
             expression = st.text_input("Formula", row["formula"])
             status = st.selectbox("Status", ["active", "on hold", "disabled"], index=["active", "on hold", "disabled"].index(row["status"]) if row["status"] in ["active", "on hold", "disabled"] else 0)
             if st.button("Save Calculated Field"):
@@ -1002,13 +1190,23 @@ def page_admin(bu: str, user: auth.User) -> None:
                 storage.audit(bu, user.username, "formula_configuration_changed", calculated_field)
                 st.success("Calculated field updated.")
         st.markdown("#### Baseline Constants")
+        st.caption("Baseline constants are reusable numeric assumptions—such as design capacity or standard efficiency—that can be referenced by name in calculated-field formulas. Edit the name/value table below; leave a row blank to ignore it.")
         constants = storage.json_setting(storage.bu_dir(bu) / "constants.json", {})
-        constant_text = st.text_area("JSON Constants", json.dumps(constants, indent=2), height=140, help="Reference a constant by key in a formula, for example B_capacity.")
+        constant_rows = pd.DataFrame([{"Constant Name": key, "Numeric Value": value} for key, value in constants.items()] + [{"Constant Name": "", "Numeric Value": None}])
+        edited_constants = st.data_editor(constant_rows, num_rows="dynamic", width="stretch", hide_index=True, key="baseline_constants_editor")
         if st.button("Save Baseline Constants"):
             try:
-                parsed = json.loads(constant_text)
-                if not isinstance(parsed, dict) or not all(isinstance(value, (int, float)) for value in parsed.values()):
-                    raise ValueError("Use a JSON object with numeric values.")
+                parsed = {}
+                for _, item in edited_constants.iterrows():
+                    key = str(item["Constant Name"]).strip()
+                    if not key:
+                        continue
+                    if not key.replace("_", "").isalnum() or key[0].isdigit():
+                        raise ValueError(f"'{key}' is not a valid constant name. Use letters, numbers and underscores, starting with a letter.")
+                    value = pd.to_numeric(item["Numeric Value"], errors="coerce")
+                    if pd.isna(value):
+                        raise ValueError(f"Enter a numeric value for {key}.")
+                    parsed[key] = float(value)
                 storage.save_json(storage.bu_dir(bu) / "constants.json", parsed)
                 storage.audit(bu, user.username, "baseline_constants_changed", {"keys": list(parsed)})
                 st.success("Baseline constants saved.")
@@ -1086,14 +1284,16 @@ def main() -> None:
     if not auth.can_access_bu(user, bu):
         st.session_state.pop("bu", None)
         st.rerun()
-    page = sidebar(user, bu)
+    page = top_navigation(user, bu)
     routes = {
         "OPERA Home": page_home, "Plant Overview": page_plant, "Equipment Overview": page_equipment,
-        "Operations Dashboard": page_operations, "Data Input": page_input, "Event Log": page_events,
-        "Data Analysis": page_analysis, "Data Output": page_output, "Operating Parameters": page_parameters,
-        "Risk Assessment": page_risk, "Lesson Bank": page_lessons, "Admin / Super Admin": page_admin,
+        "Operations Dashboard": page_operations, "Operational Data": page_operational_data, "Event Log": page_events,
+        "Operating Parameters": page_parameters, "Risk Assessment": page_risk, "Lesson Bank": page_lessons,
+        "Admin / Super Admin": page_admin,
     }
     routes[page](bu, user)
+
+
 
 
 if __name__ == "__main__":
