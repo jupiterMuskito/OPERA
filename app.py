@@ -44,8 +44,6 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .st-key-primary_navigation div[role="radiogroup"] label:has(input:checked){background:#E7F0FF;border-color:#AFC7EA}
 .nav-context{font-size:.76rem;color:var(--muted);padding:.1rem .25rem .25rem}.nav-context strong{color:var(--blue-dark)}
 .block-container{padding-top:2rem;padding-bottom:3rem;max-width:1500px}
-.opera-hero{padding:1.3rem 1.55rem;border-radius:12px;background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff;margin-bottom:1rem;box-shadow:0 8px 24px rgba(15,63,156,.15)}
-.opera-hero h1{margin:0;font-size:1.9rem;letter-spacing:-.02em}.opera-hero p{margin:.35rem 0 0;color:#E7F0FF;opacity:.94}
 .login-brand{min-height:410px;border-radius:18px;padding:3.1rem;background:linear-gradient(145deg,#0F3F9C 0%,#1857C9 70%,#2F7DE1 100%);color:#fff;box-shadow:0 24px 64px rgba(15,63,156,.24);display:flex;flex-direction:column;justify-content:space-between}
 .login-brand .mark{width:58px;height:58px;border-radius:15px;background:#fff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:800;box-shadow:0 10px 24px rgba(0,0,0,.12)}
 .login-brand h1{font-size:3rem;line-height:1;margin:1rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:.82rem;color:#E7F0FF;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem}
@@ -70,10 +68,6 @@ hr{border-color:var(--border-soft)}
 """,
         unsafe_allow_html=True,
     )
-
-
-def hero(title: str, subtitle: str) -> None:
-    st.markdown(f'<div class="opera-hero"><h1>{title}</h1><p>{subtitle}</p></div>', unsafe_allow_html=True)
 
 
 def secret_users() -> dict[str, Any]:
@@ -117,7 +111,8 @@ def do_login() -> None:
 def choose_bu(user: auth.User) -> None:
     bus = config.business_units(active_only=True)
     bus = bus[bus["id"].map(lambda value: auth.can_access_bu(user, value))]
-    hero("Select Business Unit", f"Signed in as {user.display_name} · {user.role}")
+    st.title("Select Business Unit")
+    st.caption(f"Signed in as {user.display_name} · {user.role}")
     if bus.empty:
         st.error("No active business unit is assigned to this account.")
         st.stop()
@@ -133,7 +128,8 @@ def choose_bu(user: auth.User) -> None:
 def password_change_gate(user: auth.User) -> None:
     if not user.must_change_password:
         return
-    hero("Password Change Required", "Replace the seeded Super Admin password before OPERA-X opens.")
+    st.title("Password Change Required")
+    st.caption("Replace the seeded Super Admin password before OPERA-X opens.")
     with st.form("force_password"):
         old = st.text_input("Current Password", type="password")
         new = st.text_input("New Password", type="password")
@@ -422,7 +418,6 @@ def kpi_cards(
 
 
 def page_home(bu: str, user: auth.User) -> None:
-    hero("OPERA-X Home", "One Platform for All Plant Operational Data")
     data = long_data(bu)
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
@@ -459,7 +454,6 @@ def page_home(bu: str, user: auth.User) -> None:
 
 
 def page_plant(bu: str, user: auth.User) -> None:
-    hero("Plant Overview", "Select a plant, period and template to review operating conditions")
     data = long_data(bu)
     equipment = storage.equipment(bu)
     plants = sorted(equipment[equipment["placeholder"].str.lower() != "true"]["plant"].dropna().unique())
@@ -493,7 +487,6 @@ def page_plant(bu: str, user: auth.User) -> None:
 
 
 def page_equipment(bu: str, user: auth.User) -> None:
-    hero("Equipment Overview", "Select equipment, period and a configurable dashboard template")
     data = long_data(bu)
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
@@ -560,7 +553,6 @@ def operations_long(view: pd.DataFrame, definitions: pd.DataFrame, field_ids: li
 
 
 def page_operations(bu: str, user: auth.User) -> None:
-    hero("Operations Dashboard", "Aligned KPI cards · Configurable data fields · Grid charts · Period reports")
     frame, definitions, errors = calculated_data(bu)
     if errors:
         st.warning("Formula warnings: " + " | ".join(errors))
@@ -709,19 +701,17 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
 
 
 def page_operational_data(bu: str, user: auth.User) -> None:
-    hero("Operational Data", "Manual Entry · Bulk Upload · Derived Data · Analyze Data")
     manual_tab, bulk_tab, derived_tab, analyze_tab = st.tabs(["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"])
     with manual_tab:
         manual_entry_panel(bu, user)
     with bulk_tab:
         bulk_upload_panel(bu, user)
     with derived_tab:
-        page_output(bu, user, embedded=True)
+        page_output(bu, user)
     with analyze_tab:
-        page_analysis(bu, user, embedded=True)
+        page_analysis(bu, user)
 
 def page_events(bu: str, user: auth.User) -> None:
-    hero("Event Log", "Filter, print and export events · Optional Field Data update · Pictures · Notifications")
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     view_tab, input_tab = st.tabs(["View Event Log", "Input Event"])
     with view_tab:
@@ -790,9 +780,7 @@ def page_events(bu: str, user: auth.User) -> None:
                     st.success(f"Event {event_id} saved" + (" with a Field Data update." if send_field_update else "."))
 
 
-def page_analysis(bu: str, user: auth.User, embedded: bool = False) -> None:
-    if not embedded:
-        hero("Analyze Data", "Compare Any Data Field · Instrument Check · Bounded optimization")
+def page_analysis(bu: str, user: auth.User) -> None:
     data = long_data(bu)
     compare, dcs_tab, optimization_tab = st.tabs(["Compare Any Data Field", "Instrument Check", "Optimization"])
     with compare:
@@ -901,9 +889,7 @@ def page_analysis(bu: str, user: auth.User, embedded: bool = False) -> None:
                 st.info("Select fewer decision fields so an outcome remains available.")
 
 
-def page_output(bu: str, user: auth.User, embedded: bool = False) -> None:
-    if not embedded:
-        hero("Derived Data", "Calculated fields · Selected-duration results · Input, calculated and merged Excel downloads")
+def page_output(bu: str, user: auth.User) -> None:
     frame, definitions, errors = calculated_data(bu)
     if errors:
         st.warning(" | ".join(errors))
@@ -937,7 +923,6 @@ def page_output(bu: str, user: auth.User, embedded: bool = False) -> None:
 
 
 def page_parameters(bu: str, user: auth.User) -> None:
-    hero("Operating Parameters", "Select any configured equipment and fields grouped as DCS, Field, QAQC and Others")
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
     if equipment.empty:
@@ -990,7 +975,6 @@ def page_parameters(bu: str, user: auth.User) -> None:
 
 
 def page_risk(bu: str, user: auth.User) -> None:
-    hero("Risk Assessment", "Select a preset and job type, review identified risks, then print or export")
     register, source, problem = risk_store.resolve(bu)
     if not register:
         st.warning(problem or "Risk register update required.")
@@ -1037,7 +1021,6 @@ def page_risk(bu: str, user: auth.User) -> None:
 
 
 def page_lessons(bu: str, user: auth.User) -> None:
-    hero("Lesson Bank", "Capture, filter, view and download lessons with supporting files")
     path = storage.bu_dir(bu) / "lessons.csv"
     lessons = storage.read_csv(path)
     required = ["lesson_id", "timestamp", "event_id", "unit_section", "equipment", "lesson_title", "lesson", "attachment_path", "attachment_name", "attachment_type", "read_count", "entered_by"]
@@ -1219,60 +1202,190 @@ def template_admin(bu: str, user: auth.User) -> None:
 
 def field_mapping_admin(bu: str, user: auth.User) -> None:
     st.markdown("#### Data Field Mapping")
-    st.caption("Every input and placeholder field has a deterministic default map. Saving here creates an Admin override used by every equipment- and template-aware data-field dropdown.")
-    registry = storage.registry(bu)
-    if registry.empty:
-        st.info("No data fields are configured.")
+    st.markdown(
+        '<div class="panel-note"><strong>How mapping works:</strong> OPERA-X uses the equipment and dashboard-template '
+        'mappings below to filter data-field dropdowns across Plant Overview, Equipment Overview, Operational Data, '
+        'Event Log and Operating Parameters. Computed defaults cover every field; an Admin edit creates an audited '
+        'override that takes effect immediately.</div>',
+        unsafe_allow_html=True,
+    )
+
+    business_units = config.business_units()
+    business_units = business_units[business_units["id"].map(lambda value: auth.can_access_bu(user, value))]
+    bu_labels = {f"{row['name']} ({row['id']})": row["id"] for _, row in business_units.iterrows()}
+    current_label = next((label for label, value in bu_labels.items() if value == bu), next(iter(bu_labels), ""))
+    selected_bu_label = st.selectbox(
+        "Business Unit",
+        list(bu_labels),
+        index=list(bu_labels).index(current_label) if current_label in bu_labels else 0,
+        key="mapping_business_unit",
+    )
+    mapping_bu = bu_labels[selected_bu_label]
+    mappings = dashboard.field_mapping_table(mapping_bu)
+    if mappings.empty:
+        st.info("No data fields are configured for this business unit.")
         return
-    first, second = st.columns(2)
-    source = first.selectbox("Source", sorted(registry["source"].astype(str).unique()), key="mapping_source")
-    state = second.selectbox("Field Status", ["Active", "Placeholder / Inactive", "All"], key="mapping_status")
-    candidates = registry[registry["source"].astype(str) == source]
-    if state == "Active":
-        candidates = candidates[candidates["active"].astype(str).str.lower() == "true"]
-    elif state == "Placeholder / Inactive":
-        candidates = candidates[candidates["active"].astype(str).str.lower() != "true"]
-    field_options = {
-        f"{row.field_id} — {row.field_name} ({'Active' if str(row.active).lower() == 'true' else 'Placeholder / Inactive'})": str(row.field_id)
-        for row in candidates.itertuples()
+
+    equipment = storage.equipment(mapping_bu)
+    equipment = equipment[
+        (equipment["active"].astype(str).str.lower() == "true")
+        & (equipment["placeholder"].astype(str).str.lower() != "true")
+    ]
+    equipment_labels = {
+        f"{row.equipment_id} — {row.equipment_name}": str(row.equipment_id)
+        for row in equipment.itertuples()
     }
-    if not field_options:
-        st.info("No fields match this filter.")
-        return
-    field_label = st.selectbox("Data Field", list(field_options), key="mapping_field")
-    field_id = field_options[field_label]
-    row = candidates[candidates["field_id"].astype(str) == field_id].iloc[0]
-    equipment = storage.equipment(bu)
-    equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
-    equipment_options = {f"{item.equipment_id} — {item.equipment_name}": str(item.equipment_id) for item in equipment.itertuples()}
-    template_options = {name: template_id for template_id, name in dashboard.MAPPING_TEMPLATES.items()}
-    current = dashboard.field_mapping(bu, field_id, str(row["source"]), str(row["field_name"]), equipment)
-    equipment_reverse = {value: label for label, value in equipment_options.items()}
-    template_reverse = {value: label for label, value in template_options.items()}
-    selected_equipment_labels = st.multiselect(
-        "Mapped Equipment",
-        list(equipment_options),
-        default=[equipment_reverse[item] for item in current["equipment_ids"] if item in equipment_reverse],
-        key=f"mapping_equipment_{source}_{field_id}",
+    template_labels = {name: template_id for template_id, name in dashboard.MAPPING_TEMPLATES.items()}
+
+    st.markdown("##### Filters and search")
+    first, second, third = st.columns(3)
+    source_filter = first.multiselect(
+        "Source",
+        [item for item in ["DCS", "Field", "QAQC", "Others", "Calculated"] if item in set(mappings["Source"])],
+        key="mapping_source_filter",
     )
-    selected_template_labels = st.multiselect(
-        "Mapped Dashboard Templates",
-        list(template_options),
-        default=[template_reverse[item] for item in current["template_ids"] if item in template_reverse],
-        key=f"mapping_templates_{source}_{field_id}",
+    status_filter = second.multiselect(
+        "Status",
+        sorted(mappings["Status"].astype(str).unique()),
+        key="mapping_status_filter",
     )
-    if st.button("Save Data Field Mapping", type="primary"):
-        try:
-            equipment_ids = [equipment_options[label] for label in selected_equipment_labels]
-            template_ids = [template_options[label] for label in selected_template_labels]
-            dashboard.save_field_mapping(bu, field_id, equipment_ids, template_ids)
-            storage.audit(bu, user.username, "field_mapping_changed", {"field_id": field_id, "equipment_ids": equipment_ids, "template_ids": template_ids})
-            st.success("Data field mapping saved and applied to equipment/template field selectors.")
-        except Exception as exc:
-            st.error(str(exc))
-    placeholders = int((registry["active"].astype(str).str.lower() != "true").sum())
-    overrides = len(dashboard.load_field_mapping_overrides(bu))
-    st.caption(f"Mapping coverage: {len(registry):,} of {len(registry):,} fields · {placeholders:,} placeholders covered · {overrides:,} Admin override(s).")
+    search = third.text_input("Search Field ID or Name", key="mapping_search").strip().lower()
+    fourth, fifth, sixth, seventh = st.columns(4)
+    plant_filter = fourth.multiselect("Plant", sorted(item for item in equipment["plant"].astype(str).unique() if item), key="mapping_plant_filter")
+    unit_filter = fifth.multiselect("Unit / Section", sorted(item for item in equipment["unit_section"].astype(str).unique() if item), key="mapping_unit_filter")
+    equipment_filter_labels = sixth.multiselect("Equipment", list(equipment_labels), key="mapping_equipment_filter")
+    template_filter_labels = seventh.multiselect("Dashboard Template", list(template_labels), key="mapping_template_filter")
+
+    view = mappings.copy()
+    if source_filter:
+        view = view[view["Source"].isin(source_filter)]
+    if status_filter:
+        view = view[view["Status"].isin(status_filter)]
+    if search:
+        view = view[
+            view["Field ID"].astype(str).str.lower().str.contains(search, regex=False)
+            | view["Data Field"].astype(str).str.lower().str.contains(search, regex=False)
+        ]
+    if plant_filter:
+        selected = set(plant_filter)
+        view = view[view["_plants"].map(lambda values: bool(selected.intersection(values)))]
+    if unit_filter:
+        selected = set(unit_filter)
+        view = view[view["_units"].map(lambda values: bool(selected.intersection(values)))]
+    if equipment_filter_labels:
+        selected = {equipment_labels[label] for label in equipment_filter_labels}
+        view = view[view["_equipment_ids"].map(lambda values: bool(selected.intersection(values)))]
+    if template_filter_labels:
+        selected = {template_labels[label] for label in template_filter_labels}
+        view = view[view["_template_ids"].map(lambda values: bool(selected.intersection(values)))]
+
+    placeholders = int((mappings["Field Type"] == "Placeholder").sum())
+    calculated = int((mappings["Field Type"] == "Calculated").sum())
+    overrides = int((mappings["Mapping Type"] == "Admin Override").sum())
+    st.caption(
+        f"Showing {len(view):,} of {len(mappings):,} fields · {placeholders:,} placeholders · "
+        f"{calculated:,} calculated fields · {overrides:,} Admin override(s)."
+    )
+
+    field_tab, equipment_tab, template_tab, edit_tab = st.tabs(
+        ["Field View", "Equipment Reverse View", "Template Reverse View", "Edit Mapping"]
+    )
+    public_columns = [column for column in mappings.columns if not column.startswith("_")]
+    with field_tab:
+        safe_dataframe(view[public_columns], width="stretch", hide_index=True)
+
+    equipment_reverse, template_reverse = dashboard.mapping_reverse_views(mapping_bu, view)
+    with equipment_tab:
+        st.caption("One row per equipment/data-field relationship. Filter Equipment, Plant or Unit above to review a specific item.")
+        if equipment_reverse.empty:
+            st.info("No equipment mappings match the current filters.")
+        else:
+            summary = (
+                equipment_reverse.groupby(["Plant", "Unit / Section", "Equipment ID", "Equipment"], as_index=False)
+                .agg(**{"Mapped Fields": ("Field ID", "nunique")})
+                .sort_values(["Plant", "Unit / Section", "Equipment ID"])
+            )
+            safe_dataframe(summary, width="stretch", hide_index=True)
+            safe_dataframe(equipment_reverse, width="stretch", hide_index=True)
+    with template_tab:
+        st.caption("One row per dashboard-template/data-field relationship. Filter Dashboard Template above to review one template.")
+        if template_reverse.empty:
+            st.info("No dashboard-template mappings match the current filters.")
+        else:
+            summary = (
+                template_reverse.groupby(["Template ID", "Dashboard Template"], as_index=False)
+                .agg(**{"Mapped Fields": ("Field ID", "nunique")})
+                .sort_values("Dashboard Template")
+            )
+            safe_dataframe(summary, width="stretch", hide_index=True)
+            safe_dataframe(template_reverse, width="stretch", hide_index=True)
+    with edit_tab:
+        if view.empty:
+            st.info("No fields match the current filters. Clear or change the filters to edit a mapping.")
+        else:
+            field_options = {
+                f"{row['Field ID']} — {row['Data Field']} ({row['Source']} · {row['Status']})": str(row["Field ID"])
+                for _, row in view.iterrows()
+            }
+            field_label = st.selectbox("Data Field", list(field_options), key="mapping_field_editor")
+            field_id = field_options[field_label]
+            selected_row = mappings[mappings["Field ID"].astype(str) == field_id].iloc[0]
+            current_equipment_ids = list(selected_row["_equipment_ids"])
+            current_template_ids = list(selected_row["_template_ids"])
+            equipment_reverse_labels = {value: label for label, value in equipment_labels.items()}
+            template_reverse_labels = {value: label for label, value in template_labels.items()}
+            selected_equipment_labels = st.multiselect(
+                "Mapped Equipment",
+                list(equipment_labels),
+                default=[equipment_reverse_labels[item] for item in current_equipment_ids if item in equipment_reverse_labels],
+                key=f"mapping_edit_equipment_{mapping_bu}_{field_id}",
+            )
+            selected_template_labels = st.multiselect(
+                "Mapped Dashboard Templates",
+                list(template_labels),
+                default=[template_reverse_labels[item] for item in current_template_ids if item in template_reverse_labels],
+                key=f"mapping_edit_templates_{mapping_bu}_{field_id}",
+            )
+            save_col, reset_col = st.columns(2)
+            if save_col.button("Save Data Field Mapping", type="primary", key="save_data_field_mapping"):
+                try:
+                    equipment_ids = [equipment_labels[label] for label in selected_equipment_labels]
+                    template_ids = [template_labels[label] for label in selected_template_labels]
+                    dashboard.save_field_mapping(mapping_bu, field_id, equipment_ids, template_ids)
+                    storage.audit(
+                        mapping_bu,
+                        user.username,
+                        "field_mapping_changed",
+                        {
+                            "field_id": field_id,
+                            "previous_equipment_ids": current_equipment_ids,
+                            "previous_template_ids": current_template_ids,
+                            "equipment_ids": equipment_ids,
+                            "template_ids": template_ids,
+                        },
+                    )
+                    st.success("Mapping saved, audited and applied to equipment/template-aware data-field dropdowns.")
+                except Exception as exc:
+                    st.error(str(exc))
+            if reset_col.button("Reset to Computed Default", key="reset_data_field_mapping"):
+                if dashboard.reset_field_mapping(mapping_bu, field_id):
+                    storage.audit(mapping_bu, user.username, "field_mapping_reset", {"field_id": field_id})
+                    st.success("Admin override removed. The computed default mapping is active again.")
+                else:
+                    st.info("This field already uses its computed default mapping.")
+
+    if st.button("Prepare Complete Mapping Workbook", key="prepare_mapping_workbook"):
+        st.session_state.mapping_workbook = exports.excel_bytes(dashboard.mapping_export_sheets(mapping_bu, mappings))
+        st.session_state.mapping_workbook_bu = mapping_bu
+        storage.audit(mapping_bu, user.username, "field_mapping_workbook_prepared", {"fields": len(mappings)})
+    if "mapping_workbook" in st.session_state and st.session_state.get("mapping_workbook_bu") == mapping_bu:
+        st.download_button(
+            "Download Complete Mapping Workbook (Excel)",
+            st.session_state.mapping_workbook,
+            f"{mapping_bu}_complete_field_mappings.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="download_mapping_workbook",
+        )
 
 
 def equipment_admin(bu: str, user: auth.User) -> None:
@@ -1318,7 +1431,6 @@ def equipment_admin(bu: str, user: auth.User) -> None:
 
 
 def page_admin(bu: str, user: auth.User) -> None:
-    hero("Admin / Super Admin", "Business units · Users · Fields · Mappings · Dashboard templates · Equipment · DCS · Storage · Audit")
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return

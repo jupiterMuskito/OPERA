@@ -32,9 +32,9 @@ Change or disable every seeded account before production. Passwords are PBKDF2-S
 
 ## Main application flow
 
-`Login → Business Unit → OPERA-X Home → module`
+`Login → Business Unit → fixed OPERA-X brand ribbon → fixed merged navigation → module content`
 
-The fixed first ribbon carries OPERA-X branding. The fixed navigation bar directly contains navigation, notifications, **Change BU**, and **Sign Out**. The previous separate context/control ribbon has been removed.
+The fixed first ribbon carries OPERA-X branding. The fixed navigation bar directly contains navigation, business-unit/user context, notifications, **Change BU**, and **Sign Out**. The rounded blue page-title/subtitle hero has been removed from every authenticated module and was not replaced by another coloured banner.
 
 Modules:
 
@@ -49,20 +49,24 @@ Modules:
 
 ## Data-field mapping
 
-Every input field and placeholder (`DP`, `L`, `F`, and `TA`–`TG`) receives a deterministic default mapping to:
+Every input field, placeholder (`DP`, `L`, `F`, and `TA`–`TG`), and calculated field receives a deterministic default mapping to:
 
 - at least one equipment record; and
 - at least one of **Plant Performance**, **Condition Monitoring**, **Process Performance**, **Quality and Compliance**, or **Reliability**.
 
 When equipment or a dashboard template is selected, related data-field dropdowns are automatically filtered by the applicable map. This applies to Plant Overview, Equipment Overview, Manual Entry, Bulk Upload, Event Log field updates, and Operating Parameters. Operations Dashboard KPI and chart controls remain filtered by the chosen Operations template.
 
-Administrators can update any active or placeholder field under **Admin / Super Admin → Field Mappings**. Only Admin overrides are persisted to `field_mappings.json`; defaults remain code-driven, so an upgrade does not need to replace production data files.
+**Admin / Super Admin → Field Mappings** shows the complete effective mapping—not only overrides—with business-unit, plant, unit, equipment, dashboard-template, source and status filters plus Field ID/name search. It includes field, reverse-equipment and reverse-template views. Administrators can edit or reset any active, placeholder or calculated field. Saves are written to the audit log and persisted as overrides in `field_mappings.json`; defaults remain code-driven.
+
+The complete mapping can be downloaded as an Excel workbook with `Field Mappings`, `By Equipment`, `By Template`, and `Guide` sheets.
 
 ## Data and persistence
 
 Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field (`F1–F1000`), and placeholders `TA1–TG1000`. Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range, and abnormal jumps. CSV values are protected from spreadsheet-formula injection.
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
+
+For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.5.0.zip`. Do not copy the full deployment package over a live `data/` directory: it contains seed/runtime CSVs that can replace readings and configuration entered through the app. See `DATA_OVERWRITE_WARNING.md` for the exact inventory.
 
 ## Risk registers
 
@@ -83,4 +87,4 @@ python -m py_compile app.py opera/*.py scripts/seed_data.py
 
 The suite covers the formula engine, roles and password hashes, locked CSV storage, upload validation, Excel round-trip, field-mapping coverage and filtering, export branding metadata, dashboard configuration, Cement hierarchy/register behavior, risk/PDF generation, and Streamlit startup.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, and `CHANGE_MANIFEST_v3.4.0_vs_v3.3.0.md`.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `CHANGE_MANIFEST_v3.5.0_vs_v3.4.0.md`, and `DATA_OVERWRITE_WARNING.md`.
