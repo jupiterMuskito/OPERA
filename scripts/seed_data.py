@@ -16,6 +16,8 @@ from opera.dashboard import default_templates
 
 DATA = ROOT / "data"
 RNG = np.random.default_rng(20261108)
+SAMPLE_END_DATE = date(2026, 11, 15)
+SAMPLE_START_DATE = SAMPLE_END_DATE - timedelta(days=364)
 
 BUS = [
     {"id": "cement", "name": "Cement", "active": "true", "placeholder": "false", "register_file": "registers/OKPELLA_Master_Workbook_v8.xlsx", "notes": "Okpella hierarchy cloned to Obajana and Ibese"},
@@ -68,7 +70,7 @@ FIELD_NAMES = {
 }
 
 CALC_NAMES = {
-    "cement": ["Average Kiln Feed Rate","Peak Kiln Feed Rate","Minimum Kiln Speed","Clinker Quality Index","Kiln Field-DCS Deviation","Thermal Stability Index","Cement Strength Index","Packing Performance"],
+    "cement": ["Average Kiln Feed Rate","Kiln Speed","Kiln Inlet Oxygen","Clinker Quality Index","Kiln Field-DCS Deviation","Thermal Stability Index","Cement Strength Index","Packing Performance"],
     "refinery": ["Average Butamer Feed","Peak Reactor Temperature","Minimum Reactor Pressure","iC4 Improvement","Field-DCS Feed Deviation","Reactor Temperature Rise","Product Quality Index","Butamer Throughput Performance"],
     "fertilizer": ["Average Gas Feed","Peak Reformer Temperature","Minimum Urea Pressure","Product Quality Index","Field-DCS Pressure Deviation","Converter Temperature Rise","Granulation Quality Index","Bagging Performance"],
     "nascon": ["Average Salt Brine Feed","Peak Dryer Temperature","Minimum Evaporator Vacuum","Sugar Quality Index","Field-DCS Evaporator Deviation","Mill Extraction Index","Salt Quality Index","Packing Performance"],
@@ -133,23 +135,33 @@ def seed() -> None:
                                  "data_format":"0.00","target":target,"target_direction":"High","jump_limit":((float(high)-float(low))*0.4 if low!="" else ""),"active":active})
         atomic_write_csv(folder / "fields.csv", pd.DataFrame(reg_rows))
         first = rows[0]
+        named_rows = [row for row in rows if row["placeholder"] == "false" and row["active"] == "true"]
+        equipment_by_plant: dict[str, list[dict[str, str]]] = {}
+        for row in named_rows:
+            equipment_by_plant.setdefault(row["plant"], []).append(row)
         for source,pfx in SOURCES.items():
             cols=BASE_COLUMNS+[f"{pfx}{i}" for i in range(1,1001)]
             samples=[]
             if bu in FIELD_NAMES and source in FIELD_NAMES[bu]:
                 defs=FIELD_NAMES[bu][source]
-                periods=30 if source=="Lab" else 120
-                for j in range(periods):
-                    day=date(2026,10,10)+timedelta(days=(j if source=="Lab" else j//4))
-                    hour=6 if source=="Lab" else [0,6,12,18][j%4]
-                    rec={"Date":day.isoformat(),"Time":f"{hour:02d}:00","Business unit":bu,"Plant":first["plant"],"Unit/Section":first["unit_section"],
-                         "Equipment":first["equipment_id"],"Recorded by":"sample-generator","Recorded at":"2026-11-08T12:00:00+00:00"}
-                    for i,(_,_,low,high,target) in enumerate(defs,1):
-                        sigma=(high-low)/18
-                        value=float(np.clip(RNG.normal(target,sigma),low,high))
-                        if j==5 and i in (1,7): value=high+(high-low)*0.15
-                        rec[f"{pfx}{i}"]=round(value,3)
-                    samples.append(rec)
+                readings_per_day=1 if source=="Lab" else 4
+                for plant, plant_equipment in equipment_by_plant.items():
+                    for day_index in range(365):
+                        day=SAMPLE_START_DATE+timedelta(days=day_index)
+                        for reading_index in range(readings_per_day):
+                            sequence=day_index*readings_per_day+reading_index
+                            hour=6 if source=="Lab" else [0,6,12,18][reading_index]
+                            equipment=plant_equipment[sequence % len(plant_equipment)]
+                            rec={"Date":day.isoformat(),"Time":f"{hour:02d}:00","Business unit":bu,"Plant":plant,"Unit/Section":equipment["unit_section"],
+                                 "Equipment":equipment["equipment_id"],"Recorded by":"sample-generator","Recorded at":f"{day.isoformat()}T{hour:02d}:05:00+00:00"}
+                            seasonal=np.sin((2*np.pi*day_index)/365)
+                            for i,(_,_,low,high,target) in enumerate(defs,1):
+                                sigma=(high-low)/24
+                                seasonal_shift=seasonal*(high-low)*0.025
+                                value=float(np.clip(RNG.normal(target+seasonal_shift,sigma),low,high))
+                                if day_index==30 and reading_index==1 and i in (1,7): value=high+(high-low)*0.15
+                                rec[f"{pfx}{i}"]=round(value,3)
+                            samples.append(rec)
             atomic_write_csv(folder / "inputs" / f"{source.lower()}.csv", pd.DataFrame(samples,columns=cols))
         calc=[]
         if bu in CALC_NAMES:
@@ -163,7 +175,7 @@ def seed() -> None:
         for name,columns in {
             "events.csv":["event_id","timestamp","event_date","event_time","event_types","format","plant","unit_section","equipment","title","details","picture_path","reported_by","notification_sent","field_update_sent","field_update_ids"],
             "flags.csv":["timestamp","date","time","field_id","value","flag_type","message","status"],
-            "lessons.csv":["lesson_id","timestamp","event_id","unit_section","lesson","entered_by"],
+            "lessons.csv":["lesson_id","timestamp","event_id","unit_section","equipment","lesson_title","lesson","attachment_path","attachment_name","attachment_type","read_count","entered_by"],
             "notifications.csv":["id","timestamp","recipient","level","message","created_by","read_by"],
             "audit_log.csv":["timestamp","business_unit","user","action","details"],
             "risk_assessments.csv":["serial","timestamp","preset","job_type","location","equipment","hazard_count","assessed_by"],
