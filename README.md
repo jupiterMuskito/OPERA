@@ -47,12 +47,14 @@ Change or disable every seeded account before production. Passwords in `users.cs
 
 Modules:
 
-- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, chart fields, table fields and chart type
+- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, KPI fields, chart fields, table fields and chart type
 - Chart layouts for every supported chart type: split into a two-column individual-axis grid or place fields on the same axis
+- Selectable chart headers, combined-chart legend fields and table-field selectors; Operations KPI card names are selectable data-field controls
+- Equipment Overview intelligently maps key parameters from the selected equipment name/type, supports exact-equipment Admin overrides, and includes a DCS / Field / QAQC / Others field-selection tool
 - Operational Data: one module with ordered **Input Data**, **Derived Data** and **Analyze Data** tabs
 - Input Data: manual entry, source-and-field-selective bulk templates, validated upload and DCS JSON connector
 - Event Log: report, table or picture events; stored notifications; optional update of any active Field Data (`F`) field
-- Analyze Data: grouped DCS / Field / QAQC / Others comparison, statistics, forecast, bounded response optimization, and Field vs DCS Monitor/Critical checks with shutdown-day exclusion
+- Analyze Data: grouped DCS / Field / QAQC / Others comparison, statistics, forecast, bounded response optimization, and **Instrument Check** Monitor/Critical checks; Instrument Check only compares Field and DCS readings and can exclude shutdown days
 - Derived Data: calculated fields and input/calculated/merged Excel downloads
 - Operating Parameters: all configured equipment, with DCS / Field / QAQC / Others field selectors; QAQC maps to Laboratory (`L`) fields
 - Risk Assessment: deterministic, Excel-register-backed assessments and PDFs
@@ -61,11 +63,11 @@ Modules:
 
 ## Data and calculated fields
 
-Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field (`F1–F1000`), and placeholders `TA1–TG1000`. DCS, Lab and Field contain 20 realistic active sample fields for the four active BUs. The seven placeholder sources have no sample rows; activate their fields in **Admin → Fields & formulas** before use.
+Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field (`F1–F1000`), and placeholders `TA1–TG1000`. DCS, Lab and Field contain 20 realistic active sample fields for the four active BUs. The package includes a trailing 365-day test dataset from 16 November 2025 through 15 November 2026: DCS and Field are sampled every six hours and QAQC/Lab daily. Cement includes Okpella, Obajana and Ibese, with readings distributed across all 201 named equipment records. The seven placeholder sources have no sample rows; activate their fields in **Admin → Fields & formulas** before use.
 
 Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range and abnormal jumps. Flags are retained in `flags.csv`. CSV values are protected from spreadsheet-formula injection.
 
-The ordered formula engine supports field references such as `[DP1]`, baseline constants, arithmetic, comparisons and `IF`, `MIN`, `MAX`, `ABS`, `MOD`, and `ROUND`. Baseline constants are reusable numeric assumptions maintained through a name/value editor and referenced directly by name in formulas. Active BUs include eight named sample calculated fields. KPI cards show value, target, variance and On/Off Target status. Current, Period Total, MTD and YTD templates use Daily/Period targets and configured aggregation.
+The ordered formula engine supports field references such as `[DP1]`, baseline constants, arithmetic, comparisons and `IF`, `MIN`, `MAX`, `ABS`, `MOD`, and `ROUND`. Baseline constants are reusable numeric assumptions maintained through a name/value editor and referenced directly by name in formulas. Active BUs include eight named sample calculated fields. KPI cards show value, target, variance and On/Off Target status. Current, Period Total, MTD and YTD templates use Daily/Period targets and configured aggregation. Trend granularity includes 1 hour, 6 hours, 12 hours, daily, weekly, monthly and yearly intervals.
 
 ## Risk registers
 
