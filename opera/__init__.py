@@ -1,3 +1,3 @@
-"""OPERA shared application services."""
+"""OPERA-X shared application services."""
 
 __version__ = "3.3.0"

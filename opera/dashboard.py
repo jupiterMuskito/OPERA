@@ -45,6 +45,23 @@ EQUIPMENT_FIELD_KEYWORDS = {
     "conveyor": ["belt", "drift", "bearing", "temperature"],
     "elevator": ["bearing", "temperature", "boot"],
     "silo": ["level", "dust", "temperature"],
+    "kiln": ["feed", "speed", "oxygen", "temperature", "pressure", "vibration", "shell"],
+    "filter": ["dust", "pressure", "differential", "flow", "temperature"],
+    "tower": ["temperature", "pressure", "oxygen", "flow", "differential"],
+}
+
+MAPPING_TEMPLATES = {
+    "plant-performance": "Plant Performance",
+    "condition-monitoring": "Condition Monitoring",
+    "process-performance": "Process Performance",
+    "quality-compliance": "Quality and Compliance",
+    "reliability": "Reliability",
+}
+
+SOURCE_TEMPLATE_DEFAULTS = {
+    "DCS": ("plant-performance", "process-performance"),
+    "Lab": ("plant-performance", "quality-compliance"),
+    "Field": ("condition-monitoring", "reliability"),
 }
 
 
@@ -63,7 +80,7 @@ def default_templates() -> dict[str, list[dict[str, Any]]]:
         "Equipment Overview": [
             {"id": "condition-monitoring", "name": "Condition Monitoring", "chart_fields": ["F1", "F3", "F4", "DP2"], "table_fields": ["F1", "F3", "F4", "DP2"], "equipment_fields": {}, "chart_type": "Line", "period_mode": "Selected Period"},
             {"id": "process-performance", "name": "Process Performance", "chart_fields": ["DP1", "DP2", "DP5", "DP20"], "table_fields": ["DP1", "DP2", "DP5", "DP20"], "equipment_fields": {}, "chart_type": "Area", "period_mode": "Selected Period"},
-            {"id": "quality-compliance", "name": "Quality & Compliance", "chart_fields": ["L1", "L6", "L12", "L17"], "table_fields": ["L1", "L6", "L12", "L17"], "equipment_fields": {}, "chart_type": "Box Plot", "period_mode": "Selected Period"},
+            {"id": "quality-compliance", "name": "Quality and Compliance", "chart_fields": ["L1", "L6", "L12", "L17"], "table_fields": ["L1", "L6", "L12", "L17"], "equipment_fields": {}, "chart_type": "Box Plot", "period_mode": "Selected Period"},
             {"id": "reliability", "name": "Reliability", "chart_fields": ["F3", "F4", "F5", "F7"], "table_fields": ["F3", "F4", "F5", "F7"], "equipment_fields": {}, "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
         "Operations Dashboard": [
@@ -90,11 +107,139 @@ def load_templates(bu: str) -> dict[str, list[dict[str, Any]]]:
     for module, module_defaults in defaults.items():
         value = saved.get(module)
         result[module] = value if isinstance(value, list) and value else module_defaults
+        for template in result[module]:
+            if template.get("id") == "quality-compliance":
+                template["name"] = "Quality and Compliance"
     return result
 
 
 def save_templates(bu: str, templates: dict[str, list[dict[str, Any]]]) -> None:
     storage.save_json(templates_path(bu), templates)
+
+
+def field_mappings_path(bu: str):
+    """Persist only Admin overrides; deterministic defaults cover every field."""
+    return storage.bu_dir(bu) / "field_mappings.json"
+
+
+def load_field_mapping_overrides(bu: str) -> dict[str, dict[str, list[str]]]:
+    value = storage.json_setting(field_mappings_path(bu), {})
+    return value if isinstance(value, dict) else {}
+
+
+def _field_number(field_id: str) -> int:
+    digits = "".join(character for character in str(field_id) if character.isdigit())
+    return max(1, int(digits or "1"))
+
+
+def _equipment_keywords(record: dict[str, Any] | pd.Series) -> list[str]:
+    text = " ".join(str(dict(record).get(key, "")) for key in ("equipment_type", "equipment_name")).lower()
+    keywords: list[str] = []
+    for equipment_key, values in EQUIPMENT_FIELD_KEYWORDS.items():
+        if equipment_key in text:
+            keywords.extend(values)
+    return list(dict.fromkeys(keywords))
+
+
+def default_field_mapping(
+    field_id: str,
+    source: str,
+    field_name: str,
+    equipment: pd.DataFrame,
+) -> dict[str, list[str]]:
+    """Return a stable equipment/template mapping for any input or placeholder field.
+
+    Semantic equipment matches are preferred. A deterministic equipment fallback and
+    round-robin template fallback guarantee that all DP/L/F/TA–TG placeholders have
+    at least one equipment and one of the five operational dashboard templates.
+    """
+    usable = equipment.copy()
+    if not usable.empty:
+        if "active" in usable:
+            active = usable["active"].astype(str).str.lower() == "true"
+            usable = usable[active]
+        if "placeholder" in usable:
+            named = usable[usable["placeholder"].astype(str).str.lower() != "true"]
+            usable = named if not named.empty else usable
+    equipment_ids = usable.get("equipment_id", pd.Series(dtype=str)).astype(str).tolist()
+    field_text = str(field_name).lower()
+    semantic_ids = [] if "placeholder" in field_text else [
+        str(row.equipment_id)
+        for row in usable.itertuples()
+        if any(keyword in field_text for keyword in _equipment_keywords(row._asdict()))
+    ]
+    if semantic_ids:
+        mapped_equipment = semantic_ids
+    elif equipment_ids:
+        mapped_equipment = [equipment_ids[(_field_number(field_id) - 1) % len(equipment_ids)]]
+    else:
+        mapped_equipment = []
+
+    template_ids = list(SOURCE_TEMPLATE_DEFAULTS.get(str(source), ()))
+    if not template_ids:
+        canonical = list(MAPPING_TEMPLATES)
+        template_ids = [canonical[(_field_number(field_id) - 1) % len(canonical)]]
+    return {"equipment_ids": mapped_equipment, "template_ids": template_ids}
+
+
+def field_mapping(
+    bu: str,
+    field_id: str,
+    source: str | None = None,
+    field_name: str | None = None,
+    equipment: pd.DataFrame | None = None,
+) -> dict[str, list[str]]:
+    registry = storage.registry(bu)
+    match = registry[registry["field_id"].astype(str) == str(field_id)] if not registry.empty else pd.DataFrame()
+    if source is None:
+        source = str(match.iloc[0].get("source", "")) if not match.empty else ""
+    if field_name is None:
+        field_name = str(match.iloc[0].get("field_name", field_id)) if not match.empty else str(field_id)
+    default = default_field_mapping(str(field_id), str(source), str(field_name), storage.equipment(bu) if equipment is None else equipment)
+    override = load_field_mapping_overrides(bu).get(str(field_id), {})
+    mapped_equipment = override.get("equipment_ids", default["equipment_ids"])
+    mapped_templates = override.get("template_ids", default["template_ids"])
+    return {
+        "equipment_ids": list(dict.fromkeys(str(item) for item in mapped_equipment if str(item))),
+        "template_ids": list(dict.fromkeys(str(item) for item in mapped_templates if str(item))),
+    }
+
+
+def mapped_field_ids(
+    bu: str,
+    registry: pd.DataFrame,
+    equipment_id: str | None = None,
+    template_id: str | None = None,
+) -> set[str]:
+    """Filter a supplied field catalog by the current equipment/template context."""
+    if registry.empty or (not equipment_id and not template_id):
+        return set(registry.get("field_id", pd.Series(dtype=str)).astype(str))
+    equipment = storage.equipment(bu)
+    overrides = load_field_mapping_overrides(bu)
+    selected: set[str] = set()
+    for row in registry.itertuples():
+        field_id = str(row.field_id)
+        mapping = default_field_mapping(field_id, str(getattr(row, "source", "")), str(getattr(row, "field_name", field_id)), equipment)
+        override = overrides.get(field_id, {})
+        equipment_ids = override.get("equipment_ids", mapping["equipment_ids"])
+        template_ids = override.get("template_ids", mapping["template_ids"])
+        if equipment_id and str(equipment_id) not in {str(item) for item in equipment_ids}:
+            continue
+        if template_id and str(template_id) not in {str(item) for item in template_ids}:
+            continue
+        selected.add(field_id)
+    return selected
+
+
+def save_field_mapping(bu: str, field_id: str, equipment_ids: list[str], template_ids: list[str]) -> None:
+    if not equipment_ids or not template_ids:
+        raise ValueError("Every data field must map to at least one equipment and one dashboard template.")
+    overrides = load_field_mapping_overrides(bu)
+    overrides[str(field_id)] = {
+        "equipment_ids": list(dict.fromkeys(str(item) for item in equipment_ids if str(item))),
+        "template_ids": list(dict.fromkeys(str(item) for item in template_ids if str(item))),
+    }
+    storage.save_json(field_mappings_path(bu), overrides)
 
 
 def fields_for_equipment(template: dict[str, Any], equipment_id: str) -> tuple[list[str], list[str]]:

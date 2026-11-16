@@ -61,7 +61,7 @@ def github_commit(bu: str, data: bytes, user: str, github: dict[str, Any]) -> st
     branch = github.get("branch", "main")
     path = github.get("path", f"registers/{bu}.xlsx")
     url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "User-Agent": "opera-streamlit"}
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "User-Agent": "opera-x-streamlit"}
     sha = None
     try:
         with urllib.request.urlopen(urllib.request.Request(f"{url}?ref={branch}", headers=headers), timeout=20) as response:
@@ -69,7 +69,7 @@ def github_commit(bu: str, data: bytes, user: str, github: dict[str, Any]) -> st
     except urllib.error.HTTPError as exc:
         if exc.code != 404:
             raise RuntimeError(f"GitHub read failed ({exc.code}).") from exc
-    body = {"message": f"OPERA risk register update for {bu} by {user}", "content": base64.b64encode(data).decode(), "branch": branch}
+    body = {"message": f"OPERA-X risk register update for {bu} by {user}", "content": base64.b64encode(data).decode(), "branch": branch}
     if sha:
         body["sha"] = sha
     request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={**headers, "Content-Type": "application/json"}, method="PUT")

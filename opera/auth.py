@@ -81,7 +81,10 @@ def authenticate(username: str, password: str, secret_users: Mapping[str, Any] |
         users.loc[row_index, ["failed_attempts", "lock_until"]] = ["0", ""]
         storage.atomic_write_csv(storage.DATA_ROOT / "shared" / "users.csv", users)
     bus = tuple(x.strip() for x in str(rec.get("business_units", "*")).split(";") if x.strip())
-    return User(username, str(rec.get("display_name") or rec.get("name") or username), str(rec.get("role") or "Viewer"), bus,
+    display_name = str(rec.get("display_name") or rec.get("name") or username)
+    if display_name == "OPERA Super Admin":
+        display_name = "OPERA-X Super Admin"
+    return User(username, display_name, str(rec.get("role") or "Viewer"), bus,
                 str(rec.get("must_change_password", "false")).lower() == "true"), ""
 
 

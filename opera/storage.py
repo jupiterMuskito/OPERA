@@ -12,7 +12,7 @@ import pandas as pd
 from filelock import FileLock
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = Path(os.getenv("OPERA_DATA_DIR", ROOT / "data"))
+DATA_ROOT = Path(os.getenv("OPERAX_DATA_DIR", os.getenv("OPERA_DATA_DIR", ROOT / "data")))
 BASE_COLUMNS = ["Date", "Time", "Business unit", "Plant", "Unit/Section", "Equipment", "Recorded by", "Recorded at"]
 SOURCES = {"DCS": "DP", "Lab": "L", "Field": "F", "TA": "TA", "TB": "TB", "TC": "TC", "TD": "TD", "TE": "TE", "TF": "TF", "TG": "TG"}
 ATTACHMENT_TYPES = {
@@ -166,7 +166,7 @@ def save_attachment(bu: str, name: str, data: bytes, allowed_suffixes: Iterable[
 
 
 def attachment_bytes(relative_path: str) -> bytes:
-    """Read an attachment while preventing traversal outside OPERA's data root."""
+    """Read an attachment while preventing traversal outside OPERA-X's data root."""
     target = (DATA_ROOT / relative_path).resolve()
     root = DATA_ROOT.resolve()
     if root not in target.parents or not target.is_file():
@@ -256,12 +256,14 @@ def save_validated_input(bu: str, source: str, frame: pd.DataFrame, user: str) -
     return len(clean), len(flags)
 
 
-def template_bytes(bu: str, source: str, fields: list[str] | None = None) -> bytes:
+def template_bytes(bu: str, source: str, fields: list[str] | None = None, equipment_id: str | None = None) -> bytes:
     reg = registry(bu)
     active = reg[(reg["source"] == source) & (reg["active"].str.lower() == "true")]
     selected = active["field_id"].head(20).tolist() if fields is None else [field for field in fields if field in set(active["field_id"])]
     eq = equipment(bu)
-    first = eq[eq["placeholder"].str.lower() != "true"].iloc[0]
+    named = eq[eq["placeholder"].str.lower() != "true"]
+    selected_equipment = named[named["equipment_id"].astype(str) == str(equipment_id)] if equipment_id else pd.DataFrame()
+    first = selected_equipment.iloc[0] if not selected_equipment.empty else named.iloc[0]
     row = {"Date": datetime.now().date().isoformat(), "Time": "06:00", "Business unit": bu, "Plant": first["plant"],
            "Unit/Section": first["unit_section"], "Equipment": first["equipment_id"]}
     row.update({field: "" for field in selected})

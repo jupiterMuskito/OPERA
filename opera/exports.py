@@ -22,6 +22,8 @@ def excel_bytes(sheets: dict[str, pd.DataFrame] | pd.DataFrame, masks: dict[str,
     frames = {"Data": sheets} if isinstance(sheets, pd.DataFrame) else sheets
     out = io.BytesIO()
     with pd.ExcelWriter(out, engine="openpyxl") as writer:
+        writer.book.properties.creator = "OPERA-X"
+        writer.book.properties.lastModifiedBy = "OPERA-X"
         for name, frame in frames.items():
             frame.to_excel(writer, sheet_name=str(name)[:31], index=False)
             ws = writer.book[str(name)[:31]]
@@ -48,7 +50,7 @@ def pdf_bytes(title: str, frame: pd.DataFrame, subtitle: str = "", target_mask: 
     out = io.BytesIO()
     page = landscape(A4) if len(frame.columns) > 4 else A4
     doc = SimpleDocTemplate(out, pagesize=page, leftMargin=10 * mm, rightMargin=10 * mm, topMargin=10 * mm, bottomMargin=12 * mm,
-                            title=title, author="OPERA")
+                            title=title, author="OPERA-X")
     styles = getSampleStyleSheet()
     story: list[Any] = [Paragraph(title, styles["Title"])]
     if subtitle:
@@ -101,7 +103,7 @@ def lesson_pdf_bytes(title: str, metadata: dict[str, Any], lesson: str) -> bytes
     """Create a readable single-lesson PDF with wrapped text."""
     out = io.BytesIO()
     doc = SimpleDocTemplate(out, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=16 * mm, bottomMargin=16 * mm,
-                            title=title, author="OPERA")
+                            title=title, author="OPERA-X")
     styles = getSampleStyleSheet()
     story: list[Any] = [Paragraph(escape(title), styles["Title"]), Spacer(1, 8)]
     for label, value in metadata.items():
