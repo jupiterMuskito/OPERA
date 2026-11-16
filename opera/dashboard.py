@@ -28,10 +28,10 @@ def default_templates() -> dict[str, list[dict[str, Any]]]:
             }
         ],
         "Equipment Overview": [
-            {"id": "condition-monitoring", "name": "Condition Monitoring", "chart_fields": ["F1", "F3", "F4", "DP2"], "table_fields": ["F1", "F3", "F4", "DP2"], "chart_type": "Line", "period_mode": "Selected Period"},
-            {"id": "process-performance", "name": "Process Performance", "chart_fields": ["DP1", "DP2", "DP5", "DP20"], "table_fields": ["DP1", "DP2", "DP5", "DP20"], "chart_type": "Area", "period_mode": "Selected Period"},
-            {"id": "quality-compliance", "name": "Quality & Compliance", "chart_fields": ["L1", "L6", "L12", "L17"], "table_fields": ["L1", "L6", "L12", "L17"], "chart_type": "Box Plot", "period_mode": "Selected Period"},
-            {"id": "reliability", "name": "Reliability", "chart_fields": ["F3", "F4", "F5", "F7"], "table_fields": ["F3", "F4", "F5", "F7"], "chart_type": "Scatter", "period_mode": "Selected Period"},
+            {"id": "condition-monitoring", "name": "Condition Monitoring", "chart_fields": ["F1", "F3", "F4", "DP2"], "table_fields": ["F1", "F3", "F4", "DP2"], "equipment_fields": {}, "chart_type": "Line", "period_mode": "Selected Period"},
+            {"id": "process-performance", "name": "Process Performance", "chart_fields": ["DP1", "DP2", "DP5", "DP20"], "table_fields": ["DP1", "DP2", "DP5", "DP20"], "equipment_fields": {}, "chart_type": "Area", "period_mode": "Selected Period"},
+            {"id": "quality-compliance", "name": "Quality & Compliance", "chart_fields": ["L1", "L6", "L12", "L17"], "table_fields": ["L1", "L6", "L12", "L17"], "equipment_fields": {}, "chart_type": "Box Plot", "period_mode": "Selected Period"},
+            {"id": "reliability", "name": "Reliability", "chart_fields": ["F3", "F4", "F5", "F7"], "table_fields": ["F3", "F4", "F5", "F7"], "equipment_fields": {}, "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
         "Operations Dashboard": [
             {"id": "current", "name": "Current", "chart_fields": ["CF1", "CF2", "CF3", "CF4"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6"], "chart_type": "Line", "period_mode": "Current"},
@@ -62,6 +62,15 @@ def load_templates(bu: str) -> dict[str, list[dict[str, Any]]]:
 
 def save_templates(bu: str, templates: dict[str, list[dict[str, Any]]]) -> None:
     storage.save_json(templates_path(bu), templates)
+
+
+def fields_for_equipment(template: dict[str, Any], equipment_id: str) -> tuple[list[str], list[str]]:
+    """Return equipment-specific fields, falling back to template defaults."""
+    overrides = template.get("equipment_fields", {})
+    override = overrides.get(equipment_id, {}) if isinstance(overrides, dict) else {}
+    chart_fields = override.get("chart_fields", template.get("chart_fields", []))
+    table_fields = override.get("table_fields", template.get("table_fields", []))
+    return list(chart_fields or []), list(table_fields or [])
 
 
 def hierarchy_path(bu: str):
