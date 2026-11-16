@@ -64,6 +64,20 @@ SOURCE_TEMPLATE_DEFAULTS = {
     "Field": ("condition-monitoring", "reliability"),
 }
 
+SOURCE_GROUPS = {
+    "DCS": "DCS",
+    "Field": "Field",
+    "Lab": "QAQC",
+    "TA": "Others",
+    "TB": "Others",
+    "TC": "Others",
+    "TD": "Others",
+    "TE": "Others",
+    "TF": "Others",
+    "TG": "Others",
+    "Calculated": "Calculated",
+}
+
 
 def default_templates() -> dict[str, list[dict[str, Any]]]:
     return {
@@ -240,6 +254,228 @@ def save_field_mapping(bu: str, field_id: str, equipment_ids: list[str], templat
         "template_ids": list(dict.fromkeys(str(item) for item in template_ids if str(item))),
     }
     storage.save_json(field_mappings_path(bu), overrides)
+
+
+def reset_field_mapping(bu: str, field_id: str) -> bool:
+    """Remove an Admin override and return whether an override existed."""
+    overrides = load_field_mapping_overrides(bu)
+    existed = str(field_id) in overrides
+    if existed:
+        overrides.pop(str(field_id), None)
+        storage.save_json(field_mappings_path(bu), overrides)
+    return existed
+
+
+def field_catalog(bu: str) -> pd.DataFrame:
+    """Return every input, placeholder and calculated field in one catalog."""
+    inputs = storage.registry(bu).copy()
+    if inputs.empty:
+        inputs = pd.DataFrame(columns=["field_id", "field_name", "source", "active"])
+    for column in ("field_id", "field_name", "source", "active"):
+        if column not in inputs:
+            inputs[column] = ""
+    input_catalog = pd.DataFrame(
+        {
+            "field_id": inputs["field_id"].astype(str),
+            "field_name": inputs["field_name"].astype(str),
+            "source_key": inputs["source"].astype(str),
+            "source": inputs["source"].astype(str).map(lambda value: SOURCE_GROUPS.get(value, "Others")),
+            "status": inputs["active"].astype(str).str.lower().map(
+                lambda value: "Active" if value == "true" else "Placeholder / Inactive"
+            ),
+            "field_type": inputs["active"].astype(str).str.lower().map(
+                lambda value: "Input" if value == "true" else "Placeholder"
+            ),
+        }
+    )
+
+    calculated = storage.read_csv(storage.bu_dir(bu) / "calculated_fields.csv")
+    if calculated.empty:
+        calculated_catalog = pd.DataFrame(columns=input_catalog.columns)
+    else:
+        for column in ("field_id", "field_name", "status"):
+            if column not in calculated:
+                calculated[column] = ""
+        calculated_catalog = pd.DataFrame(
+            {
+                "field_id": calculated["field_id"].astype(str),
+                "field_name": calculated["field_name"].astype(str),
+                "source_key": "Calculated",
+                "source": "Calculated",
+                "status": calculated["status"].astype(str).map(
+                    lambda value: value.strip().title() or "Inactive"
+                ),
+                "field_type": "Calculated",
+            }
+        )
+    return pd.concat([input_catalog, calculated_catalog], ignore_index=True)
+
+
+def _usable_mapping_equipment(bu: str) -> pd.DataFrame:
+    equipment = storage.equipment(bu).copy()
+    if equipment.empty:
+        return equipment
+    if "active" in equipment:
+        equipment = equipment[equipment["active"].astype(str).str.lower() == "true"]
+    if "placeholder" in equipment:
+        named = equipment[equipment["placeholder"].astype(str).str.lower() != "true"]
+        equipment = named if not named.empty else equipment
+    return equipment
+
+
+def field_mapping_table(bu: str) -> pd.DataFrame:
+    """Materialise the complete effective mapping, including computed defaults.
+
+    Tuple-valued private columns (prefixed with ``_``) support exact UI filtering;
+    the public columns are readable and ready for display or Excel export.
+    """
+    catalog = field_catalog(bu)
+    equipment = _usable_mapping_equipment(bu)
+    overrides = load_field_mapping_overrides(bu)
+    equipment_by_id = (
+        equipment.assign(equipment_id=equipment.get("equipment_id", pd.Series(dtype=str)).astype(str))
+        .drop_duplicates("equipment_id")
+        .set_index("equipment_id")
+        if not equipment.empty and "equipment_id" in equipment
+        else pd.DataFrame()
+    )
+    rows: list[dict[str, Any]] = []
+    usable_equipment_ids = equipment.get("equipment_id", pd.Series(dtype=str)).astype(str).tolist()
+    canonical_templates = list(MAPPING_TEMPLATES)
+    for field in catalog.itertuples(index=False):
+        field_id = str(field.field_id)
+        # Almost all packaged placeholders intentionally use the deterministic
+        # round-robin fallback. Avoid copying/scanning the full equipment table
+        # 9,940 times while preserving the exact default_field_mapping result.
+        if "placeholder" in str(field.field_name).lower():
+            number = _field_number(field_id)
+            default = {
+                "equipment_ids": [usable_equipment_ids[(number - 1) % len(usable_equipment_ids)]] if usable_equipment_ids else [],
+                "template_ids": list(SOURCE_TEMPLATE_DEFAULTS.get(str(field.source_key), ()))
+                or [canonical_templates[(number - 1) % len(canonical_templates)]],
+            }
+        else:
+            default = default_field_mapping(field_id, str(field.source_key), str(field.field_name), equipment)
+        override = overrides.get(field_id, {})
+        equipment_ids = tuple(dict.fromkeys(str(item) for item in override.get("equipment_ids", default["equipment_ids"]) if str(item)))
+        template_ids = tuple(dict.fromkeys(str(item) for item in override.get("template_ids", default["template_ids"]) if str(item)))
+        equipment_names: list[str] = []
+        plants: list[str] = []
+        units: list[str] = []
+        for equipment_id in equipment_ids:
+            if equipment_by_id.empty or equipment_id not in equipment_by_id.index:
+                equipment_names.append(equipment_id)
+                continue
+            record = equipment_by_id.loc[equipment_id]
+            equipment_names.append(str(record.get("equipment_name", equipment_id)))
+            plants.append(str(record.get("plant", "")))
+            units.append(str(record.get("unit_section", "")))
+        plants_tuple = tuple(dict.fromkeys(item for item in plants if item))
+        units_tuple = tuple(dict.fromkeys(item for item in units if item))
+        template_names = tuple(MAPPING_TEMPLATES.get(item, item) for item in template_ids)
+        rows.append(
+            {
+                "Business Unit": bu,
+                "Field ID": field_id,
+                "Data Field": str(field.field_name),
+                "Source": str(field.source),
+                "Source Code": str(field.source_key),
+                "Status": str(field.status),
+                "Field Type": str(field.field_type),
+                "Mapping Type": "Admin Override" if field_id in overrides else "Computed Default",
+                "Equipment IDs": "; ".join(equipment_ids),
+                "Equipment Names": "; ".join(equipment_names),
+                "Plants": "; ".join(plants_tuple),
+                "Units / Sections": "; ".join(units_tuple),
+                "Template IDs": "; ".join(template_ids),
+                "Dashboard Templates": "; ".join(template_names),
+                "_equipment_ids": equipment_ids,
+                "_plants": plants_tuple,
+                "_units": units_tuple,
+                "_template_ids": template_ids,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def mapping_reverse_views(bu: str, mappings: pd.DataFrame | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return field-per-equipment and field-per-template reverse mapping views."""
+    mappings = field_mapping_table(bu) if mappings is None else mappings
+    equipment = _usable_mapping_equipment(bu)
+    equipment_lookup = (
+        equipment.assign(equipment_id=equipment.get("equipment_id", pd.Series(dtype=str)).astype(str))
+        .drop_duplicates("equipment_id")
+        .set_index("equipment_id")
+        if not equipment.empty and "equipment_id" in equipment
+        else pd.DataFrame()
+    )
+    equipment_rows: list[dict[str, Any]] = []
+    template_rows: list[dict[str, Any]] = []
+    for row in mappings.itertuples(index=False, name=None):
+        values = dict(zip(mappings.columns, row))
+        common = {
+            "Business Unit": values["Business Unit"],
+            "Field ID": values["Field ID"],
+            "Data Field": values["Data Field"],
+            "Source": values["Source"],
+            "Status": values["Status"],
+            "Field Type": values["Field Type"],
+            "Mapping Type": values["Mapping Type"],
+        }
+        for equipment_id in values["_equipment_ids"]:
+            record = equipment_lookup.loc[equipment_id] if not equipment_lookup.empty and equipment_id in equipment_lookup.index else {}
+            equipment_rows.append(
+                {
+                    "Business Unit": bu,
+                    "Plant": str(record.get("plant", "")),
+                    "Unit / Section": str(record.get("unit_section", "")),
+                    "Equipment ID": equipment_id,
+                    "Equipment": str(record.get("equipment_name", equipment_id)),
+                    **{key: value for key, value in common.items() if key != "Business Unit"},
+                    "Dashboard Templates": values["Dashboard Templates"],
+                }
+            )
+        for template_id in values["_template_ids"]:
+            template_rows.append(
+                {
+                    "Business Unit": bu,
+                    "Template ID": template_id,
+                    "Dashboard Template": MAPPING_TEMPLATES.get(template_id, template_id),
+                    **{key: value for key, value in common.items() if key != "Business Unit"},
+                    "Equipment IDs": values["Equipment IDs"],
+                    "Equipment Names": values["Equipment Names"],
+                }
+            )
+    return pd.DataFrame(equipment_rows), pd.DataFrame(template_rows)
+
+
+def mapping_export_sheets(bu: str, mappings: pd.DataFrame | None = None) -> dict[str, pd.DataFrame]:
+    """Build the complete review workbook sheets for one business unit."""
+    mappings = field_mapping_table(bu) if mappings is None else mappings
+    equipment_view, template_view = mapping_reverse_views(bu, mappings)
+    public_mapping = mappings[[column for column in mappings.columns if not column.startswith("_")]].copy()
+    guide = pd.DataFrame(
+        [
+            {
+                "Item": "How mapping works",
+                "Explanation": "Equipment and dashboard-template selections use this mapping to filter data-field dropdowns across OPERA-X.",
+            },
+            {
+                "Item": "Computed Default",
+                "Explanation": "A deterministic code-generated mapping used when an administrator has not saved an override.",
+            },
+            {
+                "Item": "Admin Override",
+                "Explanation": "An administrator-saved mapping in field_mappings.json; the change is also written to the audit log.",
+            },
+        ]
+    )
+    return {
+        "Field Mappings": public_mapping,
+        "By Equipment": equipment_view,
+        "By Template": template_view,
+        "Guide": guide,
+    }
 
 
 def fields_for_equipment(template: dict[str, Any], equipment_id: str) -> tuple[list[str], list[str]]:
