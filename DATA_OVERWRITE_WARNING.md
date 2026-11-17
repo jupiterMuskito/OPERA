@@ -1,10 +1,40 @@
-# OPERA-X v3.5.0 — Runtime CSV Overwrite Warning
+# OPERA-X v3.6.0 — Runtime Data Overwrite Warning
 
-**Use the code-only update ZIP for an existing deployment.** The full deployment ZIP contains the 174 CSV files listed below. Copying it over a live deployment can replace passwords/users, entered readings, mappings represented in configuration CSVs, events, flags, lessons, notifications, risk-assessment history, audit history, equipment configuration, calculated fields, and field metadata.
+**Use the code-only update ZIP for an existing deployment.** The full deployment ZIP contains the 174 CSV files listed below plus nine runtime `field_mappings.xlsx` databases. Copying it over a live deployment can replace passwords/users, entered readings, Excel mappings, events, flags, lessons, notifications, risk-assessment history, audit history, equipment configuration, calculated fields, and field metadata.
 
-No CSV changed versus the supplied v3.4.0 package; this warning concerns overwriting newer data created by the running app after v3.4.0 was deployed.
+The code-only ZIP contains no `data/` files. On first use it creates `field_mappings.xlsx` from the engineering baseline and migrates any existing `field_mappings.json` overrides without replacing other runtime files.
 
-`field_mappings.json` is also runtime state once an Admin saves an override. The v3.5.0 full package does not ship that file, but preserve any existing live copy.
+The full v3.6.0 package deliberately changes 13 CSVs versus v3.5.0: all nine BU `equipment.csv` files activate SPARE records for placeholder mapping, and the four configured `calculated_fields.csv` files correct formula/name/target mismatches. It also adds the nine mapping databases below. Preserve any legacy `field_mappings.json` until the first v3.6.0 migration has completed successfully.
+
+## Added Excel mapping databases (9 files)
+
+- `data/business_units/bu5/field_mappings.xlsx`
+- `data/business_units/bu6/field_mappings.xlsx`
+- `data/business_units/bu7/field_mappings.xlsx`
+- `data/business_units/bu8/field_mappings.xlsx`
+- `data/business_units/bu9/field_mappings.xlsx`
+- `data/business_units/cement/field_mappings.xlsx`
+- `data/business_units/fertilizer/field_mappings.xlsx`
+- `data/business_units/nascon/field_mappings.xlsx`
+- `data/business_units/refinery/field_mappings.xlsx`
+
+These files are live runtime state after deployment. Do not overwrite them with the full package after Administrators have saved single-field or bulk updates.
+
+## CSVs changed versus v3.5.0 (13 files)
+
+- `data/business_units/bu5/equipment.csv`
+- `data/business_units/bu6/equipment.csv`
+- `data/business_units/bu7/equipment.csv`
+- `data/business_units/bu8/equipment.csv`
+- `data/business_units/bu9/equipment.csv`
+- `data/business_units/cement/equipment.csv`
+- `data/business_units/fertilizer/equipment.csv`
+- `data/business_units/nascon/equipment.csv`
+- `data/business_units/refinery/equipment.csv`
+- `data/business_units/cement/calculated_fields.csv`
+- `data/business_units/fertilizer/calculated_fields.csv`
+- `data/business_units/nascon/calculated_fields.csv`
+- `data/business_units/refinery/calculated_fields.csv`
 
 ## User and shared state (2 files)
 

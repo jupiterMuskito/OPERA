@@ -49,16 +49,26 @@ Modules:
 
 ## Data-field mapping
 
-Every input field, placeholder (`DP`, `L`, `F`, and `TA`–`TG`), and calculated field receives a deterministic default mapping to:
+Every input field, placeholder (`DP`, `L`, `F`, and `TA`–`TG`), and calculated field is stored in each BU's `field_mappings.xlsx` runtime database with:
 
 - at least one equipment record; and
 - at least one of **Plant Performance**, **Condition Monitoring**, **Process Performance**, **Quality and Compliance**, or **Reliability**.
+- a plain-language **Mapping Basis** and **Confidence** (`High`, `Medium`, or `Review`); and
+- any same-point DCS/Field **Instrument Check Pair IDs**.
+
+The named defaults are field-by-field process-engineering assignments, not round-robin/index/random mappings. Cement covers Okpella, Obajana and Ibese equipment; Refinery covers the Butamer process train; Fertilizer covers reforming, ammonia, urea and granulation; NASCON covers Salt and Sugar. Calculated fields inherit equipment from their formula inputs. Unnamed placeholders use source-aware SPARE equipment and are clearly labelled **Default placeholder mapping – review when field is named**.
 
 When equipment or a dashboard template is selected, related data-field dropdowns are automatically filtered by the applicable map. This applies to Plant Overview, Equipment Overview, Manual Entry, Bulk Upload, Event Log field updates, and Operating Parameters. Operations Dashboard KPI and chart controls remain filtered by the chosen Operations template.
 
-**Admin / Super Admin → Field Mappings** shows the complete effective mapping—not only overrides—with business-unit, plant, unit, equipment, dashboard-template, source and status filters plus Field ID/name search. It includes field, reverse-equipment and reverse-template views. Administrators can edit or reset any active, placeholder or calculated field. Saves are written to the audit log and persisted as overrides in `field_mappings.json`; defaults remain code-driven.
+**Admin / Super Admin → Field Mappings** shows the complete effective mapping—not only overrides—with business-unit, plant, unit, equipment, dashboard-template, source and status filters plus Field ID/name search. It includes field, reverse-equipment and reverse-template views. Administrators can edit or reset any active, placeholder or calculated field. Saves are written to the audit log and persisted directly in `field_mappings.xlsx`; the `Default Mappings` sheet supplies the reset baseline.
 
-The complete mapping can be downloaded as an Excel workbook with `Field Mappings`, `By Equipment`, `By Template`, and `Guide` sheets.
+The page provides three Excel workflows:
+
+- **Excel Mapping Update Template** — editable equipment/template relationships plus Field Review metadata; controlled dropdown validation for Field ID, Equipment ID, Dashboard Template ID, Apply Update, Include and Confidence.
+- **Bulk upload** — validates IDs, required sheets, non-empty relationships, confidence values and DCS/Field pair integrity before atomically updating the mapping database and audit log.
+- **Excel Mapping Database / Complete Mapping Workbook** — backend database review plus human-readable field, equipment and template views.
+
+Instrument Check reads recorded DCS/Field pairs from the mapping database and selects the appropriate same-point pair by default. See `MAPPING_QUALITY_REPORT.md` for counts by BU/template, all named `Review` items, grouped placeholder reviews, calculated-field checks, and 20 sample mappings with their reasoning.
 
 ## Data and persistence
 
@@ -66,7 +76,7 @@ Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field 
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.5.0.zip`. Do not copy the full deployment package over a live `data/` directory: it contains seed/runtime CSVs that can replace readings and configuration entered through the app. See `DATA_OVERWRITE_WARNING.md` for the exact inventory.
+For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.6.0.zip`. It excludes runtime CSV/XLSX files. On first use, v3.6.0 creates `field_mappings.xlsx` from the engineering baseline and migrates any legacy `field_mappings.json` overrides as `Review` items. Do not copy the full deployment package over a live `data/` directory: it contains seed/runtime files that can replace readings, equipment, calculated fields and mappings entered through the app. See `DATA_OVERWRITE_WARNING.md` for the exact inventory.
 
 ## Risk registers
 
@@ -82,9 +92,9 @@ NASCON and new BUs require an approved register upload before risk assessments c
 
 ```bash
 pytest -q
-python -m py_compile app.py opera/*.py scripts/seed_data.py
+python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The suite covers the formula engine, roles and password hashes, locked CSV storage, upload validation, Excel round-trip, field-mapping coverage and filtering, export branding metadata, dashboard configuration, Cement hierarchy/register behavior, risk/PDF generation, and Streamlit startup.
+The 40-test suite covers the formula engine, roles and password hashes, locked CSV storage, upload validation, Excel round-trip, engineering mapping assignments, placeholder SPARE rules, calculated-field inheritance, Instrument Check pairs, controlled mapping workbooks, partial bulk updates, field-mapping filtering, export branding metadata, dashboard configuration, Cement hierarchy/register behavior, risk/PDF generation, and every authenticated Streamlit route.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `CHANGE_MANIFEST_v3.5.0_vs_v3.4.0.md`, and `DATA_OVERWRITE_WARNING.md`.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `CHANGE_MANIFEST_v3.6.0_vs_v3.5.0.md`, `MAPPING_QUALITY_REPORT.md`, and `DATA_OVERWRITE_WARNING.md`.

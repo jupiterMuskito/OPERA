@@ -818,8 +818,20 @@ def page_analysis(bu: str, user: auth.User) -> None:
         st.caption("Compare one Field reading with one DCS reading. These are the only comparison sources available in Instrument Check.")
         field_registry = active_registry(bu, "Field")
         dcs_registry = active_registry(bu, "DCS")
-        field_label = st.selectbox("Field Reading", field_registry.apply(lambda row: f"{row['field_id']} — {row['field_name']}", axis=1))
-        dcs_label = st.selectbox("DCS Reading", dcs_registry.apply(lambda row: f"{row['field_id']} — {row['field_name']}", axis=1))
+        recorded_pairs = dashboard.instrument_check_pairs(bu)
+        field_options = field_registry.apply(lambda row: f"{row['field_id']} — {row['field_name']}", axis=1).tolist()
+        paired_field_ids = [field_id for field_id in recorded_pairs if field_id in set(field_registry["field_id"].astype(str))]
+        paired_default = paired_field_ids[0] if paired_field_ids else ""
+        field_index = next((index for index, label in enumerate(field_options) if label.startswith(paired_default + " — ")), 0)
+        field_label = st.selectbox("Field Reading", field_options, index=field_index)
+        selected_field_id = field_label.split(" — ", 1)[0]
+        paired_dcs_ids = recorded_pairs.get(selected_field_id, [])
+        dcs_options = dcs_registry.apply(lambda row: f"{row['field_id']} — {row['field_name']}", axis=1).tolist()
+        paired_dcs_default = paired_dcs_ids[0] if paired_dcs_ids else ""
+        dcs_index = next((index for index, label in enumerate(dcs_options) if label.startswith(paired_dcs_default + " — ")), 0)
+        dcs_label = st.selectbox("DCS Reading", dcs_options, index=dcs_index)
+        if paired_dcs_ids:
+            st.caption("Default pair loaded from the Admin Excel mapping database. You can still select another DCS point for an ad-hoc check.")
         monitor = st.number_input("Monitor Difference", min_value=0.0, value=5.0)
         critical = st.number_input("Critical Difference", min_value=monitor, value=max(10.0, monitor))
         exclude_shutdown = st.checkbox("Exclude Shutdown Days", value=True)
@@ -1205,8 +1217,8 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
     st.markdown(
         '<div class="panel-note"><strong>How mapping works:</strong> OPERA-X uses the equipment and dashboard-template '
         'mappings below to filter data-field dropdowns across Plant Overview, Equipment Overview, Operational Data, '
-        'Event Log and Operating Parameters. Computed defaults cover every field; an Admin edit creates an audited '
-        'override that takes effect immediately.</div>',
+        'Event Log and Operating Parameters. The complete runtime mapping is stored in an Admin-viewable Excel database; '
+        'a single edit or validated bulk upload creates an audited override that takes effect immediately.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1225,6 +1237,65 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
     if mappings.empty:
         st.info("No data fields are configured for this business unit.")
         return
+
+    st.markdown("##### Excel mapping database and bulk update")
+    st.caption(
+        "Download the controlled update template for Excel dropdowns and bulk changes, or download the live backend "
+        "database for review. Bulk uploads validate every Field ID, Equipment ID and Dashboard Template ID before saving."
+    )
+    prepare_template_col, prepare_database_col = st.columns(2)
+    if prepare_template_col.button("Prepare Excel Mapping Update Template", key=f"prepare_mapping_update_template_{mapping_bu}"):
+        st.session_state.mapping_update_template = dashboard.mapping_update_template_bytes(mapping_bu)
+        st.session_state.mapping_update_template_bu = mapping_bu
+        storage.audit(mapping_bu, user.username, "field_mapping_update_template_prepared")
+    if prepare_database_col.button("Prepare Excel Mapping Database", key=f"prepare_mapping_database_{mapping_bu}"):
+        st.session_state.mapping_database_download = dashboard.mapping_database_bytes(mapping_bu)
+        st.session_state.mapping_database_download_bu = mapping_bu
+        storage.audit(mapping_bu, user.username, "field_mapping_database_prepared")
+
+    download_template_col, download_database_col = st.columns(2)
+    if st.session_state.get("mapping_update_template_bu") == mapping_bu and "mapping_update_template" in st.session_state:
+        download_template_col.download_button(
+            "Download Excel Update Template",
+            st.session_state.mapping_update_template,
+            f"{mapping_bu}_field_mapping_update_template.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"download_mapping_update_template_{mapping_bu}",
+        )
+    if st.session_state.get("mapping_database_download_bu") == mapping_bu and "mapping_database_download" in st.session_state:
+        download_database_col.download_button(
+            "Download Excel Mapping Database",
+            st.session_state.mapping_database_download,
+            f"{mapping_bu}_field_mappings_database.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"download_mapping_database_{mapping_bu}",
+        )
+
+    uploaded_mapping = st.file_uploader(
+        "Bulk upload mapping update (.xlsx)",
+        type=["xlsx"],
+        key=f"mapping_bulk_upload_{mapping_bu}",
+        help="Use the OPERA-X Excel Mapping Update Template. The upload updates only Field IDs present in the editable mapping sheets.",
+    )
+    if uploaded_mapping is not None:
+        st.caption(f"Selected: {uploaded_mapping.name} · {uploaded_mapping.size:,} bytes")
+        if st.button("Validate and Apply Bulk Mapping Update", type="primary", key=f"apply_mapping_bulk_upload_{mapping_bu}"):
+            try:
+                summary = dashboard.bulk_update_field_mappings(mapping_bu, uploaded_mapping.getvalue())
+                storage.audit(
+                    mapping_bu,
+                    user.username,
+                    "field_mapping_bulk_updated",
+                    {"file": uploaded_mapping.name, **summary},
+                )
+                st.success(
+                    f"Bulk update applied and audited: {summary['fields_updated']:,} field(s), "
+                    f"{summary['equipment_relationships']:,} equipment relationship(s), and "
+                    f"{summary['template_relationships']:,} dashboard-template relationship(s)."
+                )
+                mappings = dashboard.field_mapping_table(mapping_bu)
+            except Exception as exc:
+                st.error(str(exc))
 
     equipment = storage.equipment(mapping_bu)
     equipment = equipment[
