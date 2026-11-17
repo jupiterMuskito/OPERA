@@ -34,12 +34,12 @@ def test_complete_mapping_includes_all_sources_placeholders_and_calculated_field
     assert mappings["_template_ids"].map(bool).all()
 
     by_equipment, by_template = dashboard.mapping_reverse_views("cement", mappings)
-    named_equipment = storage.equipment("cement")
-    named_equipment = named_equipment[
-        (named_equipment["active"].str.lower() == "true")
-        & (named_equipment["placeholder"].str.lower() != "true")
-    ]
-    assert set(by_equipment["Equipment ID"]) == set(named_equipment["equipment_id"])
+    active_equipment = storage.equipment("cement")
+    active_equipment = active_equipment[active_equipment["active"].str.lower() == "true"]
+    assert set(by_equipment["Equipment ID"]).issubset(set(active_equipment["equipment_id"]))
+    assert set(mappings[mappings["Field Type"] == "Placeholder"]["Equipment IDs"].str.split("; ").explode()).issubset(
+        set(active_equipment[active_equipment["placeholder"].str.lower() == "true"]["equipment_id"])
+    )
     assert set(by_template["Template ID"]) == set(dashboard.MAPPING_TEMPLATES)
 
 

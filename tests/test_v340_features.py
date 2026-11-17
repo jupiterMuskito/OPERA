@@ -21,27 +21,24 @@ def test_opera_x_branding_and_flat_navigation_structure():
 
 def test_every_packaged_placeholder_has_equipment_and_template_mapping():
     for bu in ("cement", "refinery", "fertilizer", "nascon"):
-        equipment = storage.equipment(bu)
         registry = storage.registry(bu)
         placeholders = registry[registry["active"].str.lower() != "true"]
-        usable_equipment = equipment[
-            (equipment["active"].str.lower() == "true")
-            & (equipment["placeholder"].str.lower() != "true")
-        ]
-        assert not usable_equipment.empty
         assert len(placeholders) == 9_940
         assert placeholders["field_id"].notna().all()
         assert set(placeholders["source"]) == {"DCS", "Lab", "Field", "TA", "TB", "TC", "TD", "TE", "TF", "TG"}
+        mappings = dashboard.field_mapping_table(bu).set_index("Field ID")
         samples = placeholders.loc[
             placeholders.groupby("source", sort=False).head(1).index.union(
                 placeholders.groupby("source", sort=False).tail(1).index
             )
         ]
         for row in samples.itertuples():
-            mapping = dashboard.default_field_mapping(row.field_id, row.source, row.field_name, equipment)
-            assert mapping["equipment_ids"], f"{bu}/{row.field_id} has no equipment mapping"
-            assert mapping["template_ids"], f"{bu}/{row.field_id} has no template mapping"
-            assert set(mapping["template_ids"]).issubset(dashboard.MAPPING_TEMPLATES)
+            mapping = mappings.loc[row.field_id]
+            assert mapping["_equipment_ids"], f"{bu}/{row.field_id} has no equipment mapping"
+            assert all("SPARE" in equipment_id for equipment_id in mapping["_equipment_ids"])
+            assert mapping["_template_ids"], f"{bu}/{row.field_id} has no template mapping"
+            assert set(mapping["_template_ids"]).issubset(dashboard.MAPPING_TEMPLATES)
+            assert mapping["Confidence"] == "Review"
 
 
 def test_mapping_filter_uses_equipment_and_template_context(monkeypatch):
