@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+from functools import lru_cache
+from io import BytesIO
 from typing import Any
 
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.workbook.defined_name import DefinedName
 
-from . import storage
+from . import engineering_mapping, storage
 
 BLUE = "#1857C9"
 RED = "#CF3430"
@@ -56,12 +62,6 @@ MAPPING_TEMPLATES = {
     "process-performance": "Process Performance",
     "quality-compliance": "Quality and Compliance",
     "reliability": "Reliability",
-}
-
-SOURCE_TEMPLATE_DEFAULTS = {
-    "DCS": ("plant-performance", "process-performance"),
-    "Lab": ("plant-performance", "quality-compliance"),
-    "Field": ("condition-monitoring", "reliability"),
 }
 
 SOURCE_GROUPS = {
@@ -131,69 +131,249 @@ def save_templates(bu: str, templates: dict[str, list[dict[str, Any]]]) -> None:
     storage.save_json(templates_path(bu), templates)
 
 
+MAPPING_COLUMNS = [
+    "Field ID",
+    "Data Field",
+    "Source",
+    "Status",
+    "Field Type",
+    "Equipment IDs",
+    "Template IDs",
+    "Instrument Check Pair IDs",
+    "Mapping Basis",
+    "Confidence",
+    "Mapping Type",
+]
+
+
 def field_mappings_path(bu: str):
-    """Persist only Admin overrides; deterministic defaults cover every field."""
+    """Return the Excel mapping database used by OPERA-X at runtime."""
+    return storage.bu_dir(bu) / "field_mappings.xlsx"
+
+
+def _legacy_field_mappings_path(bu: str):
+    """Return the pre-v3.6 JSON override path, used only during migration."""
     return storage.bu_dir(bu) / "field_mappings.json"
 
 
+def _split_mapping_ids(value: Any) -> list[str]:
+    return list(dict.fromkeys(item.strip() for item in str(value or "").replace(",", ";").split(";") if item.strip()))
+
+
+def _mapping_record(
+    equipment_ids: list[str],
+    template_ids: list[str],
+    mapping_type: str = "Computed Default",
+    mapping_basis: str = "",
+    confidence: str = "Review",
+    instrument_check_pairs: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "equipment_ids": list(dict.fromkeys(str(item).strip() for item in equipment_ids if str(item).strip())),
+        "template_ids": list(dict.fromkeys(str(item).strip() for item in template_ids if str(item).strip())),
+        "instrument_check_pairs": list(dict.fromkeys(str(item).strip() for item in (instrument_check_pairs or []) if str(item).strip())),
+        "mapping_basis": str(mapping_basis).strip(),
+        "confidence": str(confidence).strip().title() if str(confidence).strip().title() in {"High", "Medium", "Review"} else "Review",
+        "mapping_type": "Admin Override" if str(mapping_type) == "Admin Override" else "Computed Default",
+    }
+
+
+def _records_from_mapping_frame(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    required = {"Field ID", "Equipment IDs", "Template IDs"}
+    if not required.issubset(frame.columns):
+        raise ValueError("The mapping database is missing required columns: Field ID, Equipment IDs and Template IDs.")
+    records: dict[str, dict[str, Any]] = {}
+    for row in frame.fillna("").to_dict("records"):
+        field_id = str(row.get("Field ID", "")).strip()
+        if not field_id:
+            continue
+        equipment_ids = _split_mapping_ids(row.get("Equipment IDs", ""))
+        template_ids = _split_mapping_ids(row.get("Template IDs", ""))
+        if not equipment_ids or not template_ids:
+            raise ValueError(f"Field {field_id} must have at least one Equipment ID and one Template ID in the mapping database.")
+        records[field_id] = _mapping_record(
+            equipment_ids,
+            template_ids,
+            str(row.get("Mapping Type", "Computed Default")),
+            str(row.get("Mapping Basis", "")),
+            str(row.get("Confidence", "Review")),
+            _split_mapping_ids(row.get("Instrument Check Pair IDs", "")),
+        )
+    return records
+
+
+@lru_cache(maxsize=32)
+def _read_mapping_database_cached(path_text: str, modified_ns: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    del modified_ns  # The modification time is part of the cache key.
+    sheets = pd.read_excel(path_text, sheet_name=["Field Mappings", "Default Mappings"], dtype=str, keep_default_na=False)
+    return sheets["Field Mappings"], sheets["Default Mappings"]
+
+
+def _read_mapping_database(bu: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    path = ensure_mapping_database(bu)
+    try:
+        effective, defaults = _read_mapping_database_cached(str(path), path.stat().st_mtime_ns)
+    except Exception as exc:
+        raise ValueError(f"The Excel mapping database for {bu} could not be read: {exc}") from exc
+    return effective.copy(), defaults.copy()
+
+
+def _style_mapping_workbook(workbook: Workbook) -> None:
+    workbook.properties.creator = "OPERA-X"
+    workbook.properties.lastModifiedBy = "OPERA-X"
+    normal = workbook._named_styles["Normal"]
+    normal.font = Font(name="Arial", size=10)
+    header_fill = PatternFill("solid", fgColor="D9E8FB")
+    body_font = Font(name="Arial", size=10)
+    for sheet in workbook.worksheets:
+        sheet.freeze_panes = "A2" if sheet.max_row > 1 else None
+        if sheet.max_row and sheet.max_column:
+            sheet.auto_filter.ref = sheet.dimensions
+        for cell in sheet[1]:
+            cell.font = Font(name="Arial", size=10, bold=True, color="123A73")
+            cell.fill = header_fill
+            cell.alignment = Alignment(vertical="top", wrap_text=True)
+        for row in sheet.iter_rows(min_row=2):
+            for cell in row:
+                cell.font = body_font
+        for column in sheet.columns:
+            letter = column[0].column_letter
+            sample = list(column[:200])
+            sheet.column_dimensions[letter].width = min(42, max(12, max((len(str(cell.value or "")) for cell in sample), default=10) + 2))
+
+
+def _mapping_database_frames(
+    bu: str,
+    effective: dict[str, dict[str, Any]],
+    defaults: dict[str, dict[str, Any]],
+) -> dict[str, pd.DataFrame]:
+    catalog = field_catalog(bu)
+
+    def make_rows(records: dict[str, dict[str, Any]]) -> pd.DataFrame:
+        rows: list[dict[str, Any]] = []
+        for field in catalog.itertuples(index=False):
+            field_id = str(field.field_id)
+            record = records.get(field_id)
+            if not record:
+                continue
+            rows.append(
+                {
+                    "Field ID": field_id,
+                    "Data Field": str(field.field_name),
+                    "Source": str(field.source),
+                    "Status": str(field.status),
+                    "Field Type": str(field.field_type),
+                    "Equipment IDs": "; ".join(record["equipment_ids"]),
+                    "Template IDs": "; ".join(record["template_ids"]),
+                    "Instrument Check Pair IDs": "; ".join(record.get("instrument_check_pairs", [])),
+                    "Mapping Basis": str(record.get("mapping_basis", "")),
+                    "Confidence": str(record.get("confidence", "Review")),
+                    "Mapping Type": str(record.get("mapping_type", "Computed Default")),
+                }
+            )
+        return pd.DataFrame(rows, columns=MAPPING_COLUMNS)
+
+    equipment = _usable_mapping_equipment(bu)
+    equipment_columns = [column for column in ["equipment_id", "equipment_name", "plant", "unit_section", "equipment_type", "active"] if column in equipment]
+    template_list = pd.DataFrame(
+        [{"Template ID": template_id, "Dashboard Template": name} for template_id, name in MAPPING_TEMPLATES.items()]
+    )
+    guide = pd.DataFrame(
+        [
+            {"Item": "Runtime source", "Explanation": "OPERA-X reads effective equipment and dashboard-template mappings from the Field Mappings sheet in this Excel database."},
+            {"Item": "Controlled updates", "Explanation": "Use the Admin page's Excel update template and bulk upload. Do not directly replace this runtime file while the app is running."},
+            {"Item": "Computed Default", "Explanation": "The baseline mapping stored in the Default Mappings sheet and restored by Reset to Computed Default."},
+            {"Item": "Admin Override", "Explanation": "A mapping saved in the Admin UI or applied by an audited bulk upload."},
+            {"Item": "Multiple values", "Explanation": "Equipment IDs and Template IDs are separated with semicolons."},
+            {"Item": "Mapping Basis", "Explanation": "Plain-language engineering reason for the equipment and dashboard-template assignment."},
+            {"Item": "Confidence", "Explanation": "High, Medium or Review. Filter Review first; it normally indicates missing equipment-register detail or an unconfirmed sample point."},
+            {"Item": "Instrument Check Pair IDs", "Explanation": "A same-point DCS/Field pair that Instrument Check uses as its default comparison."},
+        ]
+    )
+    return {
+        "Field Mappings": make_rows(effective),
+        "Default Mappings": make_rows(defaults),
+        "Equipment List": equipment[equipment_columns].copy() if equipment_columns else pd.DataFrame(),
+        "Template List": template_list,
+        "Guide": guide,
+    }
+
+
+def _mapping_workbook_bytes(frames: dict[str, pd.DataFrame]) -> bytes:
+    workbook = Workbook()
+    workbook.remove(workbook.active)
+    for name, frame in frames.items():
+        sheet = workbook.create_sheet(name[:31])
+        sheet.append(list(frame.columns))
+        for row in frame.itertuples(index=False, name=None):
+            sheet.append(list(row))
+    _style_mapping_workbook(workbook)
+    out = BytesIO()
+    workbook.save(out)
+    return out.getvalue()
+
+
+def _write_mapping_database(
+    bu: str,
+    effective: dict[str, dict[str, Any]],
+    defaults: dict[str, dict[str, Any]],
+) -> None:
+    storage.atomic_write_bytes(field_mappings_path(bu), _mapping_workbook_bytes(_mapping_database_frames(bu, effective, defaults)))
+    _read_mapping_database_cached.cache_clear()
+
+
+def _seed_field_mapping_records(bu: str) -> dict[str, dict[str, Any]]:
+    """Build the one-time engineering baseline that is then persisted in Excel."""
+    catalog = field_catalog(bu)
+    equipment = storage.equipment(bu)
+    calculated = storage.read_csv(storage.bu_dir(bu) / "calculated_fields.csv")
+    return engineering_mapping.build_engineering_defaults(bu, catalog, equipment, calculated)
+
+
+def ensure_mapping_database(bu: str):
+    """Create the Excel database once, migrating any legacy JSON overrides."""
+    path = field_mappings_path(bu)
+    if path.exists() and path.stat().st_size:
+        return path
+    defaults = _seed_field_mapping_records(bu)
+    effective = {field_id: _mapping_record(**record) for field_id, record in defaults.items()}
+    legacy = storage.json_setting(_legacy_field_mappings_path(bu), {})
+    if isinstance(legacy, dict):
+        for field_id, record in legacy.items():
+            if field_id in effective and isinstance(record, dict):
+                equipment_ids = record.get("equipment_ids", effective[field_id]["equipment_ids"])
+                template_ids = record.get("template_ids", effective[field_id]["template_ids"])
+                if equipment_ids and template_ids:
+                    baseline = effective[field_id]
+                    effective[field_id] = _mapping_record(
+                        equipment_ids,
+                        template_ids,
+                        "Admin Override",
+                        "Migrated administrator override from the pre-v3.6 JSON mapping store; engineering basis requires review.",
+                        "Review",
+                        baseline.get("instrument_check_pairs", []),
+                    )
+    _write_mapping_database(bu, effective, defaults)
+    return path
+
+
+def load_effective_field_mappings(bu: str) -> dict[str, dict[str, Any]]:
+    effective, _ = _read_mapping_database(bu)
+    return _records_from_mapping_frame(effective)
+
+
+def load_default_field_mappings(bu: str) -> dict[str, dict[str, Any]]:
+    _, defaults = _read_mapping_database(bu)
+    return _records_from_mapping_frame(defaults)
+
+
 def load_field_mapping_overrides(bu: str) -> dict[str, dict[str, list[str]]]:
-    value = storage.json_setting(field_mappings_path(bu), {})
-    return value if isinstance(value, dict) else {}
-
-
-def _field_number(field_id: str) -> int:
-    digits = "".join(character for character in str(field_id) if character.isdigit())
-    return max(1, int(digits or "1"))
-
-
-def _equipment_keywords(record: dict[str, Any] | pd.Series) -> list[str]:
-    text = " ".join(str(dict(record).get(key, "")) for key in ("equipment_type", "equipment_name")).lower()
-    keywords: list[str] = []
-    for equipment_key, values in EQUIPMENT_FIELD_KEYWORDS.items():
-        if equipment_key in text:
-            keywords.extend(values)
-    return list(dict.fromkeys(keywords))
-
-
-def default_field_mapping(
-    field_id: str,
-    source: str,
-    field_name: str,
-    equipment: pd.DataFrame,
-) -> dict[str, list[str]]:
-    """Return a stable equipment/template mapping for any input or placeholder field.
-
-    Semantic equipment matches are preferred. A deterministic equipment fallback and
-    round-robin template fallback guarantee that all DP/L/F/TA–TG placeholders have
-    at least one equipment and one of the five operational dashboard templates.
-    """
-    usable = equipment.copy()
-    if not usable.empty:
-        if "active" in usable:
-            active = usable["active"].astype(str).str.lower() == "true"
-            usable = usable[active]
-        if "placeholder" in usable:
-            named = usable[usable["placeholder"].astype(str).str.lower() != "true"]
-            usable = named if not named.empty else usable
-    equipment_ids = usable.get("equipment_id", pd.Series(dtype=str)).astype(str).tolist()
-    field_text = str(field_name).lower()
-    semantic_ids = [] if "placeholder" in field_text else [
-        str(row.equipment_id)
-        for row in usable.itertuples()
-        if any(keyword in field_text for keyword in _equipment_keywords(row._asdict()))
-    ]
-    if semantic_ids:
-        mapped_equipment = semantic_ids
-    elif equipment_ids:
-        mapped_equipment = [equipment_ids[(_field_number(field_id) - 1) % len(equipment_ids)]]
-    else:
-        mapped_equipment = []
-
-    template_ids = list(SOURCE_TEMPLATE_DEFAULTS.get(str(source), ()))
-    if not template_ids:
-        canonical = list(MAPPING_TEMPLATES)
-        template_ids = [canonical[(_field_number(field_id) - 1) % len(canonical)]]
-    return {"equipment_ids": mapped_equipment, "template_ids": template_ids}
+    """Return Admin overrides from the Excel database for compatibility callers."""
+    return {
+        field_id: {"equipment_ids": record["equipment_ids"], "template_ids": record["template_ids"]}
+        for field_id, record in load_effective_field_mappings(bu).items()
+        if record.get("mapping_type") == "Admin Override"
+    }
 
 
 def field_mapping(
@@ -203,16 +383,10 @@ def field_mapping(
     field_name: str | None = None,
     equipment: pd.DataFrame | None = None,
 ) -> dict[str, list[str]]:
-    registry = storage.registry(bu)
-    match = registry[registry["field_id"].astype(str) == str(field_id)] if not registry.empty else pd.DataFrame()
-    if source is None:
-        source = str(match.iloc[0].get("source", "")) if not match.empty else ""
-    if field_name is None:
-        field_name = str(match.iloc[0].get("field_name", field_id)) if not match.empty else str(field_id)
-    default = default_field_mapping(str(field_id), str(source), str(field_name), storage.equipment(bu) if equipment is None else equipment)
-    override = load_field_mapping_overrides(bu).get(str(field_id), {})
-    mapped_equipment = override.get("equipment_ids", default["equipment_ids"])
-    mapped_templates = override.get("template_ids", default["template_ids"])
+    del source, field_name, equipment
+    record = load_effective_field_mappings(bu).get(str(field_id), {})
+    mapped_equipment = record.get("equipment_ids", [])
+    mapped_templates = record.get("template_ids", [])
     return {
         "equipment_ids": list(dict.fromkeys(str(item) for item in mapped_equipment if str(item))),
         "template_ids": list(dict.fromkeys(str(item) for item in mapped_templates if str(item))),
@@ -228,12 +402,14 @@ def mapped_field_ids(
     """Filter a supplied field catalog by the current equipment/template context."""
     if registry.empty or (not equipment_id and not template_id):
         return set(registry.get("field_id", pd.Series(dtype=str)).astype(str))
-    equipment = storage.equipment(bu)
+    effective = load_effective_field_mappings(bu)
+    # Preserve the public override hook used by integrations and older tests.
+    # Runtime values still originate from the Excel database by default.
     overrides = load_field_mapping_overrides(bu)
     selected: set[str] = set()
     for row in registry.itertuples():
         field_id = str(row.field_id)
-        mapping = default_field_mapping(field_id, str(getattr(row, "source", "")), str(getattr(row, "field_name", field_id)), equipment)
+        mapping = effective.get(field_id, {"equipment_ids": [], "template_ids": []})
         override = overrides.get(field_id, {})
         equipment_ids = override.get("equipment_ids", mapping["equipment_ids"])
         template_ids = override.get("template_ids", mapping["template_ids"])
@@ -248,21 +424,32 @@ def mapped_field_ids(
 def save_field_mapping(bu: str, field_id: str, equipment_ids: list[str], template_ids: list[str]) -> None:
     if not equipment_ids or not template_ids:
         raise ValueError("Every data field must map to at least one equipment and one dashboard template.")
-    overrides = load_field_mapping_overrides(bu)
-    overrides[str(field_id)] = {
-        "equipment_ids": list(dict.fromkeys(str(item) for item in equipment_ids if str(item))),
-        "template_ids": list(dict.fromkeys(str(item) for item in template_ids if str(item))),
-    }
-    storage.save_json(field_mappings_path(bu), overrides)
+    effective = load_effective_field_mappings(bu)
+    defaults = load_default_field_mappings(bu)
+    if str(field_id) not in effective:
+        raise ValueError(f"Unknown Field ID: {field_id}")
+    current = effective[str(field_id)]
+    effective[str(field_id)] = _mapping_record(
+        equipment_ids,
+        template_ids,
+        "Admin Override",
+        "Administrator override saved in OPERA-X; review against the engineering default and plant tag register.",
+        "Review",
+        current.get("instrument_check_pairs", []),
+    )
+    _write_mapping_database(bu, effective, defaults)
 
 
 def reset_field_mapping(bu: str, field_id: str) -> bool:
-    """Remove an Admin override and return whether an override existed."""
-    overrides = load_field_mapping_overrides(bu)
-    existed = str(field_id) in overrides
-    if existed:
-        overrides.pop(str(field_id), None)
-        storage.save_json(field_mappings_path(bu), overrides)
+    """Restore a field from the default sheet in the Excel mapping database."""
+    effective = load_effective_field_mappings(bu)
+    defaults = load_default_field_mappings(bu)
+    current = effective.get(str(field_id))
+    baseline = defaults.get(str(field_id))
+    existed = bool(current and current.get("mapping_type") == "Admin Override")
+    if existed and baseline:
+        effective[str(field_id)] = _mapping_record(**baseline)
+        _write_mapping_database(bu, effective, defaults)
     return existed
 
 
@@ -312,26 +499,26 @@ def field_catalog(bu: str) -> pd.DataFrame:
 
 
 def _usable_mapping_equipment(bu: str) -> pd.DataFrame:
+    """Return every active named or spare record that can receive a mapping."""
     equipment = storage.equipment(bu).copy()
     if equipment.empty:
         return equipment
     if "active" in equipment:
-        equipment = equipment[equipment["active"].astype(str).str.lower() == "true"]
-    if "placeholder" in equipment:
-        named = equipment[equipment["placeholder"].astype(str).str.lower() != "true"]
-        equipment = named if not named.empty else equipment
+        active = equipment["active"].astype(str).str.lower() == "true"
+        placeholder = equipment.get("placeholder", pd.Series(index=equipment.index, dtype=str)).astype(str).str.lower() == "true"
+        equipment = equipment[active | placeholder]
     return equipment
 
 
 def field_mapping_table(bu: str) -> pd.DataFrame:
-    """Materialise the complete effective mapping, including computed defaults.
+    """Materialise the complete effective mapping from the Excel database.
 
     Tuple-valued private columns (prefixed with ``_``) support exact UI filtering;
     the public columns are readable and ready for display or Excel export.
     """
     catalog = field_catalog(bu)
     equipment = _usable_mapping_equipment(bu)
-    overrides = load_field_mapping_overrides(bu)
+    effective = load_effective_field_mappings(bu)
     equipment_by_id = (
         equipment.assign(equipment_id=equipment.get("equipment_id", pd.Series(dtype=str)).astype(str))
         .drop_duplicates("equipment_id")
@@ -340,25 +527,11 @@ def field_mapping_table(bu: str) -> pd.DataFrame:
         else pd.DataFrame()
     )
     rows: list[dict[str, Any]] = []
-    usable_equipment_ids = equipment.get("equipment_id", pd.Series(dtype=str)).astype(str).tolist()
-    canonical_templates = list(MAPPING_TEMPLATES)
     for field in catalog.itertuples(index=False):
         field_id = str(field.field_id)
-        # Almost all packaged placeholders intentionally use the deterministic
-        # round-robin fallback. Avoid copying/scanning the full equipment table
-        # 9,940 times while preserving the exact default_field_mapping result.
-        if "placeholder" in str(field.field_name).lower():
-            number = _field_number(field_id)
-            default = {
-                "equipment_ids": [usable_equipment_ids[(number - 1) % len(usable_equipment_ids)]] if usable_equipment_ids else [],
-                "template_ids": list(SOURCE_TEMPLATE_DEFAULTS.get(str(field.source_key), ()))
-                or [canonical_templates[(number - 1) % len(canonical_templates)]],
-            }
-        else:
-            default = default_field_mapping(field_id, str(field.source_key), str(field.field_name), equipment)
-        override = overrides.get(field_id, {})
-        equipment_ids = tuple(dict.fromkeys(str(item) for item in override.get("equipment_ids", default["equipment_ids"]) if str(item)))
-        template_ids = tuple(dict.fromkeys(str(item) for item in override.get("template_ids", default["template_ids"]) if str(item)))
+        record = effective.get(field_id, {"equipment_ids": [], "template_ids": [], "mapping_type": "Computed Default"})
+        equipment_ids = tuple(dict.fromkeys(str(item) for item in record.get("equipment_ids", []) if str(item)))
+        template_ids = tuple(dict.fromkeys(str(item) for item in record.get("template_ids", []) if str(item)))
         equipment_names: list[str] = []
         plants: list[str] = []
         units: list[str] = []
@@ -366,10 +539,10 @@ def field_mapping_table(bu: str) -> pd.DataFrame:
             if equipment_by_id.empty or equipment_id not in equipment_by_id.index:
                 equipment_names.append(equipment_id)
                 continue
-            record = equipment_by_id.loc[equipment_id]
-            equipment_names.append(str(record.get("equipment_name", equipment_id)))
-            plants.append(str(record.get("plant", "")))
-            units.append(str(record.get("unit_section", "")))
+            equipment_record = equipment_by_id.loc[equipment_id]
+            equipment_names.append(str(equipment_record.get("equipment_name", equipment_id)))
+            plants.append(str(equipment_record.get("plant", "")))
+            units.append(str(equipment_record.get("unit_section", "")))
         plants_tuple = tuple(dict.fromkeys(item for item in plants if item))
         units_tuple = tuple(dict.fromkeys(item for item in units if item))
         template_names = tuple(MAPPING_TEMPLATES.get(item, item) for item in template_ids)
@@ -382,13 +555,16 @@ def field_mapping_table(bu: str) -> pd.DataFrame:
                 "Source Code": str(field.source_key),
                 "Status": str(field.status),
                 "Field Type": str(field.field_type),
-                "Mapping Type": "Admin Override" if field_id in overrides else "Computed Default",
+                "Mapping Type": str(record.get("mapping_type", "Computed Default")),
                 "Equipment IDs": "; ".join(equipment_ids),
                 "Equipment Names": "; ".join(equipment_names),
                 "Plants": "; ".join(plants_tuple),
                 "Units / Sections": "; ".join(units_tuple),
                 "Template IDs": "; ".join(template_ids),
                 "Dashboard Templates": "; ".join(template_names),
+                "Instrument Check Pair IDs": "; ".join(record.get("instrument_check_pairs", [])),
+                "Mapping Basis": str(record.get("mapping_basis", "")),
+                "Confidence": str(record.get("confidence", "Review")),
                 "_equipment_ids": equipment_ids,
                 "_plants": plants_tuple,
                 "_units": units_tuple,
@@ -462,11 +638,11 @@ def mapping_export_sheets(bu: str, mappings: pd.DataFrame | None = None) -> dict
             },
             {
                 "Item": "Computed Default",
-                "Explanation": "A deterministic code-generated mapping used when an administrator has not saved an override.",
+                "Explanation": "The baseline mapping stored in the Default Mappings sheet of field_mappings.xlsx.",
             },
             {
                 "Item": "Admin Override",
-                "Explanation": "An administrator-saved mapping in field_mappings.json; the change is also written to the audit log.",
+                "Explanation": "An administrator-saved mapping in field_mappings.xlsx; the change is also written to the audit log.",
             },
         ]
     )
@@ -475,6 +651,279 @@ def mapping_export_sheets(bu: str, mappings: pd.DataFrame | None = None) -> dict
         "By Equipment": equipment_view,
         "By Template": template_view,
         "Guide": guide,
+    }
+
+
+def mapping_database_bytes(bu: str) -> bytes:
+    """Return the live Excel mapping database for Admin backend review."""
+    return ensure_mapping_database(bu).read_bytes()
+
+
+def instrument_check_pairs(bu: str) -> dict[str, list[str]]:
+    """Return Field-to-DCS pairs recorded in the Excel mapping database."""
+    catalog = field_catalog(bu).set_index("field_id")
+    records = load_effective_field_mappings(bu)
+    pairs: dict[str, list[str]] = {}
+    for field_id, record in records.items():
+        if field_id not in catalog.index or str(catalog.at[field_id, "source_key"]) != "Field":
+            continue
+        valid = [
+            pair_id
+            for pair_id in record.get("instrument_check_pairs", [])
+            if pair_id in catalog.index and str(catalog.at[pair_id, "source_key"]) == "DCS"
+        ]
+        if valid:
+            pairs[field_id] = valid
+    return pairs
+
+
+def _add_named_range(workbook: Workbook, name: str, sheet: str, column: str, last_row: int) -> None:
+    workbook.defined_names.add(DefinedName(name, attr_text=f"'{sheet}'!${column}$2:${column}${max(2, last_row)}"))
+
+
+def mapping_update_template_bytes(bu: str) -> bytes:
+    """Build a controlled Excel template for audited bulk mapping updates."""
+    effective = load_effective_field_mappings(bu)
+    catalog = field_catalog(bu)
+    equipment = _usable_mapping_equipment(bu)
+
+    workbook = Workbook()
+    workbook.remove(workbook.active)
+    instructions = workbook.create_sheet("Instructions")
+    instructions.append(["Item", "Guidance"])
+    instruction_rows = [
+        ("Purpose", "Update OPERA-X data-field mappings in bulk. Upload this .xlsx file from Admin / Super Admin > Field Mappings."),
+        ("Editable sheets", "Edit Equipment Mappings, Template Mappings and Field Review. Set Apply Update to Yes in Field Review only for fields you want to change."),
+        ("Controlled inputs", "Field IDs, Equipment IDs, Dashboard Template IDs and Include values use Excel dropdown validation lists."),
+        ("Include", "Use Yes to include a relationship. Use No or delete the row to exclude it. Duplicate relationships are automatically de-duplicated."),
+        ("Partial update", "Only Field IDs marked Apply Update = Yes in Field Review are applied. All other database mappings remain unchanged."),
+        ("Example", "For DP1, use an Equipment Mappings row such as DP1 | EQ-001 | Yes and a Template Mappings row such as DP1 | plant-performance | Yes."),
+        ("Safety", "Validate the business unit before applying. The app rejects unknown IDs, missing required sheets, empty mappings and invalid controlled values."),
+    ]
+    for row in instruction_rows:
+        instructions.append(row)
+
+    equipment_sheet = workbook.create_sheet("Equipment Mappings")
+    equipment_sheet.append(["Field ID", "Equipment ID", "Include"])
+    template_sheet = workbook.create_sheet("Template Mappings")
+    template_sheet.append(["Field ID", "Dashboard Template ID", "Include"])
+    review_sheet = workbook.create_sheet("Field Review")
+    review_sheet.append(["Field ID", "Apply Update", "Mapping Basis", "Confidence", "Instrument Check Pair IDs"])
+    for field_id in sorted(effective):
+        record = effective[field_id]
+        for equipment_id in record["equipment_ids"]:
+            equipment_sheet.append([field_id, equipment_id, "Yes"])
+        for template_id in record["template_ids"]:
+            template_sheet.append([field_id, template_id, "Yes"])
+        review_sheet.append(
+            [
+                field_id,
+                "No",
+                record.get("mapping_basis", ""),
+                record.get("confidence", "Review"),
+                "; ".join(record.get("instrument_check_pairs", [])),
+            ]
+        )
+
+    catalogue = workbook.create_sheet("Field Catalogue")
+    catalogue.append(["Field ID", "Data Field", "Source", "Status", "Field Type"])
+    for field in catalog.itertuples(index=False):
+        catalogue.append([str(field.field_id), str(field.field_name), str(field.source), str(field.status), str(field.field_type)])
+
+    equipment_catalogue = workbook.create_sheet("Equipment Catalogue")
+    equipment_catalogue.append(["Equipment ID", "Equipment", "Plant", "Unit / Section", "Equipment Type"])
+    for row in equipment.itertuples():
+        equipment_catalogue.append(
+            [
+                str(getattr(row, "equipment_id", "")),
+                str(getattr(row, "equipment_name", "")),
+                str(getattr(row, "plant", "")),
+                str(getattr(row, "unit_section", "")),
+                str(getattr(row, "equipment_type", "")),
+            ]
+        )
+
+    template_catalogue = workbook.create_sheet("Template Catalogue")
+    template_catalogue.append(["Dashboard Template ID", "Dashboard Template"])
+    for template_id, name in MAPPING_TEMPLATES.items():
+        template_catalogue.append([template_id, name])
+
+    lists = workbook.create_sheet("Lists")
+    lists.append(["Field IDs", "Equipment IDs", "Template IDs", "Include", "Confidence"])
+    field_ids = catalog["field_id"].astype(str).tolist()
+    equipment_ids = equipment.get("equipment_id", pd.Series(dtype=str)).astype(str).tolist()
+    template_ids = list(MAPPING_TEMPLATES)
+    include_values = ["Yes", "No"]
+    confidence_values = ["High", "Medium", "Review"]
+    for index in range(max(len(field_ids), len(equipment_ids), len(template_ids), len(include_values), len(confidence_values))):
+        lists.append(
+            [
+                field_ids[index] if index < len(field_ids) else "",
+                equipment_ids[index] if index < len(equipment_ids) else "",
+                template_ids[index] if index < len(template_ids) else "",
+                include_values[index] if index < len(include_values) else "",
+                confidence_values[index] if index < len(confidence_values) else "",
+            ]
+        )
+    _add_named_range(workbook, "MappingFieldIDs", "Lists", "A", len(field_ids) + 1)
+    _add_named_range(workbook, "MappingEquipmentIDs", "Lists", "B", len(equipment_ids) + 1)
+    _add_named_range(workbook, "MappingTemplateIDs", "Lists", "C", len(template_ids) + 1)
+    _add_named_range(workbook, "MappingIncludeOptions", "Lists", "D", len(include_values) + 1)
+    _add_named_range(workbook, "MappingConfidenceOptions", "Lists", "E", len(confidence_values) + 1)
+
+    validation_specs = [
+        (equipment_sheet, "A", "=MappingFieldIDs"),
+        (equipment_sheet, "B", "=MappingEquipmentIDs"),
+        (equipment_sheet, "C", "=MappingIncludeOptions"),
+        (template_sheet, "A", "=MappingFieldIDs"),
+        (template_sheet, "B", "=MappingTemplateIDs"),
+        (template_sheet, "C", "=MappingIncludeOptions"),
+        (review_sheet, "A", "=MappingFieldIDs"),
+        (review_sheet, "B", "=MappingIncludeOptions"),
+        (review_sheet, "D", "=MappingConfidenceOptions"),
+    ]
+    validation_last_row = max(50000, equipment_sheet.max_row + 5000, template_sheet.max_row + 5000)
+    for sheet, column, formula in validation_specs:
+        validation = DataValidation(type="list", formula1=formula, allow_blank=False)
+        validation.error = "Select a value from the OPERA-X controlled list."
+        validation.errorTitle = "Invalid mapping value"
+        validation.prompt = "Choose a controlled value from the dropdown."
+        validation.promptTitle = "OPERA-X mapping"
+        validation.showErrorMessage = True
+        validation.showInputMessage = True
+        sheet.add_data_validation(validation)
+        validation.add(f"{column}2:{column}{validation_last_row}")
+
+    lists.sheet_state = "hidden"
+    _style_mapping_workbook(workbook)
+    out = BytesIO()
+    workbook.save(out)
+    return out.getvalue()
+
+
+def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]:
+    """Validate and apply a partial/full mapping update workbook to the Excel database."""
+    if not workbook_bytes:
+        raise ValueError("Choose a non-empty .xlsx mapping workbook.")
+    if len(workbook_bytes) > 25 * 1024 * 1024:
+        raise ValueError("The mapping workbook must not exceed 25 MB.")
+    try:
+        workbook = load_workbook(BytesIO(workbook_bytes), read_only=True, data_only=False)
+        sheet_names = set(workbook.sheetnames)
+        workbook.close()
+    except Exception as exc:
+        raise ValueError(f"The uploaded file is not a readable Excel workbook: {exc}") from exc
+    required_sheets = {"Equipment Mappings", "Template Mappings", "Field Review"}
+    if not required_sheets.issubset(sheet_names):
+        missing = ", ".join(sorted(required_sheets - sheet_names))
+        raise ValueError(f"The mapping workbook is missing required sheet(s): {missing}.")
+    try:
+        sheets = pd.read_excel(
+            BytesIO(workbook_bytes),
+            sheet_name=["Equipment Mappings", "Template Mappings", "Field Review"],
+            dtype=str,
+            keep_default_na=False,
+        )
+    except Exception as exc:
+        raise ValueError(f"The mapping update sheets could not be read: {exc}") from exc
+
+    equipment_frame = sheets["Equipment Mappings"]
+    template_frame = sheets["Template Mappings"]
+    review_frame = sheets["Field Review"]
+    if not {"Field ID", "Equipment ID", "Include"}.issubset(equipment_frame.columns):
+        raise ValueError("Equipment Mappings must contain Field ID, Equipment ID and Include columns.")
+    if not {"Field ID", "Dashboard Template ID", "Include"}.issubset(template_frame.columns):
+        raise ValueError("Template Mappings must contain Field ID, Dashboard Template ID and Include columns.")
+    if not {"Field ID", "Apply Update", "Mapping Basis", "Confidence", "Instrument Check Pair IDs"}.issubset(review_frame.columns):
+        raise ValueError("Field Review must contain Field ID, Apply Update, Mapping Basis, Confidence and Instrument Check Pair IDs columns.")
+
+    catalog = field_catalog(bu)
+    valid_fields = set(catalog["field_id"].astype(str))
+    source_by_field = catalog.set_index("field_id")["source_key"].astype(str).to_dict()
+    valid_equipment = set(_usable_mapping_equipment(bu).get("equipment_id", pd.Series(dtype=str)).astype(str))
+    valid_templates = set(MAPPING_TEMPLATES)
+    allowed_include = {"yes", "no"}
+
+    def clean(frame: pd.DataFrame, value_column: str, valid_values: set[str]) -> tuple[dict[str, list[str]], set[str]]:
+        values: dict[str, list[str]] = {}
+        touched: set[str] = set()
+        for row_number, row in enumerate(frame.fillna("").to_dict("records"), start=2):
+            field_id = str(row.get("Field ID", "")).strip()
+            value = str(row.get(value_column, "")).strip()
+            include = str(row.get("Include", "")).strip().lower()
+            if not field_id and not value and not include:
+                continue
+            if field_id not in valid_fields:
+                raise ValueError(f"{frame.attrs.get('sheet_name', 'Mapping sheet')} row {row_number}: unknown Field ID '{field_id}'.")
+            if include not in allowed_include:
+                raise ValueError(f"Row {row_number}: Include must be Yes or No.")
+            if value not in valid_values:
+                raise ValueError(f"Row {row_number}: unknown {value_column} '{value}'.")
+            touched.add(field_id)
+            if include == "yes":
+                values.setdefault(field_id, []).append(value)
+        return {field_id: list(dict.fromkeys(items)) for field_id, items in values.items()}, touched
+
+    equipment_frame.attrs["sheet_name"] = "Equipment Mappings"
+    template_frame.attrs["sheet_name"] = "Template Mappings"
+    equipment_values, _ = clean(equipment_frame, "Equipment ID", valid_equipment)
+    template_values, _ = clean(template_frame, "Dashboard Template ID", valid_templates)
+
+    review_values: dict[str, dict[str, Any]] = {}
+    touched: set[str] = set()
+    for row_number, row in enumerate(review_frame.fillna("").to_dict("records"), start=2):
+        field_id = str(row.get("Field ID", "")).strip()
+        if not field_id:
+            continue
+        if field_id not in valid_fields:
+            raise ValueError(f"Field Review row {row_number}: unknown Field ID '{field_id}'.")
+        apply_update = str(row.get("Apply Update", "")).strip().lower()
+        if apply_update not in allowed_include:
+            raise ValueError(f"Field Review row {row_number}: Apply Update must be Yes or No.")
+        basis = str(row.get("Mapping Basis", "")).strip()
+        confidence = str(row.get("Confidence", "")).strip().title()
+        if confidence not in {"High", "Medium", "Review"}:
+            raise ValueError(f"Field Review row {row_number}: Confidence must be High, Medium or Review.")
+        if not basis:
+            raise ValueError(f"Field Review row {row_number}: Mapping Basis must not be blank.")
+        pairs = _split_mapping_ids(row.get("Instrument Check Pair IDs", ""))
+        for pair_id in pairs:
+            if pair_id not in valid_fields:
+                raise ValueError(f"Field Review row {row_number}: unknown Instrument Check Pair ID '{pair_id}'.")
+            source_pair = {source_by_field.get(field_id), source_by_field.get(pair_id)}
+            if source_pair != {"DCS", "Field"}:
+                raise ValueError(f"Field Review row {row_number}: Instrument Check pairs must link one Field reading and one DCS reading.")
+        review_values[field_id] = {"mapping_basis": basis, "confidence": confidence, "instrument_check_pairs": pairs}
+        if apply_update == "yes":
+            touched.add(field_id)
+    if not touched:
+        raise ValueError("No fields are marked Apply Update = Yes in Field Review.")
+    for field_id in sorted(touched):
+        if not equipment_values.get(field_id):
+            raise ValueError(f"Field {field_id} must include at least one Equipment ID.")
+        if not template_values.get(field_id):
+            raise ValueError(f"Field {field_id} must include at least one Dashboard Template ID.")
+    missing_review = sorted(field_id for field_id in touched if field_id not in review_values)
+    if missing_review:
+        raise ValueError(f"Field Review is missing metadata for updated field(s): {', '.join(missing_review[:10])}.")
+
+    effective = load_effective_field_mappings(bu)
+    defaults = load_default_field_mappings(bu)
+    for field_id in touched:
+        metadata = review_values[field_id]
+        effective[field_id] = _mapping_record(
+            equipment_values[field_id],
+            template_values[field_id],
+            "Admin Override",
+            metadata["mapping_basis"],
+            metadata["confidence"],
+            metadata["instrument_check_pairs"],
+        )
+    _write_mapping_database(bu, effective, defaults)
+    return {
+        "fields_updated": len(touched),
+        "equipment_relationships": sum(len(equipment_values[field_id]) for field_id in touched),
+        "template_relationships": sum(len(template_values[field_id]) for field_id in touched),
     }
 
 
