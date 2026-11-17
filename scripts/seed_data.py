@@ -69,11 +69,17 @@ FIELD_NAMES = {
 "Field": [("Salt Evaporator Body Temperature","°C",70,130,105),("Salt Dryer Bearing Temperature","°C",35,90,60),("Salt Dryer Vibration","mm/s",0.2,8,3),("Salt Conveyor Belt Drift","mm",0,35,8),("Salt Packing Air Pressure","bar",4.5,8,6.2),("Mill Roller Bearing Temperature","°C",35,95,65),("Mill Gearbox Vibration","mm/s",0.2,8,3),("Juice Pump Vibration","mm/s",0.2,8,3),("Clarifier Mud Level","%",10,85,45),("Evaporator Tube Condition Index","index",0,10,8),("Vacuum Pan Local Pressure","kPa abs",8,35,18),("Centrifuge Bearing Temperature","°C",35,90,60),("Centrifuge Vibration","mm/s",0.2,8,3),("Sugar Dryer Bearing Temperature","°C",35,90,58),("Sugar Conveyor Belt Drift","mm",0,35,8),("Sugar Packing Air Pressure","bar",4.5,8,6.2),("Boiler Feed Pump Vibration","mm/s",0.2,8,3),("Boiler Drum Local Level","%",20,80,50),("Bagasse Conveyor Condition","index",0,10,8),("Warehouse Dust Level","mg/m³",0,10,3)]}
 }
 
-CALC_NAMES = {
-    "cement": ["Average Kiln Feed Rate","Kiln Speed","Kiln Inlet Oxygen","Clinker Quality Index","Kiln Field-DCS Deviation","Thermal Stability Index","Cement Strength Index","Packing Performance"],
-    "refinery": ["Average Butamer Feed","Peak Reactor Temperature","Minimum Reactor Pressure","iC4 Improvement","Field-DCS Feed Deviation","Reactor Temperature Rise","Product Quality Index","Butamer Throughput Performance"],
-    "fertilizer": ["Average Gas Feed","Peak Reformer Temperature","Minimum Urea Pressure","Product Quality Index","Field-DCS Pressure Deviation","Converter Temperature Rise","Granulation Quality Index","Bagging Performance"],
-    "nascon": ["Average Salt Brine Feed","Peak Dryer Temperature","Minimum Evaporator Vacuum","Sugar Quality Index","Field-DCS Evaporator Deviation","Mill Extraction Index","Salt Quality Index","Packing Performance"],
+CALC_DEFINITIONS = {
+    "cement": [("Average Kiln Feed Rate","[DP1]"),("Kiln Speed","[DP2]"),("Kiln Inlet Oxygen","[DP3]"),("Raw Meal Control Index","([L1]+[L2])/2"),("Kiln Inlet Shell Temperature","[F1]"),("Calciner-Preheater Temperature Difference","ABS([DP5]-[DP4])"),("Clinker Chemistry Index","([L6]+[L7])/2"),("Packing Performance","[DP20]")],
+    "refinery": [("Average Butamer Feed","[DP1]"),("Peak Reactor Inlet Temperature","[DP2]"),("Reactor Outlet Temperature","[DP3]"),("Average Feed/Product iC4","([L1]+[L2])/2"),("Reactor Skin Temperature","[F1]"),("Reactor Temperature Rise","ABS([DP3]-[DP2])"),("Product C4 Composition Index","([L2]+[L4])/2"),("Butamer Throughput Performance","[DP20]")],
+    "fertilizer": [("Average Gas Feed","[DP1]"),("Peak Reformer Temperature","[DP2]"),("Minimum Urea Pressure","[DP9]"),("Product Quality Index","([L3]+[L7])/2"),("Field-DCS Urea Pressure Deviation","ABS([F7]-[DP9])"),("Converter Temperature Rise","ABS([DP6]-[DP5])"),("Product Moisture-Biuret Index","([L4]+[L5])/2"),("Bagging Performance","[DP20]")],
+    "nascon": [("Average Salt Brine Feed","[DP1]"),("Peak Salt Evaporator Temperature","[DP2]"),("Minimum Evaporator Vacuum","[DP3]"),("Salt Quality Index","([L1]+[L2])/2"),("Salt Evaporator Temperature Deviation","ABS([F1]-[DP2])"),("Mill Extraction Index","[DP8]"),("Sugar Polarisation","[L9]"),("Average Packing Rate","([DP6]+[DP16])/2")],
+}
+CALC_TARGETS = {
+    "cement": [420, 3.6, 2.5, 49.25, 300, 520, 29.7, 130],
+    "refinery": [350, 170, 185, 54, 180, 15, 48, 330],
+    "fertilizer": [100000, 820, 155, 70.65, 0, 120, 0.65, 120],
+    "nascon": [100, 105, 30, 49.75, 0, 95, 99.5, 44],
 }
 
 
@@ -118,7 +124,7 @@ def seed() -> None:
             named = [(f"{bu.upper()}-CONFIG-001", "Configure equipment", f"{bu.upper()} Plant", "Configure unit/section", "Equipment")]
         rows = [{"equipment_id":i,"equipment_name":n,"plant":p,"unit_section":u,"equipment_type":t,"section_tag":u if bu=="nascon" else "","active":"true","placeholder":"false"} for i,n,p,u,t in named]
         prefix = {"cement":"CEM","refinery":"REF","fertilizer":"FER","nascon":"NAS"}.get(bu, bu.upper())
-        rows += [{"equipment_id":f"{prefix}-SPARE-{i:03d}","equipment_name":f"Spare equipment {i:03d}","plant":named[0][2],"unit_section":"Unassigned","equipment_type":"Placeholder","section_tag":"","active":"false","placeholder":"true"} for i in range(1,501)]
+        rows += [{"equipment_id":f"{prefix}-SPARE-{i:03d}","equipment_name":f"Spare equipment {i:03d}","plant":named[0][2],"unit_section":"Unassigned","equipment_type":"Placeholder","section_tag":"","active":"true","placeholder":"true"} for i in range(1,501)]
         atomic_write_csv(folder / "equipment.csv", pd.DataFrame(rows))
         reg_rows=[]
         for source,pfx in SOURCES.items():
@@ -164,11 +170,10 @@ def seed() -> None:
                             samples.append(rec)
             atomic_write_csv(folder / "inputs" / f"{source.lower()}.csv", pd.DataFrame(samples,columns=cols))
         calc=[]
-        if bu in CALC_NAMES:
-            formulas=["[DP1]","[DP2]","[DP3]","([L1]+[L2])/2","ABS([F1]-[DP1])","ABS([DP3]-[DP2])","([L6]+[L7])/2","[DP20]"]
-            for i,(name,formula) in enumerate(zip(CALC_NAMES[bu],formulas),1):
+        if bu in CALC_DEFINITIONS:
+            for i,(name,formula) in enumerate(CALC_DEFINITIONS[bu],1):
                 calc.append({"field_id":f"CF{i}","field_name":name,"formula":formula,"uom":"Derived","aggregation":["Average","Maximum","Minimum"][i%3],
-                             "daily_target":FIELD_NAMES[bu]["DCS"][min(i-1,19)][4],"period_target":FIELD_NAMES[bu]["DCS"][min(i-1,19)][4],
+                             "daily_target":CALC_TARGETS[bu][i-1],"period_target":CALC_TARGETS[bu][i-1],
                              "target_direction":"High","status":"active","evaluation_order":i,"mtd_aggregation":["Average","Maximum","Minimum"][i%3],
                              "ytd_aggregation":["Average","Maximum","Minimum"][i%3],"dashboard":"true","dashboard_group":"Operations","chart":"line"})
         atomic_write_csv(folder / "calculated_fields.csv", pd.DataFrame(calc,columns=["field_id","field_name","formula","uom","aggregation","daily_target","period_target","target_direction","status","evaluation_order","mtd_aggregation","ytd_aggregation","dashboard","dashboard_group","chart"]))
