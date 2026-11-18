@@ -5,6 +5,7 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -32,12 +33,34 @@ def _path(path: str | Path) -> Path:
     return p if p.is_absolute() else DATA_ROOT / p
 
 
+@lru_cache(maxsize=512)
+def _read_csv_cached(path_text: str, modified_ns: int, size: int, columns: tuple[str, ...]) -> pd.DataFrame:
+    """Read an immutable on-disk snapshot.
+
+    The modification time and size are deliberately part of the key, so an Admin
+    save is visible on the next Streamlit rerun without requiring a process restart.
+    """
+    del modified_ns, size
+    requested = set(columns)
+    kwargs: dict[str, Any] = {"dtype": str, "keep_default_na": False}
+    if requested:
+        kwargs["usecols"] = lambda column: column in requested
+    return pd.read_csv(path_text, **kwargs)
+
+
+def clear_data_caches() -> None:
+    _read_csv_cached.cache_clear()
+    _json_setting_cached.cache_clear()
+
+
 def read_csv(path: str | Path, columns: Iterable[str] | None = None) -> pd.DataFrame:
     p = _path(path)
     if not p.exists() or p.stat().st_size == 0:
         return pd.DataFrame(columns=list(columns or []))
     try:
-        return pd.read_csv(p, dtype=str, keep_default_na=False)
+        signature = p.stat()
+        frame = _read_csv_cached(str(p), signature.st_mtime_ns, signature.st_size, tuple(columns or ()))
+        return frame.copy(deep=True)
     except pd.errors.EmptyDataError:
         return pd.DataFrame(columns=list(columns or []))
 
@@ -57,6 +80,7 @@ def atomic_write_csv(path: str | Path, frame: pd.DataFrame) -> Path:
         tmp = p.with_name(p.name + f".{uuid.uuid4().hex}.tmp")
         clean.to_csv(tmp, index=False, encoding="utf-8", lineterminator="\n")
         os.replace(tmp, p)
+    clear_data_caches()
     return p
 
 
@@ -68,6 +92,7 @@ def atomic_write_bytes(path: str | Path, data: bytes) -> Path:
         tmp = p.with_name(p.name + f".{uuid.uuid4().hex}.tmp")
         tmp.write_bytes(data)
         os.replace(tmp, p)
+    clear_data_caches()
     return p
 
 
@@ -84,6 +109,7 @@ def append_rows(path: str | Path, rows: list[dict[str, Any]] | pd.DataFrame, col
         clean = merged.map(_safe_cell) if hasattr(merged, "map") else merged.applymap(_safe_cell)
         clean.to_csv(tmp, index=False, encoding="utf-8", lineterminator="\n")
         os.replace(tmp, p)
+    clear_data_caches()
     return p
 
 
@@ -111,6 +137,30 @@ def input_data(bu: str, sources: Iterable[str] | None = None) -> pd.DataFrame:
             frame["Source"] = source
             frames.append(frame)
     return pd.concat(frames, ignore_index=True, sort=False) if frames else pd.DataFrame(columns=BASE_COLUMNS + ["Source"])
+
+
+def source_data(bu: str, source: str, field_ids: Iterable[str] | None = None) -> pd.DataFrame:
+    """Read only identifiers and requested fields from a wide source file."""
+    columns = list(dict.fromkeys(BASE_COLUMNS + list(field_ids or [])))
+    return read_csv(source_path(bu, source), columns)
+
+
+def reading_count(bu: str) -> int:
+    """Count populated active field readings without materialising long-form data."""
+    fields = registry(bu)
+    if fields.empty:
+        return 0
+    active = fields[fields.get("active", "").astype(str).str.lower() == "true"]
+    total = 0
+    for source in SOURCES:
+        ids = active.loc[active["source"] == source, "field_id"].astype(str).tolist()
+        if not ids:
+            continue
+        frame = source_data(bu, source, ids)
+        present = [field for field in ids if field in frame]
+        if present:
+            total += int(frame[present].replace("", pd.NA).count().sum())
+    return total
 
 
 def audit(bu: str, user: str, action: str, details: Any = "") -> None:
@@ -270,10 +320,19 @@ def template_bytes(bu: str, source: str, fields: list[str] | None = None, equipm
     return pd.DataFrame([row]).to_csv(index=False).encode("utf-8")
 
 
+@lru_cache(maxsize=128)
+def _json_setting_cached(path_text: str, modified_ns: int, size: int) -> Any:
+    del modified_ns, size
+    return json.loads(Path(path_text).read_text(encoding="utf-8"))
+
+
 def json_setting(path: str | Path, default: Any = None) -> Any:
     p = _path(path)
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
+        signature = p.stat()
+        value = _json_setting_cached(str(p), signature.st_mtime_ns, signature.st_size)
+        # JSON-compatible objects are cheap to clone and callers may mutate them.
+        return json.loads(json.dumps(value))
     except Exception:
         return default
 
@@ -286,4 +345,5 @@ def save_json(path: str | Path, value: Any) -> Path:
         tmp = p.with_name(p.name + f".{uuid.uuid4().hex}.tmp")
         tmp.write_text(json.dumps(value, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
         os.replace(tmp, p)
+    clear_data_caches()
     return p

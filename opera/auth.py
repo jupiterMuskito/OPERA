@@ -102,6 +102,72 @@ def can_access_bu(user: User, bu: str) -> bool:
     return "*" in user.business_units or bu in user.business_units
 
 
+def user_from_record(record: Mapping[str, Any]) -> User:
+    username = str(record.get("username", "")).strip().lower()
+    business_units = tuple(item.strip() for item in str(record.get("business_units", "")).split(";") if item.strip())
+    return User(
+        username,
+        str(record.get("display_name") or username),
+        str(record.get("role") or "Viewer"),
+        business_units,
+        str(record.get("must_change_password", "false")).lower() == "true",
+    )
+
+
+def get_user(username: str) -> User | None:
+    """Reload a CSV account so role/BU changes apply on the next rerun."""
+    users = storage.read_csv(storage.DATA_ROOT / "shared" / "users.csv")
+    if users.empty or "username" not in users:
+        return None
+    hit = users[users["username"].str.lower() == username.strip().lower()]
+    if hit.empty or str(hit.iloc[0].get("active", "false")).lower() != "true":
+        return None
+    return user_from_record(hit.iloc[0].to_dict())
+
+
+def create_user(username: str, display_name: str, role: str, business_units: list[str], password: str) -> User:
+    username = username.strip().lower()
+    if not username or len(password) < 12:
+        raise ValueError("Username and a 12-character temporary password are required.")
+    if role not in {"Super Admin", "BU Admin", "Operator", "Viewer"}:
+        raise ValueError("Choose a supported role.")
+    path = storage.DATA_ROOT / "shared" / "users.csv"
+    users = storage.read_csv(path)
+    if not users.empty and username in set(users["username"].str.lower()):
+        raise ValueError("Username already exists.")
+    row = {
+        "username": username,
+        "display_name": display_name.strip() or username,
+        "password_hash": hash_password(password),
+        "role": role,
+        "business_units": "*" if role == "Super Admin" else ";".join(dict.fromkeys(business_units)),
+        "active": "true",
+        "must_change_password": "true",
+        "failed_attempts": "0",
+        "lock_until": "",
+    }
+    storage.atomic_write_csv(path, pd.concat([users, pd.DataFrame([row])], ignore_index=True))
+    return user_from_record(row)
+
+
+def update_user_access(username: str, display_name: str, role: str, business_units: list[str], active: bool) -> User:
+    path = storage.DATA_ROOT / "shared" / "users.csv"
+    users = storage.read_csv(path)
+    hit = users["username"].str.lower() == username.strip().lower()
+    if not hit.any():
+        raise ValueError("Unknown user.")
+    if role not in {"Super Admin", "BU Admin", "Operator", "Viewer"}:
+        raise ValueError("Choose a supported role.")
+    users.loc[hit, ["display_name", "role", "business_units", "active"]] = [
+        display_name.strip() or username,
+        role,
+        "*" if role == "Super Admin" else ";".join(dict.fromkeys(business_units)),
+        str(bool(active)).lower(),
+    ]
+    storage.atomic_write_csv(path, users)
+    return user_from_record(users.loc[hit].iloc[0].to_dict())
+
+
 def change_password(username: str, old_password: str, new_password: str) -> tuple[bool, str]:
     if len(new_password) < 12 or not any(c.isupper() for c in new_password) or not any(c.islower() for c in new_password) or not any(c.isdigit() for c in new_password):
         return False, "Use at least 12 characters with upper-case, lower-case and a number."

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from functools import lru_cache
+import gzip
 from io import BytesIO
+import json
 from typing import Any
 
 import pandas as pd
@@ -28,6 +31,8 @@ TREND_RULES = {
     "Monthly": "ME",
     "Yearly": "YE",
 }
+MAX_CHART_POINTS_PER_FIELD = 300
+CHART_PANELS_PER_PAGE = 4
 
 EQUIPMENT_FIELD_KEYWORDS = {
     "pump": ["flow", "pressure", "vibration", "bearing", "seal", "current", "power"],
@@ -79,31 +84,42 @@ SOURCE_GROUPS = {
 }
 
 
+def _twelve(*field_ids: str) -> list[str]:
+    return list(dict.fromkeys(field_ids))[:12]
+
+
 def default_templates() -> dict[str, list[dict[str, Any]]]:
+    """Return the 12-panel defaults used for new and upgraded installations."""
+    plant = _twelve("DP1", "DP5", "DP8", "DP12", "L1", "L6", "L12", "L17", "F1", "F3", "F7", "F18")
+    condition = _twelve("F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "DP17", "DP18")
+    process = _twelve("DP1", "DP2", "DP3", "DP4", "DP5", "DP6", "DP7", "DP8", "DP9", "DP10", "DP19", "DP20")
+    quality = _twelve("L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L12", "L16", "L17", "L18")
+    reliability = _twelve("F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F13", "F14", "DP14", "DP17")
+    calculated = [f"CF{index}" for index in range(1, 13)]
     return {
         "Plant Overview": [
             {
                 "id": "plant-performance",
                 "name": "Plant Performance",
-                "chart_fields": ["DP1", "DP5", "L6", "F1"],
-                "table_fields": ["DP1", "DP5", "DP8", "L6", "L17", "F1"],
+                "chart_fields": plant.copy(),
+                "table_fields": plant.copy(),
                 "chart_type": "Line",
                 "period_mode": "Selected Period",
             }
         ],
         "Equipment Overview": [
-            {"id": "condition-monitoring", "name": "Condition Monitoring", "chart_fields": ["F1", "F3", "F4", "DP2"], "table_fields": ["F1", "F3", "F4", "DP2"], "equipment_fields": {}, "chart_type": "Line", "period_mode": "Selected Period"},
-            {"id": "process-performance", "name": "Process Performance", "chart_fields": ["DP1", "DP2", "DP5", "DP20"], "table_fields": ["DP1", "DP2", "DP5", "DP20"], "equipment_fields": {}, "chart_type": "Area", "period_mode": "Selected Period"},
-            {"id": "quality-compliance", "name": "Quality and Compliance", "chart_fields": ["L1", "L6", "L12", "L17"], "table_fields": ["L1", "L6", "L12", "L17"], "equipment_fields": {}, "chart_type": "Box Plot", "period_mode": "Selected Period"},
-            {"id": "reliability", "name": "Reliability", "chart_fields": ["F3", "F4", "F5", "F7"], "table_fields": ["F3", "F4", "F5", "F7"], "equipment_fields": {}, "chart_type": "Scatter", "period_mode": "Selected Period"},
+            {"id": "condition-monitoring", "name": "Condition Monitoring", "chart_fields": condition.copy(), "table_fields": condition.copy(), "equipment_fields": {}, "chart_type": "Line", "period_mode": "Selected Period"},
+            {"id": "process-performance", "name": "Process Performance", "chart_fields": process.copy(), "table_fields": process.copy(), "equipment_fields": {}, "chart_type": "Area", "period_mode": "Selected Period"},
+            {"id": "quality-compliance", "name": "Quality and Compliance", "chart_fields": quality.copy(), "table_fields": quality.copy(), "equipment_fields": {}, "chart_type": "Box Plot", "period_mode": "Selected Period"},
+            {"id": "reliability", "name": "Reliability", "chart_fields": reliability.copy(), "table_fields": reliability.copy(), "equipment_fields": {}, "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
         "Operations Dashboard": [
-            {"id": "current", "name": "Current", "kpi_fields": ["CF1", "CF2", "CF3", "CF4"], "chart_fields": ["CF1", "CF2", "CF3", "CF4"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6"], "chart_type": "Line", "period_mode": "Current"},
-            {"id": "period-total", "name": "Period Total", "kpi_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6", "CF7", "CF8"], "chart_fields": ["CF1", "CF4", "CF6", "CF8"], "table_fields": ["CF1", "CF2", "CF3", "CF4", "CF5", "CF6", "CF7", "CF8"], "chart_type": "Bar", "period_mode": "Period Total"},
-            {"id": "month-to-date", "name": "Month-to-Date", "kpi_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_fields": ["CF1", "CF2", "CF4", "CF8"], "table_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_type": "Area", "period_mode": "Month-to-Date"},
-            {"id": "year-to-date", "name": "Year-to-Date", "kpi_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_fields": ["CF1", "CF2", "CF4", "CF8"], "table_fields": ["CF1", "CF2", "CF4", "CF5", "CF8"], "chart_type": "Line", "period_mode": "Year-to-Date"},
-            {"id": "quality", "name": "Quality", "kpi_fields": ["CF4", "CF7"], "chart_fields": ["CF4", "CF7"], "table_fields": ["CF4", "CF7"], "chart_type": "Box Plot", "period_mode": "Selected Period"},
-            {"id": "reliability", "name": "Reliability", "kpi_fields": ["CF5", "CF6"], "chart_fields": ["CF5", "CF6"], "table_fields": ["CF5", "CF6"], "chart_type": "Scatter", "period_mode": "Selected Period"},
+            {"id": "current", "name": "Current", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Line", "period_mode": "Current"},
+            {"id": "period-total", "name": "Period Total", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Bar", "period_mode": "Period Total"},
+            {"id": "month-to-date", "name": "Month-to-Date", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Area", "period_mode": "Month-to-Date"},
+            {"id": "year-to-date", "name": "Year-to-Date", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Line", "period_mode": "Year-to-Date"},
+            {"id": "quality", "name": "Quality", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Box Plot", "period_mode": "Selected Period"},
+            {"id": "reliability", "name": "Reliability", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
     }
 
@@ -120,10 +136,22 @@ def load_templates(bu: str) -> dict[str, list[dict[str, Any]]]:
     result: dict[str, list[dict[str, Any]]] = {}
     for module, module_defaults in defaults.items():
         value = saved.get(module)
-        result[module] = value if isinstance(value, list) and value else module_defaults
-        for template in result[module]:
+        selected_templates = value if isinstance(value, list) and value else module_defaults
+        defaults_by_id = {item["id"]: item for item in module_defaults}
+        result[module] = []
+        for template in selected_templates:
+            template = dict(template)
+            baseline = defaults_by_id.get(template.get("id"), {})
+            for key in ("chart_fields", "table_fields"):
+                configured = list(dict.fromkeys(str(item) for item in template.get(key, []) if str(item)))
+                additions = [item for item in baseline.get(key, []) if item not in configured]
+                template[key] = (configured + additions)[:12]
+            if module == "Operations Dashboard":
+                configured_kpis = list(dict.fromkeys(str(item) for item in template.get("kpi_fields", []) if str(item)))
+                template["kpi_fields"] = (configured_kpis + [item for item in baseline.get("kpi_fields", []) if item not in configured_kpis])[:8]
             if template.get("id") == "quality-compliance":
                 template["name"] = "Quality and Compliance"
+            result[module].append(template)
     return result
 
 
@@ -149,6 +177,11 @@ MAPPING_COLUMNS = [
 def field_mappings_path(bu: str):
     """Return the Excel mapping database used by OPERA-X at runtime."""
     return storage.bu_dir(bu) / "field_mappings.xlsx"
+
+
+def _field_mappings_runtime_path(bu: str):
+    """Fast, derived cache; the Excel workbook remains authoritative."""
+    return storage.bu_dir(bu) / "field_mappings.runtime.json.gz"
 
 
 def _legacy_field_mappings_path(bu: str):
@@ -318,8 +351,39 @@ def _write_mapping_database(
     effective: dict[str, dict[str, Any]],
     defaults: dict[str, dict[str, Any]],
 ) -> None:
-    storage.atomic_write_bytes(field_mappings_path(bu), _mapping_workbook_bytes(_mapping_database_frames(bu, effective, defaults)))
+    path = storage.atomic_write_bytes(field_mappings_path(bu), _mapping_workbook_bytes(_mapping_database_frames(bu, effective, defaults)))
+    _write_runtime_mapping_records(bu, effective, defaults)
     _read_mapping_database_cached.cache_clear()
+
+
+def _write_runtime_mapping_records(bu: str, effective: dict[str, Any], defaults: dict[str, Any]) -> None:
+    signature = field_mappings_path(bu).stat()
+    payload = {
+        "workbook_modified_ns": signature.st_mtime_ns,
+        "workbook_size": signature.st_size,
+        "effective": effective,
+        "defaults": defaults,
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    storage.atomic_write_bytes(_field_mappings_runtime_path(bu), gzip.compress(encoded, compresslevel=6))
+
+
+def _runtime_mapping_records(bu: str) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]] | None:
+    workbook_path = field_mappings_path(bu)
+    runtime_path = _field_mappings_runtime_path(bu)
+    if not workbook_path.exists() or not runtime_path.exists():
+        return None
+    try:
+        payload = json.loads(gzip.decompress(runtime_path.read_bytes()).decode("utf-8"))
+    except Exception:
+        return None
+    signature = workbook_path.stat()
+    if payload.get("workbook_modified_ns") != signature.st_mtime_ns or payload.get("workbook_size") != signature.st_size:
+        return None
+    effective, defaults = payload.get("effective"), payload.get("defaults")
+    if not isinstance(effective, dict) or not isinstance(defaults, dict):
+        return None
+    return effective, defaults
 
 
 def _seed_field_mapping_records(bu: str) -> dict[str, dict[str, Any]]:
@@ -330,10 +394,43 @@ def _seed_field_mapping_records(bu: str) -> dict[str, dict[str, Any]]:
     return engineering_mapping.build_engineering_defaults(bu, catalog, equipment, calculated)
 
 
-def ensure_mapping_database(bu: str):
-    """Create the Excel database once, migrating any legacy JSON overrides."""
-    path = field_mappings_path(bu)
+@lru_cache(maxsize=32)
+def _ensure_mapping_database_cached(
+    bu: str,
+    path_text: str,
+    mapping_modified_ns: int,
+    fields_modified_ns: int,
+    calculated_modified_ns: int,
+    equipment_modified_ns: int,
+):
+    """Create/reconcile one mapping database for a specific set of inputs."""
+    del mapping_modified_ns, fields_modified_ns, calculated_modified_ns, equipment_modified_ns
+    path = storage._path(path_text)
     if path.exists() and path.stat().st_size:
+        try:
+            runtime = _runtime_mapping_records(bu)
+            if runtime:
+                effective, defaults = runtime
+            else:
+                effective_frame, defaults_frame = _read_mapping_database_cached(str(path), path.stat().st_mtime_ns)
+                effective = _records_from_mapping_frame(effective_frame)
+                defaults = _records_from_mapping_frame(defaults_frame)
+            catalog_ids = set(field_catalog(bu)["field_id"].astype(str))
+            missing = catalog_ids - set(effective)
+            if missing:
+                seeded = _seed_field_mapping_records(bu)
+                for field_id in missing:
+                    baseline = seeded.get(field_id)
+                    if baseline:
+                        defaults[field_id] = _mapping_record(**baseline)
+                        effective[field_id] = _mapping_record(**baseline)
+                _write_mapping_database(bu, effective, defaults)
+            elif runtime is None:
+                _write_runtime_mapping_records(bu, effective, defaults)
+        except Exception:
+            # Preserve the original file so the caller receives the detailed read
+            # error rather than silently replacing an administrator database.
+            return path
         return path
     defaults = _seed_field_mapping_records(bu)
     effective = {field_id: _mapping_record(**record) for field_id, record in defaults.items()}
@@ -357,12 +454,35 @@ def ensure_mapping_database(bu: str):
     return path
 
 
+def ensure_mapping_database(bu: str):
+    """Create the Excel database and add newly activated/created field records."""
+    path = field_mappings_path(bu)
+    dependencies = [
+        path,
+        storage.bu_dir(bu) / "fields.csv",
+        storage.bu_dir(bu) / "calculated_fields.csv",
+        storage.bu_dir(bu) / "equipment.csv",
+    ]
+    modified = [item.stat().st_mtime_ns if item.exists() else 0 for item in dependencies]
+    return _ensure_mapping_database_cached(bu, str(path), *modified)
+
+
 def load_effective_field_mappings(bu: str) -> dict[str, dict[str, Any]]:
-    effective, _ = _read_mapping_database(bu)
-    return _records_from_mapping_frame(effective)
+    path = ensure_mapping_database(bu)
+    runtime = _runtime_mapping_records(bu)
+    if runtime:
+        return deepcopy(runtime[0])
+    effective, defaults = _read_mapping_database(bu)
+    records, default_records = _records_from_mapping_frame(effective), _records_from_mapping_frame(defaults)
+    _write_runtime_mapping_records(bu, records, default_records)
+    return records
 
 
 def load_default_field_mappings(bu: str) -> dict[str, dict[str, Any]]:
+    ensure_mapping_database(bu)
+    runtime = _runtime_mapping_records(bu)
+    if runtime:
+        return deepcopy(runtime[1])
     _, defaults = _read_mapping_database(bu)
     return _records_from_mapping_frame(defaults)
 
@@ -510,7 +630,7 @@ def _usable_mapping_equipment(bu: str) -> pd.DataFrame:
     return equipment
 
 
-def field_mapping_table(bu: str) -> pd.DataFrame:
+def _field_mapping_table_uncached(bu: str) -> pd.DataFrame:
     """Materialise the complete effective mapping from the Excel database.
 
     Tuple-valued private columns (prefixed with ``_``) support exact UI filtering;
@@ -572,6 +692,31 @@ def field_mapping_table(bu: str) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+@lru_cache(maxsize=32)
+def _field_mapping_table_cached(
+    bu: str,
+    mapping_modified_ns: int,
+    fields_modified_ns: int,
+    calculated_modified_ns: int,
+    equipment_modified_ns: int,
+) -> pd.DataFrame:
+    del mapping_modified_ns, fields_modified_ns, calculated_modified_ns, equipment_modified_ns
+    return _field_mapping_table_uncached(bu)
+
+
+def field_mapping_table(bu: str) -> pd.DataFrame:
+    """Return the mapping table, invalidated immediately by any Admin save."""
+    mapping_path = ensure_mapping_database(bu)
+    dependencies = [
+        mapping_path,
+        storage.bu_dir(bu) / "fields.csv",
+        storage.bu_dir(bu) / "calculated_fields.csv",
+        storage.bu_dir(bu) / "equipment.csv",
+    ]
+    modified = [item.stat().st_mtime_ns if item.exists() else 0 for item in dependencies]
+    return _field_mapping_table_cached(bu, *modified).copy(deep=True)
 
 
 def mapping_reverse_views(bu: str, mappings: pd.DataFrame | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -940,7 +1085,7 @@ def intelligent_equipment_fields(
     equipment_record: dict[str, Any] | pd.Series,
     registry: pd.DataFrame,
     available_ids: set[str] | None = None,
-    limit: int = 6,
+    limit: int = 12,
 ) -> list[str]:
     """Rank active fields against equipment name/type semantics for a useful default overview."""
     if registry.empty:
@@ -979,7 +1124,7 @@ def equipment_overview_fields(
     equipment_record: dict[str, Any] | pd.Series,
     registry: pd.DataFrame,
     available_ids: set[str],
-    limit: int = 6,
+    limit: int = 12,
 ) -> tuple[list[str], list[str]]:
     """Use an Admin override first, otherwise intelligently map key fields to equipment."""
     equipment_id = str(dict(equipment_record).get("equipment_id", ""))
@@ -1028,7 +1173,17 @@ def normalise_long(frame: pd.DataFrame) -> pd.DataFrame:
     work = frame.copy()
     work["Timestamp"] = pd.to_datetime(work["Timestamp"], errors="coerce")
     work["value"] = pd.to_numeric(work["value"], errors="coerce")
-    return work.dropna(subset=["Timestamp", "value"])
+    work = work.dropna(subset=["Timestamp", "value"])
+    if work.empty or "field_id" not in work:
+        return work
+    reduced: list[pd.DataFrame] = []
+    for _, group in work.groupby(work["field_id"].astype(str), sort=False):
+        group = group.sort_values("Timestamp")
+        if len(group) > MAX_CHART_POINTS_PER_FIELD:
+            positions = [round(index * (len(group) - 1) / (MAX_CHART_POINTS_PER_FIELD - 1)) for index in range(MAX_CHART_POINTS_PER_FIELD)]
+            group = group.iloc[sorted(set(positions))]
+        reduced.append(group)
+    return pd.concat(reduced, ignore_index=True) if reduced else work
 
 
 def _figure(view: pd.DataFrame, chart_type: str, combined: bool, title: str):
@@ -1089,18 +1244,18 @@ def render_selectable_chart_grid(
     chart_type: str,
     axis_mode: str,
     key: str,
+    catalog: pd.DataFrame | None = None,
 ) -> list[str]:
     """Render a CPP-style grid whose headers (or combined legend selector) change displayed fields."""
     view = normalise_long(frame)
-    if view.empty:
-        st.info("No chart data is available for the selected fields and period.")
+    metadata_rows = view[["field_id", "field_name", "uom"]].drop_duplicates("field_id") if not view.empty else pd.DataFrame(columns=["field_id", "field_name", "uom"])
+    if catalog is not None and not catalog.empty:
+        extra = catalog[["field_id", "field_name", "uom"]].copy()
+        metadata_rows = pd.concat([metadata_rows, extra], ignore_index=True).drop_duplicates("field_id")
+    if metadata_rows.empty:
+        st.info("No chart fields are configured for this template and context.")
         return []
-    metadata = (
-        view[["field_id", "field_name", "uom"]]
-        .drop_duplicates("field_id")
-        .assign(field_id=lambda x: x["field_id"].astype(str))
-        .set_index("field_id")
-    )
+    metadata = metadata_rows.assign(field_id=lambda x: x["field_id"].astype(str)).set_index("field_id")
     available = metadata.index.tolist()
     defaults = [str(field) for field in field_ids if str(field) in metadata.index] or available[: min(6, len(available))]
     labels = {field: f"{metadata.at[field, 'field_name']} ({metadata.at[field, 'uom']})" for field in available}
@@ -1117,16 +1272,35 @@ def render_selectable_chart_grid(
         chosen = [reverse[label] for label in chosen_labels]
         if chosen:
             part = view[view["field_id"].astype(str).isin(chosen)]
-            st.plotly_chart(_figure(part, chart_type, True, "Selected Data Fields"), width="stretch", key=f"{key}_combined")
+            if part.empty:
+                st.info("The selected fields are configured correctly but do not have readings yet.")
+            else:
+                st.plotly_chart(_figure(part, chart_type, True, "Selected Data Fields"), width="stretch", key=f"{key}_combined")
         else:
             st.info("Select at least one chart field.")
         return chosen
 
     chosen: list[str] = []
-    for start in range(0, len(defaults), 2):
+    panel_start = 0
+    visible_defaults = defaults
+    if len(defaults) > CHART_PANELS_PER_PAGE:
+        panel_options = {
+            f"Panels {start + 1}–{min(start + CHART_PANELS_PER_PAGE, len(defaults))}": start
+            for start in range(0, len(defaults), CHART_PANELS_PER_PAGE)
+        }
+        selected_panel_page = st.radio(
+            "Chart Panel Set",
+            list(panel_options),
+            horizontal=True,
+            key=f"{key}_panel_page",
+            help="All 12 template fields remain configured. Render four panels at a time for a faster, more responsive page.",
+        )
+        panel_start = panel_options[selected_panel_page]
+        visible_defaults = defaults[panel_start:panel_start + CHART_PANELS_PER_PAGE]
+    for start in range(0, len(visible_defaults), 2):
         columns = st.columns(2, gap="large")
-        for offset, (column, default) in enumerate(zip(columns, defaults[start:start + 2])):
-            slot = start + offset
+        for offset, (column, default) in enumerate(zip(columns, visible_defaults[start:start + 2])):
+            slot = panel_start + start + offset
             with column:
                 with st.container(border=True):
                     selected_label = st.selectbox(
@@ -1139,5 +1313,8 @@ def render_selectable_chart_grid(
                     field_id = reverse[selected_label]
                     chosen.append(field_id)
                     part = view[view["field_id"].astype(str) == field_id]
-                    st.plotly_chart(_figure(part, chart_type, False, str(metadata.at[field_id, "field_name"])), width="stretch", key=f"{key}_slot_{slot}_{field_id}")
+                    if part.empty:
+                        st.info(f"{metadata.at[field_id, 'field_name']} is mapped to this dashboard but has no readings in the selected period.")
+                    else:
+                        st.plotly_chart(_figure(part, chart_type, False, str(metadata.at[field_id, "field_name"])), width="stretch", key=f"{key}_slot_{slot}_{field_id}")
     return chosen
