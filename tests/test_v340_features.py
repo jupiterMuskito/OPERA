@@ -13,7 +13,8 @@ def test_opera_x_branding_and_flat_navigation_structure():
     assert 'page_title="OPERA-X"' in source
     assert '"OPERA-X Home"' in source
     assert "context-ribbon" not in source
-    assert 'st.tabs(["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"])' in source
+    assert 'sections = ["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"]' in source
+    assert 'key="operational_data_view"' in source
     assert "DCS Pipeline" not in source
     assert 'with st.container(key="brand_ribbon")' in source
     assert 'with st.container(key="primary_navigation")' in source

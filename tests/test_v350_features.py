@@ -25,11 +25,11 @@ def test_blue_page_hero_was_deleted_and_only_brand_navigation_structure_remains(
 
 def test_complete_mapping_includes_all_sources_placeholders_and_calculated_fields():
     mappings = dashboard.field_mapping_table("cement")
-    assert len(mappings) == 10_008
+    assert len(mappings) == 10_012
     assert set(mappings["Source"]) == {"DCS", "Field", "QAQC", "Others", "Calculated"}
     assert set(mappings["Field Type"]) == {"Input", "Placeholder", "Calculated"}
     assert (mappings["Field Type"] == "Placeholder").sum() == 9_940
-    assert (mappings["Field Type"] == "Calculated").sum() == 8
+    assert (mappings["Field Type"] == "Calculated").sum() == 12
     assert mappings["_equipment_ids"].map(bool).all()
     assert mappings["_template_ids"].map(bool).all()
 
