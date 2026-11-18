@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import uuid
 import zipfile
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -193,8 +193,13 @@ def top_navigation(user: auth.User, bu: str) -> str:
         return page
 
 
-def source_frame(bu: str, source: str) -> pd.DataFrame:
-    frame = storage.read_csv(storage.source_path(bu, source))
+def source_frame(bu: str, source: str, field_ids: list[str] | None = None) -> pd.DataFrame:
+    if field_ids is None:
+        registry = storage.registry(bu)
+        field_ids = registry.loc[
+            (registry["source"] == source) & (registry["active"].str.lower() == "true"), "field_id"
+        ].astype(str).tolist()
+    frame = storage.source_data(bu, source, field_ids)
     if not frame.empty:
         frame["Timestamp"] = pd.to_datetime(frame["Date"] + " " + frame["Time"], errors="coerce")
     return frame
@@ -282,11 +287,22 @@ def display_data_table(frame: pd.DataFrame, bu: str, **kwargs: Any) -> None:
     safe_dataframe(operational.target_styler(frame, storage.registry(bu), calculated), **kwargs)
 
 
-def long_data(bu: str, sources: list[str] | None = None) -> pd.DataFrame:
+def long_data(
+    bu: str,
+    sources: list[str] | None = None,
+    plant: str | None = None,
+    equipment_id: str | None = None,
+) -> pd.DataFrame:
     items: list[pd.DataFrame] = []
     registry = active_registry(bu).set_index("field_id")
     for source in sources or list(storage.SOURCES):
         frame = source_frame(bu, source)
+        if frame.empty:
+            continue
+        if plant is not None and "Plant" in frame:
+            frame = frame[frame["Plant"] == plant]
+        if equipment_id is not None and "Equipment" in frame:
+            frame = frame[frame["Equipment"] == equipment_id]
         if frame.empty:
             continue
         fields = [column for column in frame.columns if column in registry.index]
@@ -329,7 +345,8 @@ def period_filter(frame: pd.DataFrame, key: str) -> pd.DataFrame:
         return frame
     low, high = valid.min().date(), valid.max().date()
     first, second = st.columns(2)
-    start = first.date_input("Start Date", low, min_value=low, max_value=high, key=f"{key}_start")
+    default_start = max(low, high - timedelta(days=30))
+    start = first.date_input("Start Date", default_start, min_value=low, max_value=high, key=f"{key}_start")
     end = second.date_input("End Date", high, min_value=low, max_value=high, key=f"{key}_end")
     return frame[(frame["Timestamp"].dt.date >= start) & (frame["Timestamp"].dt.date <= end)]
 
@@ -418,13 +435,12 @@ def kpi_cards(
 
 
 def page_home(bu: str, user: auth.User) -> None:
-    data = long_data(bu)
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
     lessons = storage.read_csv(storage.bu_dir(bu) / "lessons.csv")
     columns = st.columns(5)
     values = [
-        len(data), len(flags[flags.get("status", "") == "Open"]) if not flags.empty else 0,
+        storage.reading_count(bu), len(flags[flags.get("status", "") == "Open"]) if not flags.empty else 0,
         len(events), len(lessons), len(storage.unread_notifications(bu, user.username)),
     ]
     for column, label, value in zip(columns, ["Readings", "Open Flags", "Events", "Lessons", "Unread Notifications"], values):
@@ -454,7 +470,6 @@ def page_home(bu: str, user: auth.User) -> None:
 
 
 def page_plant(bu: str, user: auth.User) -> None:
-    data = long_data(bu)
     equipment = storage.equipment(bu)
     plants = sorted(equipment[equipment["placeholder"].str.lower() != "true"]["plant"].dropna().unique())
     if not plants:
@@ -462,6 +477,7 @@ def page_plant(bu: str, user: auth.User) -> None:
         return
     plant = st.selectbox("Plant", plants)
     template = template_selector(bu, "Plant Overview", "plant")
+    data = long_data(bu, plant=plant)
     if data.empty:
         st.info("No operational data is available.")
         return
@@ -476,7 +492,9 @@ def page_plant(bu: str, user: auth.User) -> None:
         chart_fields = list(view.groupby("field_id")["value"].count().sort_values(ascending=False).head(6).index)
     chart_type, axis_mode = chart_controls(template.get("chart_type", "Line"), "plant")
     st.markdown("### Charts")
-    chart_fields = dashboard.render_selectable_chart_grid(view, chart_fields, chart_type, axis_mode, "plant")
+    chart_catalog = active_registry(bu)
+    chart_catalog = chart_catalog[chart_catalog["field_id"].astype(str).isin(mapped_ids)]
+    chart_fields = dashboard.render_selectable_chart_grid(view, chart_fields, chart_type, axis_mode, "plant", chart_catalog)
     table_fields = [field for field in template.get("table_fields", []) if field in available] or chart_fields
     table_fields = field_multiselect(bu, "Data Table Fields", available, table_fields, "plant_table_fields")
     summary = view[view["field_id"].isin(table_fields)].groupby(["field_id", "field_name", "uom"], as_index=False).agg(Average=("value", "mean"), Minimum=("value", "min"), Maximum=("value", "max"), Readings=("value", "count"))
@@ -487,7 +505,6 @@ def page_plant(bu: str, user: auth.User) -> None:
 
 
 def page_equipment(bu: str, user: auth.User) -> None:
-    data = long_data(bu)
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
     if equipment.empty:
@@ -499,6 +516,7 @@ def page_equipment(bu: str, user: auth.User) -> None:
     label = st.selectbox("Equipment", options.apply(lambda row: f"{row['equipment_id']} — {row['equipment_name']}", axis=1))
     equipment_id = label.split(" — ", 1)[0]
     template = template_selector(bu, "Equipment Overview", "equipment")
+    data = long_data(bu, equipment_id=equipment_id)
     if data.empty:
         st.info("No operational data is available.")
         return
@@ -528,7 +546,9 @@ def page_equipment(bu: str, user: auth.User) -> None:
         chart_fields = selected_fields
     chart_type, axis_mode = chart_controls(template.get("chart_type", "Line"), "equipment")
     st.markdown("### Charts")
-    chart_fields = dashboard.render_selectable_chart_grid(view, chart_fields, chart_type, axis_mode, f"equipment_{equipment_id}")
+    chart_catalog = active_registry(bu)
+    chart_catalog = chart_catalog[chart_catalog["field_id"].astype(str).isin(mapped_ids)]
+    chart_fields = dashboard.render_selectable_chart_grid(view, chart_fields, chart_type, axis_mode, f"equipment_{equipment_id}", chart_catalog)
     table_fields = [field for field in configured_table if field in available] or chart_fields
     table_fields = field_multiselect(bu, "Data Table Fields", available, table_fields, f"equipment_table_{equipment_id}")
     summary = view[view["field_id"].isin(table_fields)].groupby(["field_id", "field_name", "uom"], as_index=False).agg(
@@ -701,14 +721,15 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
 
 
 def page_operational_data(bu: str, user: auth.User) -> None:
-    manual_tab, bulk_tab, derived_tab, analyze_tab = st.tabs(["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"])
-    with manual_tab:
+    sections = ["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"]
+    section = st.radio("Operational Data View", sections, horizontal=True, label_visibility="collapsed", key="operational_data_view")
+    if section == "Manual Entry":
         manual_entry_panel(bu, user)
-    with bulk_tab:
+    elif section == "Bulk Upload":
         bulk_upload_panel(bu, user)
-    with derived_tab:
+    elif section == "Derived Data":
         page_output(bu, user)
-    with analyze_tab:
+    else:
         page_analysis(bu, user)
 
 def page_events(bu: str, user: auth.User) -> None:
@@ -943,7 +964,7 @@ def page_parameters(bu: str, user: auth.User) -> None:
     equipment_labels = {f"{row.equipment_id} — {row.equipment_name} ({row.plant} / {row.unit_section})": row.equipment_id for row in equipment.itertuples()}
     equipment_label = st.selectbox("Equipment", list(equipment_labels), key="parameters_equipment")
     equipment_id = equipment_labels[equipment_label]
-    all_data = long_data(bu)
+    all_data = long_data(bu, equipment_id=equipment_id)
     base = all_data[all_data["Equipment"] == equipment_id] if not all_data.empty else pd.DataFrame()
     available_ids = set(base["field_id"].astype(str)) if not base.empty else set()
     registry = mapped_registry(bu, equipment_id=equipment_id)
@@ -1143,18 +1164,36 @@ def add_user_form(current: auth.User) -> None:
         password = st.text_input("Temporary Password", type="password")
         submit = st.form_submit_button("Create User")
     if submit:
-        if not username or len(password) < 12:
-            st.error("Username and a 12-character temporary password are required.")
-        else:
-            path = storage.DATA_ROOT / "shared" / "users.csv"
-            users = storage.read_csv(path)
-            if username in set(users["username"]):
-                st.error("Username already exists.")
-            else:
-                row = {"username": username, "display_name": name or username, "password_hash": auth.hash_password(password), "role": role, "business_units": "*" if role == "Super Admin" else ";".join(business_units), "active": "true", "must_change_password": "true", "failed_attempts": "0", "lock_until": ""}
-                storage.atomic_write_csv(path, pd.concat([users, pd.DataFrame([row])], ignore_index=True))
-                storage.audit("shared", current.username, "user_created", {"username": username, "role": role})
-                st.success("User created.")
+        try:
+            auth.create_user(username, name, role, business_units, password)
+            storage.audit("shared", current.username, "user_created", {"username": username, "role": role})
+            st.success("User created. The account can sign in immediately.")
+        except Exception as exc:
+            st.error(str(exc))
+
+
+def manage_user_form(current: auth.User) -> None:
+    users = storage.read_csv(storage.DATA_ROOT / "shared" / "users.csv")
+    if users.empty:
+        return
+    st.markdown("#### Manage User Access")
+    username = st.selectbox("Existing User", users["username"].tolist(), key="manage_username")
+    index = users[users["username"] == username].index[0]
+    row = users.loc[index]
+    display_name = st.text_input("Display Name", row["display_name"], key="manage_display_name")
+    roles = ["BU Admin", "Operator", "Viewer", "Super Admin"]
+    role = st.selectbox("Role", roles, index=roles.index(row["role"]) if row["role"] in roles else 2, key="manage_role")
+    available_bus = config.business_units()["id"].tolist()
+    assigned = [item for item in str(row["business_units"]).split(";") if item in available_bus]
+    business_units = st.multiselect("Business Units", available_bus, default=assigned, disabled=role == "Super Admin", key="manage_bus")
+    active = st.checkbox("Active Account", value=str(row["active"]).lower() == "true", key="manage_active")
+    if st.button("Save User Access", type="primary", key="save_user_access"):
+        try:
+            auth.update_user_access(username, display_name, role, business_units, active)
+            storage.audit("shared", current.username, "user_access_changed", {"username": username, "role": role, "business_units": business_units, "active": active})
+            st.success("User access updated. Active sessions refresh on their next interaction.")
+        except Exception as exc:
+            st.error(str(exc))
 
 
 def template_admin(bu: str, user: auth.User) -> None:
@@ -1189,12 +1228,15 @@ def template_admin(bu: str, user: auth.User) -> None:
     else:
         kpi_labels = []
     chart_label = "Key Parameters Shown on Charts" if module == "Equipment Overview" else "Data Fields Shown on Charts"
-    chart_labels = st.multiselect(chart_label, list(reverse), default=[label_map[field] for field in defaults_chart if field in label_map], key=f"admin_chart_{module}_{selected['id']}_{scope_id}")
-    table_labels = st.multiselect("Data Fields Shown in the Table", list(reverse), default=[label_map[field] for field in defaults_table if field in label_map], key=f"admin_table_{module}_{selected['id']}_{scope_id}")
+    chart_labels = st.multiselect(chart_label, list(reverse), default=[label_map[field] for field in defaults_chart if field in label_map][:12], max_selections=12, key=f"admin_chart_{module}_{selected['id']}_{scope_id}")
+    table_labels = st.multiselect("Data Fields Shown in the Table", list(reverse), default=[label_map[field] for field in defaults_table if field in label_map][:12], max_selections=12, key=f"admin_table_{module}_{selected['id']}_{scope_id}")
+    st.caption(f"Template panel defaults: {len(chart_labels)} of 12 chart fields · {len(table_labels)} of 12 table fields.")
     chart_type = st.selectbox("Chart Type", dashboard.CHART_TYPES, index=dashboard.CHART_TYPES.index(selected.get("chart_type", "Line")) if selected.get("chart_type", "Line") in dashboard.CHART_TYPES else 0, key="admin_template_chart")
     if st.button("Save Dashboard Template", type="primary"):
         if not name.strip():
             st.error("Enter a template name.")
+        elif len(chart_labels) != 12 or len(table_labels) != 12:
+            st.error("Select exactly 12 chart fields and 12 table fields so every dashboard template has 12 configurable panels.")
         else:
             selected["name"] = name.strip()
             chart_ids, table_ids = [reverse[label] for label in chart_labels], [reverse[label] for label in table_labels]
@@ -1505,8 +1547,9 @@ def page_admin(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
-    tabs = st.tabs(["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Risk Registers", "DCS Connector", "Presets", "Audit & Backup"])
-    with tabs[0]:
+    sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Risk Registers", "DCS Connector", "Presets", "Audit & Backup"]
+    section = st.radio("Administration Area", sections, horizontal=True, label_visibility="collapsed", key="admin_area")
+    if section == sections[0]:
         safe_dataframe(config.business_units(), width="stretch", hide_index=True)
         if user.role == "Super Admin":
             st.markdown("#### Clone a Business Unit")
@@ -1526,12 +1569,13 @@ def page_admin(bu: str, user: auth.User) -> None:
             if st.button("Save Business Unit Configuration") and new_name:
                 config.set_business_unit(target, new_name, enabled, user.username)
                 st.success("Business unit updated.")
-    with tabs[1]:
+    elif section == sections[1]:
         users = storage.read_csv(storage.DATA_ROOT / "shared" / "users.csv")
         safe_dataframe(users.drop(columns=["password_hash"]), width="stretch", hide_index=True)
         if user.role == "Super Admin":
             add_user_form(user)
-    with tabs[2]:
+            manage_user_form(user)
+    elif section == sections[2]:
         registry = storage.registry(bu)
         source_filter = st.selectbox("Source Registry", list(storage.SOURCES), key="admin_field_source")
         candidates = registry[registry["source"] == source_filter]
@@ -1591,13 +1635,13 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success("Baseline constants saved.")
             except Exception as exc:
                 st.error(str(exc))
-    with tabs[3]:
+    elif section == sections[3]:
         field_mapping_admin(bu, user)
-    with tabs[4]:
+    elif section == sections[4]:
         template_admin(bu, user)
-    with tabs[5]:
+    elif section == sections[5]:
         equipment_admin(bu, user)
-    with tabs[6]:
+    elif section == sections[6]:
         register, source, problem = risk_store.resolve(bu)
         st.write(f"Current: {source or problem}")
         st.write(f"Fingerprint: {register.fingerprint if register else '—'}")
@@ -1619,14 +1663,15 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success(f"Committed: {url}")
             except Exception as exc:
                 st.error(str(exc))
-    with tabs[7]:
+    elif section == sections[7]:
         settings = storage.json_setting(storage.bu_dir(bu) / "pipeline.json", {})
         url = st.text_input("DCS JSON Endpoint", settings.get("url", ""))
         token_name = st.text_input("Secret Key Under [dcs]", settings.get("token_secret_name", ""))
         if st.button("Save Connector Settings"):
-            storage.save_json(storage.bu_dir(bu) / "pipeline.json", {"url": url, "token_secret_name": token_name})
+            settings = {"url": url.strip(), "token_secret_name": token_name.strip()}
+            storage.save_json(storage.bu_dir(bu) / "pipeline.json", settings)
             storage.audit(bu, user.username, "dcs_connector_configured", {"url": url})
-            st.success("Connector settings saved; token value remains in Secrets.")
+            st.success("Connector settings saved and available immediately; token value remains in Secrets.")
         st.markdown("#### Pipeline Run")
         st.code(settings.get("url") or "DCS endpoint not configured")
         if st.button("Pull DCS Data Now", disabled=not bool(settings.get("url")), key="admin_pull_dcs"):
@@ -1638,7 +1683,7 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success(f"Ingested {count} rows; {flag_count} flags.")
             except Exception as exc:
                 st.error(f"DCS pull failed: {exc}")
-    with tabs[8]:
+    elif section == sections[8]:
         presets = config.load_presets(bu)
         st.json(presets)
         st.download_button("Download Presets JSON", config.export_presets(bu), f"{bu}_presets.json", "application/json")
@@ -1649,7 +1694,7 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success(f"Imported {count} preset(s).")
             except Exception as exc:
                 st.error(str(exc))
-    with tabs[9]:
+    elif section == sections[9]:
         audit = storage.read_csv(storage.bu_dir(bu) / "audit_log.csv")
         safe_dataframe(audit.sort_values("timestamp", ascending=False) if not audit.empty else audit, width="stretch", hide_index=True)
         if st.button("Prepare Business Unit Backup ZIP"):
@@ -1669,6 +1714,12 @@ def main() -> None:
     if "user" not in st.session_state:
         do_login()
     user: auth.User = st.session_state.user
+    refreshed = auth.get_user(user.username)
+    if refreshed is None and user.username not in {str(name).lower() for name in secret_users()}:
+        st.session_state.clear()
+        st.rerun()
+    user = refreshed or user
+    st.session_state.user = user
     password_change_gate(user)
     if "bu" not in st.session_state:
         choose_bu(user)

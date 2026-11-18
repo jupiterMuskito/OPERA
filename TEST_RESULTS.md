@@ -1,62 +1,61 @@
-# OPERA-X v3.6.0 — Test Results
+# OPERA-X v3.7.0 — Test Results
 
 ## Result
 
-**PASS — 40 tests passed.**
+**PASS — 45 automated tests passed in four isolated groups.** Python compilation also passed for `app.py`, `opera/`, `scripts/` and `tests/`.
 
-Commands completed successfully:
+The suite was split to keep peak memory and execution time bounded:
 
-```bash
-python3 -m py_compile app.py opera/*.py scripts/*.py
-pytest -q
-```
+- Admin E2E, app smoke and roles: 7 passed
+- v3.5/v3.6 regression: 10 passed
+- v3.2–v3.4 regression: 16 passed
+- Cement, dashboard, storage, formula and register: 12 passed
 
-## UI route verification
+## Reported Admin-to-chart scenario
 
-Streamlit's application-test runtime signed in as the seeded BU Admin, selected Cement, and rendered all ten authenticated routes without an exception:
+PASS in one Python/Streamlit process, with no restart:
 
-- OPERA-X Home
-- Plant Overview
-- Equipment Overview
-- Operations Dashboard
-- Operational Data
-- Event Log
-- Operating Parameters
-- Risk Assessment
-- Lesson Bank
-- Admin / Super Admin
+1. Rename and activate a placeholder field.
+2. Set UOM, minimum, maximum and target.
+3. Map it to one equipment and Plant/Process Performance.
+4. Set it as a Plant Performance chart-panel default.
+5. Save a validated DCS value.
+6. Verify the updated registry, mapping, template, source value and 12-panel template immediately.
 
-The fixed brand/navigation structure and CPP-style chart behavior remain covered. The deleted blue page-title hero remains absent.
+A mapped field without a reading is also retained in the selector and receives an explicit no-readings message instead of disappearing.
 
-## Engineering mapping verification
+## Admin configuration propagation matrix
 
-- Four configured BUs: 272 named/calculated fields reviewed.
-- Nine packaged BUs: 90,032 total mappings (272 named/calculated plus 89,760 placeholders).
-- Empty equipment mappings: 0.
-- Empty template mappings: 0.
-- Empty mapping-basis values: 0.
-- Confidence values restricted to High, Medium or Review.
-- Named fields use curated process/equipment assignments; no named field uses round-robin/index/random fallback.
-- Every placeholder maps to SPARE equipment, the required source-aware template set, `Confidence = Review`, and the exact placeholder review basis.
-- Cement kiln/cooler/mill/QAQC assignments are verified across Okpella, Obajana and Ibese.
-- Refinery Butamer reactors, drier, heater, stabiliser and compressor assignments are verified.
-- Fertilizer urea-reactor and granulator assignments are verified.
-- NASCON Salt evaporator and Sugar centrifuge assignments are verified.
-- Recorded Instrument Check pairs are verified for Refinery, Fertilizer and NASCON; Cement correctly records none.
-- All 32 calculated fields inherit equipment from their actual formula inputs; corrected formula/name examples are asserted.
+| Admin configuration | Immediate verification and affected areas |
+|---|---|
+| Business units | Clone and activation are visible to BU selection and all BU-scoped modules. |
+| Users and roles | New user authenticates immediately; role/BU/active changes are reloaded on the next interaction and change navigation/capabilities without server restart. |
+| Input fields | Name, active status, UOM, range and target are re-read by dashboards, Operational Data, Event field updates, Operating Parameters and validation. |
+| Calculated fields/formulas | Formula definitions and evaluation order are re-read by Derived Data and Operations Dashboard. |
+| Constants | Saved constants are used immediately by calculated formulas. |
+| Equipment | Name/plant/unit/type/active changes are visible to Plant Overview, Equipment Overview, Operational Data, Event Log, Operating Parameters, Risk Assessment and Lesson Bank selectors. |
+| Validation lists | New plant/unit/equipment-type options are immediately returned to Equipment Admin. |
+| Field mappings | Single-field save/reset and mapped selectors are verified for equipment/template context. |
+| Excel mapping template | Required sheets, named lists and dropdown validations are present. |
+| Bulk mapping upload | Partial update validates and changes only fields marked `Apply Update = Yes`; effective mapping changes immediately. |
+| Dashboard templates | Every packaged template has 12 chart and 12 table fields; Admin changes persist immediately. |
+| DCS connector | Latest JSON settings are re-read; mocked DCS ingest validates and appends a row immediately. |
+| Presets | Save/import/load is immediate and audited. |
+| Risk register | Existing register parsing, preset/hazard resolution and PDF tests remain passing. |
+| Events and lessons | Newly written records and equipment links are immediately readable. |
+| Audit and notifications | Existing locked append/update behavior remains passing. |
 
-## Excel verification
+## Cement clone data verification
 
-- Every packaged BU has a readable `field_mappings.xlsx` with effective/default mappings, equipment/template lists and guide.
-- The Admin update template contains the required mapping/review/catalog sheets and a hidden controlled-list sheet.
-- Excel named ranges and dropdown validation are verified for Field IDs, Equipment IDs, Template IDs, Include, Apply Update and Confidence.
-- A partial workbook upload updates only a Field ID marked `Apply Update = Yes`; untouched fields remain computed defaults.
-- Bulk validation rejects missing sheets/columns, unknown IDs, invalid pair types, blank bases, invalid confidence and empty relationships.
-- Workbooks contain no formulas, so no formula recalculation errors can be introduced.
+For each of Okpella, Obajana and Ibese:
 
-## Data-safety verification
+- 67 named equipment records have sample readings.
+- DCS: 1,460 rows per plant; 20 active fields; no missing active-field values.
+- Field: 1,460 rows per plant; 20 active fields; no missing active-field values.
+- Lab/QAQC: 365 rows per plant; 20 active fields; no missing active-field values.
 
-- The code-only package excludes the complete `data/` tree and therefore excludes runtime CSV/XLSX files.
-- The full package deliberately adds nine mapping databases and changes the four configured calculated-field CSVs plus nine equipment CSVs (SPARE activation).
-- No file under `registers/` or `reference_sources/` changed versus v3.5.0.
-- `DATA_OVERWRITE_WARNING.md` inventories the runtime overwrite risk and directs existing deployments to the code-only package.
+The non-destructive live-data migration was tested in dry-run and apply modes, and a second run reported no changes (idempotent). It adds only missing rows/definitions/defaults and backs up each modified file.
+
+## Performance verification
+
+Streamlit AppTest timings and lower-level data-path timings are recorded in `PERFORMANCE_REPORT_v3.7.0.md`, `PAGE_BENCHMARK_v3.7.0.json` and `PERFORMANCE_BENCHMARK_v3.7.0.json`. Heavy page reductions versus v3.6.0 ranged from 65.6% to 94.7% on the test host.

@@ -1,12 +1,12 @@
-# OPERA-X v3.6.0 — Engineering Mapping Quality Report
+# OPERA-X v3.7.0 — Engineering Mapping Quality Report
 
 ## Scope and method
 
 The default mapping was rebuilt from field names, units, formulas, physical process context and the registered equipment inventory. Named DP, F and L fields use curated field-by-field engineering rules. Calculated fields inherit the union of equipment mapped to their formula inputs. Placeholder fields use a source-aware SPARE assignment and are explicitly marked for review when named. No named field uses round-robin, index-based or random assignment.
 
-- Named/calculated fields reviewed: **272**
+- Named/calculated fields reviewed: **288**
 - Placeholder fields retained: **89,760**
-- Named fields marked **Review**: **61**
+- Named fields marked **Review**: **65**
 - Placeholder fields marked **Review**: **89,760** (grouped below because listing all IDs would add 89,760 low-value rows)
 
 ## Mapping counts by BU and dashboard template
@@ -22,10 +22,10 @@ Counts are field-to-template relationships; a field is counted in each template 
 | bu7 | 0 | 0 | 0 | 0 | 0 |
 | bu8 | 0 | 0 | 0 | 0 | 0 |
 | bu9 | 0 | 0 | 0 | 0 | 0 |
-| cement | 30 | 6 | 39 | 29 | 14 |
-| fertilizer | 22 | 11 | 38 | 28 | 17 |
-| nascon | 23 | 17 | 37 | 28 | 15 |
-| refinery | 16 | 11 | 38 | 29 | 11 |
+| cement | 30 | 6 | 43 | 29 | 14 |
+| fertilizer | 22 | 11 | 42 | 28 | 17 |
+| nascon | 23 | 17 | 41 | 28 | 15 |
+| refinery | 16 | 11 | 42 | 29 | 11 |
 
 ### Complete database, including placeholders
 
@@ -36,10 +36,10 @@ Counts are field-to-template relationships; a field is counted in each template 
 | bu7 | 1000 | 0 | 9000 | 1000 | 0 |
 | bu8 | 1000 | 0 | 9000 | 1000 | 0 |
 | bu9 | 1000 | 0 | 9000 | 1000 | 0 |
-| cement | 1010 | 6 | 8999 | 1009 | 14 |
-| fertilizer | 1002 | 11 | 8998 | 1008 | 17 |
-| nascon | 1003 | 17 | 8997 | 1008 | 15 |
-| refinery | 996 | 11 | 8998 | 1009 | 11 |
+| cement | 1010 | 6 | 9003 | 1009 | 14 |
+| fertilizer | 1002 | 11 | 9002 | 1008 | 17 |
+| nascon | 1003 | 17 | 9001 | 1008 | 15 |
+| refinery | 996 | 11 | 9002 | 1009 | 11 |
 
 ## Named mappings marked Review
 
@@ -87,6 +87,9 @@ These are not silent guesses. Most indicate that the physically correct equipmen
 | fertilizer | F18 | Valve Packing Leak Index | FER-SPARE-018 | Valve service is unspecified; spare mapping requires identification. |
 | fertilizer | F20 | Product Storage Temperature | FER-SPARE-019 | Product storage is not registered; spare mapping requires registration. |
 | fertilizer | CF6 | Converter Temperature Rise | FER-SPARE-002 | Calculated field inherits equipment from formula input(s): DP6, DP5. Formula: ABS([DP6]-[DP5]). |
+| fertilizer | CF9 | Ammonia Capacity Utilisation | FER-SPARE-002 | Calculated field inherits equipment from formula input(s): DP7. Formula: ([DP7]/3300)*100. |
+| fertilizer | CF11 | Granulation Health Index | FER-GRAN-01; FER-SPARE-005 | Calculated field inherits equipment from formula input(s): DP13, F9, F11. Formula: ([DP13]+[F9]+[F11])/3. |
+| fertilizer | CF12 | Energy Demand Index | FER-SPARE-009 | Calculated field inherits equipment from formula input(s): DP19. Formula: [DP19]. |
 | nascon | DP10 | Clarifier Temperature | NAS-SPARE-001 | Clarifier is not in the equipment register; spare mapping requires registration. |
 | nascon | DP12 | Vacuum Pan Pressure | NAS-SPARE-002 | Vacuum pan is not in the equipment register; spare mapping requires registration. |
 | nascon | DP13 | Massecuite Temperature | NAS-SPARE-002 | Massecuite is produced in the vacuum-pan crystallisation section, not separately registered. |
@@ -108,6 +111,7 @@ These are not silent guesses. Most indicate that the physically correct equipmen
 | nascon | F18 | Boiler Drum Local Level | NAS-SPARE-004 | Boiler drum is not registered; spare mapping requires registration. |
 | nascon | F19 | Bagasse Conveyor Condition | NAS-SPARE-012 | Bagasse conveyor is not registered; spare mapping requires registration. |
 | nascon | F20 | Warehouse Dust Level | NAS-SPARE-006 | Warehouse dust is an environmental/housekeeping measurement; warehouse is not registered. |
+| nascon | CF12 | Utility Load Index | NAS-SPARE-004; NAS-SPARE-005 | Calculated field inherits equipment from formula input(s): DP17, DP19. Formula: ([DP17]+[DP19])/2. |
 
 ## Placeholder Review summary
 

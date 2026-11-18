@@ -1,0 +1,50 @@
+{
+  "home_reading_count": {
+    "runs_seconds": [
+      0.3761,
+      0.0588,
+      0.0582
+    ],
+    "rows_or_count": 197100
+  },
+  "plant_long_data_okpella": {
+    "runs_seconds": [
+      0.3674,
+      0.3406,
+      0.3321
+    ],
+    "rows_or_count": 65700
+  },
+  "equipment_long_data_obajana": {
+    "runs_seconds": [
+      0.1365,
+      0.1349,
+      0.1395
+    ],
+    "rows_or_count": 1000
+  },
+  "all_long_data": {
+    "runs_seconds": [
+      0.7551,
+      0.7338,
+      0.7187
+    ],
+    "rows_or_count": 197100
+  },
+  "calculated_data": {
+    "runs_seconds": [
+      0.1684,
+      0.1701,
+      0.1636
+    ],
+    "rows_or_count": 4380
+  },
+  "field_mapping_table": {
+    "runs_seconds": [
+      1.7472,
+      0.0068,
+      0.0019
+    ],
+    "rows_or_count": 10012
+  }
+}
