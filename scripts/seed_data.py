@@ -70,16 +70,16 @@ FIELD_NAMES = {
 }
 
 CALC_DEFINITIONS = {
-    "cement": [("Average Kiln Feed Rate","[DP1]"),("Kiln Speed","[DP2]"),("Kiln Inlet Oxygen","[DP3]"),("Raw Meal Control Index","([L1]+[L2])/2"),("Kiln Inlet Shell Temperature","[F1]"),("Calciner-Preheater Temperature Difference","ABS([DP5]-[DP4])"),("Clinker Chemistry Index","([L6]+[L7])/2"),("Packing Performance","[DP20]")],
-    "refinery": [("Average Butamer Feed","[DP1]"),("Peak Reactor Inlet Temperature","[DP2]"),("Reactor Outlet Temperature","[DP3]"),("Average Feed/Product iC4","([L1]+[L2])/2"),("Reactor Skin Temperature","[F1]"),("Reactor Temperature Rise","ABS([DP3]-[DP2])"),("Product C4 Composition Index","([L2]+[L4])/2"),("Butamer Throughput Performance","[DP20]")],
-    "fertilizer": [("Average Gas Feed","[DP1]"),("Peak Reformer Temperature","[DP2]"),("Minimum Urea Pressure","[DP9]"),("Product Quality Index","([L3]+[L7])/2"),("Field-DCS Urea Pressure Deviation","ABS([F7]-[DP9])"),("Converter Temperature Rise","ABS([DP6]-[DP5])"),("Product Moisture-Biuret Index","([L4]+[L5])/2"),("Bagging Performance","[DP20]")],
-    "nascon": [("Average Salt Brine Feed","[DP1]"),("Peak Salt Evaporator Temperature","[DP2]"),("Minimum Evaporator Vacuum","[DP3]"),("Salt Quality Index","([L1]+[L2])/2"),("Salt Evaporator Temperature Deviation","ABS([F1]-[DP2])"),("Mill Extraction Index","[DP8]"),("Sugar Polarisation","[L9]"),("Average Packing Rate","([DP6]+[DP16])/2")],
+    "cement": [("Average Kiln Feed Rate","[DP1]"),("Kiln Speed","[DP2]"),("Kiln Inlet Oxygen","[DP3]"),("Raw Meal Control Index","([L1]+[L2])/2"),("Kiln Inlet Shell Temperature","[F1]"),("Calciner-Preheater Temperature Difference","ABS([DP5]-[DP4])"),("Clinker Chemistry Index","([L6]+[L7])/2"),("Packing Performance","[DP20]"),("Raw Mill Stability Index","([DP9]+[DP10])/2"),("Cement Strength Index","([L16]+[L17])/2"),("Kiln Mechanical Health Index","([F3]+[F4]+[F5])/3"),("Packing Capacity Utilisation","([DP20]/180)*100")],
+    "refinery": [("Average Butamer Feed","[DP1]"),("Peak Reactor Inlet Temperature","[DP2]"),("Reactor Outlet Temperature","[DP3]"),("Average Feed/Product iC4","([L1]+[L2])/2"),("Reactor Skin Temperature","[F1]"),("Reactor Temperature Rise","ABS([DP3]-[DP2])"),("Product C4 Composition Index","([L2]+[L4])/2"),("Butamer Throughput Performance","[DP20]"),("Reactor Pressure Stability","ABS([DP4]-[F3])"),("Hydrogen Utilisation Index","[DP5]"),("Compressor Mechanical Health","([DP17]+[F5]+[F6])/3"),("Butamer Yield Index","([L20]+[DP12])/2")],
+    "fertilizer": [("Average Gas Feed","[DP1]"),("Peak Reformer Temperature","[DP2]"),("Minimum Urea Pressure","[DP9]"),("Product Quality Index","([L3]+[L7])/2"),("Field-DCS Urea Pressure Deviation","ABS([F7]-[DP9])"),("Converter Temperature Rise","ABS([DP6]-[DP5])"),("Product Moisture-Biuret Index","([L4]+[L5])/2"),("Bagging Performance","[DP20]"),("Ammonia Capacity Utilisation","([DP7]/3300)*100"),("Urea Pressure Stability","ABS([DP9]-[F7])"),("Granulation Health Index","([DP13]+[F9]+[F11])/3"),("Energy Demand Index","[DP19]")],
+    "nascon": [("Average Salt Brine Feed","[DP1]"),("Peak Salt Evaporator Temperature","[DP2]"),("Minimum Evaporator Vacuum","[DP3]"),("Salt Quality Index","([L1]+[L2])/2"),("Salt Evaporator Temperature Deviation","ABS([F1]-[DP2])"),("Mill Extraction Index","[DP8]"),("Sugar Polarisation","[L9]"),("Average Packing Rate","([DP6]+[DP16])/2"),("Salt Packing Capacity Utilisation","([DP6]/45)*100"),("Sugar Packing Capacity Utilisation","([DP16]/90)*100"),("Sugar Process Quality Index","([L9]+[L11]+[L17])/3"),("Utility Load Index","([DP17]+[DP19])/2")],
 }
 CALC_TARGETS = {
-    "cement": [420, 3.6, 2.5, 49.25, 300, 520, 29.7, 130],
-    "refinery": [350, 170, 185, 54, 180, 15, 48, 330],
-    "fertilizer": [100000, 820, 155, 70.65, 0, 120, 0.65, 120],
-    "nascon": [100, 105, 30, 49.75, 0, 95, 99.5, 44],
+    "cement": [420, 3.6, 2.5, 49.25, 300, 520, 29.7, 130, 72.5, 39, 42, 72],
+    "refinery": [350, 170, 185, 54, 180, 15, 48, 330, 1, 1.8, 38, 87],
+    "fertilizer": [100000, 820, 155, 70.65, 0, 120, 0.65, 120, 76, 0, 66, 55],
+    "nascon": [100, 105, 30, 49.75, 0, 95, 99.5, 44, 62, 67, 101, 26],
 }
 
 

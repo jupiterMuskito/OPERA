@@ -97,7 +97,7 @@ def build_report() -> str:
     total_named = sum(int((frame["Field Type"] != "Placeholder").sum()) for frame in tables.values())
     total_placeholder = sum(int((frame["Field Type"] == "Placeholder").sum()) for frame in tables.values())
 
-    return f"""# OPERA-X v3.6.0 — Engineering Mapping Quality Report
+    return f"""# OPERA-X v3.7.0 — Engineering Mapping Quality Report
 
 ## Scope and method
 
