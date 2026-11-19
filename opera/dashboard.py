@@ -33,6 +33,7 @@ TREND_RULES = {
 }
 MAX_CHART_POINTS_PER_FIELD = 300
 CHART_PANELS_PER_PAGE = 4
+CHART_HEIGHT = 231
 
 EQUIPMENT_FIELD_KEYWORDS = {
     "pump": ["flow", "pressure", "vibration", "bearing", "seal", "current", "power"],
@@ -95,7 +96,7 @@ def default_templates() -> dict[str, list[dict[str, Any]]]:
     process = _twelve("DP1", "DP2", "DP3", "DP4", "DP5", "DP6", "DP7", "DP8", "DP9", "DP10", "DP19", "DP20")
     quality = _twelve("L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L12", "L16", "L17", "L18")
     reliability = _twelve("F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F13", "F14", "DP14", "DP17")
-    calculated = [f"CF{index}" for index in range(1, 13)]
+    operations = _twelve("DP1", "DP2", "DP3", "F1", "F2", "F3", "L1", "L2", "L3", "CF1", "CF2", "CF3")
     return {
         "Plant Overview": [
             {
@@ -114,12 +115,12 @@ def default_templates() -> dict[str, list[dict[str, Any]]]:
             {"id": "reliability", "name": "Reliability", "chart_fields": reliability.copy(), "table_fields": reliability.copy(), "equipment_fields": {}, "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
         "Operations Dashboard": [
-            {"id": "current", "name": "Current", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Line", "period_mode": "Current"},
-            {"id": "period-total", "name": "Period Total", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Bar", "period_mode": "Period Total"},
-            {"id": "month-to-date", "name": "Month-to-Date", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Area", "period_mode": "Month-to-Date"},
-            {"id": "year-to-date", "name": "Year-to-Date", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Line", "period_mode": "Year-to-Date"},
-            {"id": "quality", "name": "Quality", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Box Plot", "period_mode": "Selected Period"},
-            {"id": "reliability", "name": "Reliability", "kpi_fields": calculated[:8], "chart_fields": calculated.copy(), "table_fields": calculated.copy(), "chart_type": "Scatter", "period_mode": "Selected Period"},
+            {"id": "current", "name": "Current", "kpi_fields": operations[:8], "chart_fields": operations.copy(), "table_fields": operations.copy(), "chart_type": "Line", "period_mode": "Current"},
+            {"id": "period-total", "name": "Period Total", "kpi_fields": operations[:8], "chart_fields": operations.copy(), "table_fields": operations.copy(), "chart_type": "Bar", "period_mode": "Period Total"},
+            {"id": "month-to-date", "name": "Month-to-Date", "kpi_fields": operations[:8], "chart_fields": operations.copy(), "table_fields": operations.copy(), "chart_type": "Area", "period_mode": "Month-to-Date"},
+            {"id": "year-to-date", "name": "Year-to-Date", "kpi_fields": operations[:8], "chart_fields": operations.copy(), "table_fields": operations.copy(), "chart_type": "Line", "period_mode": "Year-to-Date"},
+            {"id": "quality", "name": "Quality", "kpi_fields": operations[:8], "chart_fields": operations.copy(), "table_fields": operations.copy(), "chart_type": "Box Plot", "period_mode": "Selected Period"},
+            {"id": "reliability", "name": "Reliability", "kpi_fields": operations[:8], "chart_fields": operations.copy(), "table_fields": operations.copy(), "chart_type": "Scatter", "period_mode": "Selected Period"},
         ],
     }
 
@@ -142,6 +143,17 @@ def load_templates(bu: str) -> dict[str, list[dict[str, Any]]]:
         for template in selected_templates:
             template = dict(template)
             baseline = defaults_by_id.get(template.get("id"), {})
+            # v3.7 shipped Operations templates containing only CF1-CF12.
+            # Replace only that exact legacy default; genuine Admin selections
+            # remain untouched while existing deployments gain input fields.
+            if module == "Operations Dashboard":
+                legacy_fields = [f"CF{index}" for index in range(1, 13)]
+                legacy_kpis = legacy_fields[:8]
+                for key in ("chart_fields", "table_fields"):
+                    if list(template.get(key, [])) == legacy_fields:
+                        template[key] = list(baseline.get(key, []))
+                if list(template.get("kpi_fields", [])) == legacy_kpis:
+                    template["kpi_fields"] = list(baseline.get("kpi_fields", []))
             for key in ("chart_fields", "table_fields"):
                 configured = list(dict.fromkeys(str(item) for item in template.get(key, []) if str(item)))
                 additions = [item for item in baseline.get(key, []) if item not in configured]
@@ -618,6 +630,54 @@ def field_catalog(bu: str) -> pd.DataFrame:
     return pd.concat([input_catalog, calculated_catalog], ignore_index=True)
 
 
+def operations_field_catalog(bu: str) -> pd.DataFrame:
+    """Return one normalized Operations Dashboard catalog for input and calculated fields."""
+    inputs = storage.registry(bu).copy()
+    if not inputs.empty and "active" in inputs:
+        inputs = inputs[inputs["active"].astype(str).str.lower() == "true"].copy()
+    for column in ("field_id", "field_name", "uom", "source", "target", "target_direction"):
+        if column not in inputs:
+            inputs[column] = ""
+    input_catalog = pd.DataFrame(
+        {
+            "field_id": inputs["field_id"].astype(str),
+            "field_name": inputs["field_name"].astype(str),
+            "uom": inputs["uom"].astype(str),
+            "source": inputs["source"].astype(str),
+            "aggregation": "Average",
+            "daily_target": inputs["target"].astype(str),
+            "period_target": inputs["target"].astype(str),
+            "target_direction": inputs["target_direction"].astype(str).replace("", "High"),
+            "status": "active",
+            "evaluation_order": "0",
+            "mtd_aggregation": "Average",
+            "ytd_aggregation": "Average",
+            "dashboard": "true",
+            "dashboard_group": inputs["source"].astype(str).map(lambda value: SOURCE_GROUPS.get(value, "Others")),
+            "chart": "line",
+        }
+    )
+    calculated = storage.read_csv(storage.bu_dir(bu) / "calculated_fields.csv").copy()
+    required = list(input_catalog.columns)
+    for column in required:
+        if column not in calculated:
+            calculated[column] = "Calculated" if column in {"source", "dashboard_group"} else ""
+    calculated["source"] = "Calculated"
+    defaults = {
+        "aggregation": "Average",
+        "target_direction": "High",
+        "status": "active",
+        "mtd_aggregation": "Average",
+        "ytd_aggregation": "Average",
+        "dashboard": "true",
+        "dashboard_group": "Calculated",
+        "chart": "line",
+    }
+    for column, value in defaults.items():
+        calculated[column] = calculated[column].replace("", value)
+    return pd.concat([input_catalog[required], calculated[required]], ignore_index=True).drop_duplicates("field_id", keep="last")
+
+
 def _usable_mapping_equipment(bu: str) -> pd.DataFrame:
     """Return every active named or spare record that can receive a mapping."""
     equipment = storage.equipment(bu).copy()
@@ -838,11 +898,11 @@ def mapping_update_template_bytes(bu: str) -> bytes:
     instructions.append(["Item", "Guidance"])
     instruction_rows = [
         ("Purpose", "Update OPERA-X data-field mappings in bulk. Upload this .xlsx file from Admin / Super Admin > Field Mappings."),
-        ("Editable sheets", "Edit Equipment Mappings, Template Mappings and Field Review. Set Apply Update to Yes in Field Review only for fields you want to change."),
+        ("Editable sheets", "Edit Field Catalogue, Template Mappings and Field Review. Field Catalogue shows one row per field/equipment relationship and provides controlled Equipment ID dropdowns."),
         ("Controlled inputs", "Field IDs, Equipment IDs, Dashboard Template IDs and Include values use Excel dropdown validation lists."),
         ("Include", "Use Yes to include a relationship. Use No or delete the row to exclude it. Duplicate relationships are automatically de-duplicated."),
         ("Partial update", "Only Field IDs marked Apply Update = Yes in Field Review are applied. All other database mappings remain unchanged."),
-        ("Example", "For DP1, use an Equipment Mappings row such as DP1 | EQ-001 | Yes and a Template Mappings row such as DP1 | plant-performance | Yes."),
+        ("Example", "For DP1, use a Field Catalogue row such as DP1 | ... | EQ-001 | equipment name | Yes and a Template Mappings row such as DP1 | plant-performance | Yes."),
         ("Safety", "Validate the business unit before applying. The app rejects unknown IDs, missing required sheets, empty mappings and invalid controlled values."),
     ]
     for row in instruction_rows:
@@ -871,9 +931,29 @@ def mapping_update_template_bytes(bu: str) -> bytes:
         )
 
     catalogue = workbook.create_sheet("Field Catalogue")
-    catalogue.append(["Field ID", "Data Field", "Source", "Status", "Field Type"])
-    for field in catalog.itertuples(index=False):
-        catalogue.append([str(field.field_id), str(field.field_name), str(field.source), str(field.status), str(field.field_type)])
+    catalogue.append(["Field ID", "Data Field", "Source", "Status", "Field Type", "Equipment ID", "Equipment", "Include"])
+    equipment_names = {
+        str(getattr(row, "equipment_id", "")): str(getattr(row, "equipment_name", ""))
+        for row in equipment.itertuples()
+    }
+    catalog_by_id = catalog.assign(field_id=catalog["field_id"].astype(str)).set_index("field_id")
+    for field_id in sorted(effective):
+        if field_id not in catalog_by_id.index:
+            continue
+        field = catalog_by_id.loc[field_id]
+        for equipment_id in effective[field_id]["equipment_ids"]:
+            catalogue.append(
+                [
+                    field_id,
+                    str(field["field_name"]),
+                    str(field["source"]),
+                    str(field["status"]),
+                    str(field["field_type"]),
+                    equipment_id,
+                    equipment_names.get(equipment_id, equipment_id),
+                    "Yes",
+                ]
+            )
 
     equipment_catalogue = workbook.create_sheet("Equipment Catalogue")
     equipment_catalogue.append(["Equipment ID", "Equipment", "Plant", "Unit / Section", "Equipment Type"])
@@ -926,6 +1006,9 @@ def mapping_update_template_bytes(bu: str) -> bytes:
         (review_sheet, "A", "=MappingFieldIDs"),
         (review_sheet, "B", "=MappingIncludeOptions"),
         (review_sheet, "D", "=MappingConfidenceOptions"),
+        (catalogue, "A", "=MappingFieldIDs"),
+        (catalogue, "F", "=MappingEquipmentIDs"),
+        (catalogue, "H", "=MappingIncludeOptions"),
     ]
     validation_last_row = max(50000, equipment_sheet.max_row + 5000, template_sheet.max_row + 5000)
     for sheet, column, formula in validation_specs:
@@ -963,16 +1046,22 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
         missing = ", ".join(sorted(required_sheets - sheet_names))
         raise ValueError(f"The mapping workbook is missing required sheet(s): {missing}.")
     try:
+        requested_sheets = ["Equipment Mappings", "Template Mappings", "Field Review"]
+        if "Field Catalogue" in sheet_names:
+            requested_sheets.append("Field Catalogue")
         sheets = pd.read_excel(
             BytesIO(workbook_bytes),
-            sheet_name=["Equipment Mappings", "Template Mappings", "Field Review"],
+            sheet_name=requested_sheets,
             dtype=str,
             keep_default_na=False,
         )
     except Exception as exc:
         raise ValueError(f"The mapping update sheets could not be read: {exc}") from exc
 
-    equipment_frame = sheets["Equipment Mappings"]
+    catalogue_frame = sheets.get("Field Catalogue", pd.DataFrame())
+    catalogue_columns = {"Field ID", "Equipment ID", "Include"}
+    legacy_equipment_frame = sheets["Equipment Mappings"]
+    equipment_frame = catalogue_frame if catalogue_columns.issubset(catalogue_frame.columns) else legacy_equipment_frame
     template_frame = sheets["Template Mappings"]
     review_frame = sheets["Field Review"]
     if not {"Field ID", "Equipment ID", "Include"}.issubset(equipment_frame.columns):
@@ -1009,9 +1098,11 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
                 values.setdefault(field_id, []).append(value)
         return {field_id: list(dict.fromkeys(items)) for field_id, items in values.items()}, touched
 
-    equipment_frame.attrs["sheet_name"] = "Equipment Mappings"
+    equipment_frame.attrs["sheet_name"] = "Field Catalogue" if equipment_frame is catalogue_frame else "Equipment Mappings"
+    legacy_equipment_frame.attrs["sheet_name"] = "Equipment Mappings"
     template_frame.attrs["sheet_name"] = "Template Mappings"
     equipment_values, _ = clean(equipment_frame, "Equipment ID", valid_equipment)
+    legacy_equipment_values, _ = clean(legacy_equipment_frame, "Equipment ID", valid_equipment)
     template_values, _ = clean(template_frame, "Dashboard Template ID", valid_templates)
 
     review_values: dict[str, dict[str, Any]] = {}
@@ -1043,6 +1134,18 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
             touched.add(field_id)
     if not touched:
         raise ValueError("No fields are marked Apply Update = Yes in Field Review.")
+    if catalogue_columns.issubset(catalogue_frame.columns):
+        current_equipment = load_effective_field_mappings(bu)
+        for field_id in touched:
+            baseline = list(current_equipment.get(field_id, {}).get("equipment_ids", []))
+            catalogue_choice = equipment_values.get(field_id, [])
+            legacy_choice = legacy_equipment_values.get(field_id, [])
+            catalogue_changed = catalogue_choice != baseline
+            legacy_changed = legacy_choice != baseline
+            if catalogue_changed and legacy_changed and catalogue_choice != legacy_choice:
+                raise ValueError(f"Field {field_id} has conflicting equipment edits in Field Catalogue and Equipment Mappings.")
+            if legacy_changed and not catalogue_changed:
+                equipment_values[field_id] = legacy_choice
     for field_id in sorted(touched):
         if not equipment_values.get(field_id):
             raise ValueError(f"Field {field_id} must include at least one Equipment ID.")
@@ -1203,7 +1306,7 @@ def _figure(view: pd.DataFrame, chart_type: str, combined: bool, title: str):
     y_title = units[0] if len(units) == 1 else "Value (mixed units)"
     fig.update_layout(
         template="plotly_white",
-        height=330,
+        height=CHART_HEIGHT,
         hovermode="x unified" if chart_type in {"Line", "Area"} else "closest",
         legend_title_text="",
         margin=dict(l=48, r=20, t=58, b=42),
