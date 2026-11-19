@@ -14,4 +14,5 @@ def test_login_bu_selection_and_home_start_without_exception():
     at.selectbox[0].set_value("Cement")
     at.button[0].click().run()
     assert not at.exception
-    assert len(at.metric) == 5
+    labels = [button.label.split("\n", 1)[0] for button in at.button]
+    assert {"Readings", "Open Flags", "Events", "Lessons", "Notifications"}.issubset(labels)
