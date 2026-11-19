@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from opera import __version__ as APP_VERSION
 from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, risk_store, storage
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
@@ -36,8 +37,8 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 [data-testid="stHeader"]{background:rgba(238,243,250,.90);backdrop-filter:blur(8px)}
 [data-testid="stSidebar"]{display:none}
 .st-key-brand_ribbon{position:sticky;top:2.8rem;z-index:1001;background:var(--bg);padding-top:.15rem}
-.app-ribbon{background:linear-gradient(120deg,var(--blue-dark),var(--blue));color:#fff;border-radius:12px 12px 0 0;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(15,63,156,.14)}
-.app-ribbon .name{font-size:1.45rem;font-weight:850;letter-spacing:.02em}.app-ribbon .tagline{font-size:.9rem;color:#E7F0FF;font-weight:600}
+.app-ribbon{background:linear-gradient(120deg,var(--blue-dark),var(--blue));color:#fff;border-radius:12px 12px 0 0;padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(15,63,156,.14)}
+.app-ribbon .name{font-size:1.45rem;font-weight:850;letter-spacing:.02em}.app-ribbon .ribbon-meta{display:flex;flex-direction:column;align-items:flex-end;gap:.15rem}.app-ribbon .tagline{font-size:.9rem;color:#E7F0FF;font-weight:600}.app-ribbon .version{font-size:.72rem;color:#fff;font-weight:750;letter-spacing:.05em;background:rgba(255,255,255,.14);padding:.08rem .42rem;border-radius:999px}
 .st-key-primary_navigation{position:sticky;top:6.45rem;z-index:1000;background:#fff;border:1px solid var(--border);border-radius:0 0 10px 10px;padding:.42rem .5rem .5rem;margin-bottom:.65rem;box-shadow:0 8px 18px rgba(21,34,56,.08)}
 .st-key-primary_navigation div[role="radiogroup"]{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.28rem;background:#fff;padding:.1rem}
 .st-key-primary_navigation div[role="radiogroup"] label{border:1px solid transparent;border-radius:7px;padding:.34rem .45rem;margin:0;color:var(--blue-dark);font-weight:700;justify-content:center;text-align:center;min-height:2.35rem}
@@ -52,6 +53,7 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .badge-good,.badge-bad,.badge-neutral{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-weight:700;font-size:.75rem;margin-top:.35rem}.badge-good{background:#E4ECF9;color:var(--blue-dark)}.badge-bad{background:#FBE5E5;color:#9F1F2A}.badge-neutral{background:#EDF1F5;color:#44576B}
 .small-note{color:#60758A;font-size:.82rem;margin-top:.2rem}
 .stButton>button,.stDownloadButton>button{border-radius:8px;border:1px solid var(--blue);font-weight:650;min-height:2.45rem}
+.st-key-top_sign_out button{white-space:nowrap;min-width:7rem;font-size:.86rem;padding-left:.65rem;padding-right:.65rem}
 .stButton>button[kind="primary"]{background:var(--blue);color:#fff}.stButton>button[kind="primary"]:hover{background:var(--blue-dark);color:#fff}
 div[data-testid="stForm"],div[data-testid="stVerticalBlockBorderWrapper"]{background:#fff;border-color:var(--border)!important;border-radius:12px}
 div[data-testid="stMetric"]{background:#fff;border:1px solid var(--border);padding:1rem 1.1rem;border-radius:10px;min-height:110px;display:flex;justify-content:center}
@@ -60,10 +62,11 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 .metric-card{border:1px solid var(--border);border-top:4px solid var(--blue);background:#fff;border-radius:10px;padding:1.2rem 1.15rem;min-height:180px;height:180px;box-sizing:border-box;box-shadow:0 2px 8px rgba(21,34,56,.04);display:flex;flex-direction:column;justify-content:flex-start}
 .metric-card.bad{border-top-color:var(--red)}.metric-value{font-size:1.65rem;font-weight:750;color:var(--blue-dark);line-height:1.15;margin:.55rem 0 .35rem}.metric-title{font-size:.84rem;color:var(--muted);font-weight:700;min-height:2.35rem;line-height:1.35}.metric-meta{font-size:.8rem;color:var(--muted);line-height:1.35}
 .kpi-field-selector{margin-bottom:.3rem}.home-card{height:124px;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:10px;padding:1rem 1.05rem .85rem;box-shadow:0 2px 8px rgba(21,34,56,.04)}.home-card h4{margin:0 0 .45rem;color:var(--blue-dark);font-size:1rem}.home-card p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.35}
+.st-key-home_metric_cards .stButton>button{min-height:86px;width:100%;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);color:var(--blue-dark);font-size:1rem;font-weight:800;white-space:pre-line;line-height:1.5;box-shadow:0 2px 8px rgba(21,34,56,.04)}
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.home-card{height:auto;min-height:112px}}
+@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.app-ribbon .ribbon-meta{align-items:flex-start}.home-card{height:auto;min-height:112px}}
 </style>
 """,
         unsafe_allow_html=True,
@@ -155,7 +158,8 @@ def top_navigation(user: auth.User, bu: str) -> str:
     with st.container(key="brand_ribbon"):
         st.markdown(
             '<div class="app-ribbon"><div class="name">OPERA-X</div>'
-            '<div class="tagline">Operational Excellence and Reliability Assistant · One Platform for All Plant Operational Data</div></div>',
+            f'<div class="ribbon-meta"><div class="tagline">Operational Excellence and Reliability Assistant · One Platform for All Plant Operational Data</div>'
+            f'<div class="version">v{APP_VERSION}</div></div></div>',
             unsafe_allow_html=True,
         )
     available = [page for page in PAGES if page != "Admin / Super Admin" or auth.allowed(user, "configure")]
@@ -166,7 +170,7 @@ def top_navigation(user: auth.User, bu: str) -> str:
     if current not in available:
         st.session_state.top_navigation = available[0]
     with st.container(key="primary_navigation"):
-        nav, notice, change, signout = st.columns([7.2, .65, 1.1, .85], vertical_alignment="center")
+        nav, notice, change, signout = st.columns([6.9, .65, 1.15, 1.3], vertical_alignment="center")
         with nav:
             st.markdown(
                 f'<div class="nav-context"><strong>{name}</strong> · {user.display_name} · {user.role}</div>',
@@ -434,17 +438,88 @@ def kpi_cards(
     return selected_ids
 
 
+def home_detail_sheets(bu: str, username: str, detail: str) -> dict[str, pd.DataFrame]:
+    """Return complete Super Admin home-card drill-down tables."""
+    if detail == "Readings":
+        groups = {
+            "DCS": ("DCS",),
+            "Field": ("Field",),
+            "QAQC": ("Lab",),
+            "Other TA": ("TA",),
+            "Other TB": ("TB",),
+            "Other TC": ("TC",),
+            "Other TD": ("TD",),
+            "Other TE": ("TE",),
+            "Other TF": ("TF",),
+            "Other TG": ("TG",),
+        }
+        sheets: dict[str, pd.DataFrame] = {}
+        for sheet_name, sources in groups.items():
+            frames: list[pd.DataFrame] = []
+            for source in sources:
+                frame = storage.read_csv(storage.source_path(bu, source))
+                if frame.empty:
+                    continue
+                frame.insert(0, "Source", source)
+                frames.append(frame)
+            sheets[sheet_name] = pd.concat(frames, ignore_index=True, sort=False) if frames else pd.DataFrame()
+        return sheets
+    if detail == "Open Flags":
+        frame = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
+        if not frame.empty and "status" in frame:
+            frame = frame[frame["status"].astype(str).str.lower() == "open"]
+        return {"Open Flags": frame}
+    if detail == "Events":
+        return {"Events": storage.read_csv(storage.bu_dir(bu) / "events.csv")}
+    if detail == "Lessons":
+        return {"Lessons": storage.read_csv(storage.bu_dir(bu) / "lessons.csv")}
+    if detail == "Notifications":
+        return {"Notifications": storage.unread_notifications(bu, username)}
+    raise ValueError(f"Unknown home detail: {detail}")
+
+
 def page_home(bu: str, user: auth.User) -> None:
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
     lessons = storage.read_csv(storage.bu_dir(bu) / "lessons.csv")
-    columns = st.columns(5)
     values = [
-        storage.reading_count(bu), len(flags[flags.get("status", "") == "Open"]) if not flags.empty else 0,
+        storage.reading_count(bu), len(flags[flags.get("status", "").astype(str).str.lower() == "open"]) if not flags.empty and "status" in flags else 0,
         len(events), len(lessons), len(storage.unread_notifications(bu, user.username)),
     ]
-    for column, label, value in zip(columns, ["Readings", "Open Flags", "Events", "Lessons", "Unread Notifications"], values):
-        column.metric(label, f"{value:,}")
+    with st.container(key="home_metric_cards"):
+        columns = st.columns(5)
+        for column, label, value in zip(columns, ["Readings", "Open Flags", "Events", "Lessons", "Notifications"], values):
+            if column.button(f"{label}\n{value:,}", key=f"home_detail_{label}", width="stretch", help=f"Open the {label.lower()} table"):
+                if user.role != "Super Admin":
+                    st.warning("Super Admin access is required to open and export this operational register. Contact your OPERA-X Super Admin if you need a copy.")
+                else:
+                    st.session_state.home_detail = label
+                    storage.audit(bu, user.username, "home_detail_opened", {"detail": label})
+    detail = st.session_state.get("home_detail")
+    if detail and user.role == "Super Admin":
+        st.markdown(f"### {detail} — Super Admin Data")
+        sheets = home_detail_sheets(bu, user.username, detail)
+        if detail == "Readings":
+            tabs = st.tabs(list(sheets))
+            for tab, (sheet_name, frame) in zip(tabs, sheets.items()):
+                with tab:
+                    st.caption(f"{len(frame):,} source row(s)")
+                    safe_dataframe(frame, width="stretch", hide_index=True)
+        else:
+            frame = next(iter(sheets.values()))
+            st.caption(f"{len(frame):,} row(s)")
+            safe_dataframe(frame, width="stretch", hide_index=True)
+        export_name = detail.lower().replace(" ", "_")
+        st.download_button(
+            f"Download {detail} Excel",
+            exports.excel_bytes(sheets),
+            f"{bu}_{export_name}.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"home_download_{export_name}",
+        )
+        if st.button("Close Data Table", key="home_close_detail"):
+            st.session_state.pop("home_detail", None)
+            st.rerun()
     st.markdown("### Modules")
     cards = [
         ("Plant Overview", "Plant-level trends, conditions and period reports"),
@@ -572,12 +647,39 @@ def operations_long(view: pd.DataFrame, definitions: pd.DataFrame, field_ids: li
     return trend.dropna(subset=["value"])
 
 
+def operations_dashboard_data(bu: str) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """Align DCS, Field, QAQC and calculated values for the Operations Dashboard."""
+    inputs = long_data(bu)
+    if inputs.empty:
+        input_wide = pd.DataFrame(columns=["Timestamp"])
+    else:
+        input_wide = (
+            inputs.pivot_table(index="Timestamp", columns="field_id", values="value", aggfunc="mean")
+            .reset_index()
+            .rename_axis(None, axis=1)
+        )
+    calculated, _, errors = calculated_data(bu)
+    definitions = dashboard.operations_field_catalog(bu)
+    calculated_ids = [field for field in definitions.loc[definitions["source"] == "Calculated", "field_id"] if field in calculated]
+    if not calculated.empty and "Timestamp" in calculated and calculated_ids:
+        calculated_wide = calculated[["Timestamp"] + calculated_ids].copy()
+        calculated_wide[calculated_ids] = calculated_wide[calculated_ids].apply(pd.to_numeric, errors="coerce")
+        calculated_wide = calculated_wide.groupby("Timestamp", as_index=False)[calculated_ids].mean()
+        view = input_wide.merge(calculated_wide, on="Timestamp", how="outer")
+    else:
+        view = input_wide
+    if "Timestamp" in view:
+        view["Timestamp"] = pd.to_datetime(view["Timestamp"], errors="coerce")
+        view = view.sort_values("Timestamp")
+    return view, definitions, errors
+
+
 def page_operations(bu: str, user: auth.User) -> None:
-    frame, definitions, errors = calculated_data(bu)
+    frame, definitions, errors = operations_dashboard_data(bu)
     if errors:
         st.warning("Formula warnings: " + " | ".join(errors))
     if frame.empty:
-        st.info("No DCS data is available.")
+        st.info("No DCS, Field, QAQC or calculated data is available.")
         return
     template = template_selector(bu, "Operations Dashboard", "operations")
     view = period_filter(frame, "operations")
@@ -1205,7 +1307,7 @@ def template_admin(bu: str, user: auth.User) -> None:
     index = labels.index(selected_name)
     selected = module_templates[index]
     if module == "Operations Dashboard":
-        registry = storage.read_csv(storage.bu_dir(bu) / "calculated_fields.csv")[["field_id", "field_name", "uom"]]
+        registry = dashboard.operations_field_catalog(bu)[["field_id", "field_name", "uom"]]
     else:
         registry = active_registry(bu)[["field_id", "field_name", "uom"]]
     label_map = dashboard.field_label_map(registry)

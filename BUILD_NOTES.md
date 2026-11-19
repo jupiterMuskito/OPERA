@@ -1,40 +1,27 @@
-# OPERA-X v3.7.0 — Build Notes
+# OPERA-X v3.8.0 — Build Notes
 
-## Correctness
+## Requested changes
 
-- Fixed the Admin field → mapping → template → chart propagation gap described in `ROOT_CAUSE_AND_FIX_v3.7.0.md`.
-- Mapped fields remain available to chart panel selectors even before readings exist; a no-readings panel explains the state.
-- Existing mapping workbooks automatically reconcile newly added/activated field records while preserving overrides.
-- User-role changes refresh on the next interaction; Super Admin can now edit existing role, BU access and active state.
-- DCS settings, templates, fields, constants, presets, equipment and lists are signature-reloaded after atomic writes.
+- The top brand ribbon now carries a compact `v3.8.0` badge at its lower-right edge; the mobile layout moves it left with the tagline.
+- Readings, Open Flags, Events, Lessons and Notifications are now Home buttons. Super Admins can open the complete underlying tables and download Excel; other roles receive a clear least-privilege message.
+- Readings Excel exports use separate DCS, Field, QAQC and TA–TG worksheets instead of flattening unlike sources together.
+- The Sign Out column and button now preserve the complete `Sign Out` label without shrinking or wrapping.
+- Plotly chart height changed from 330 px to 231 px, an exact 30% reduction.
+- Operations Dashboard data and Admin field setup now accept active DCS, Field and Lab/QAQC fields together with Calculated fields.
+- Exact untouched v3.7 calculated-only Operations defaults are upgraded in memory; genuine Admin customizations are retained.
+- The Excel Mapping Update Template's Field Catalogue now shows one row per field/equipment relationship, includes equipment names and supplies controlled Field ID, Equipment ID and Include dropdowns. Bulk upload accepts edits made there while retaining v3.7 Equipment Mappings compatibility.
 
-## Dashboard defaults and data
+## Performance and deployment compatibility
 
-- Every Plant, Equipment and Operations template has 12 default chart fields and 12 default table fields.
-- Operations Dashboard now has 12 realistic calculated fields (`CF1`–`CF12`) for Cement, Refinery, Fertilizer and NASCON.
-- Okpella, Obajana and Ibese each have sample values for all 67 named equipment records and all 60 active DCS/Lab/Field fields.
-- Placeholder fields remain without values until named/activated.
-
-## Performance
-
-- Selective-column CSV reads, modification-signature caching, early plant/equipment filtering and direct Home counts.
-- Signature-checked compressed mapping runtime cache; Excel remains authoritative and Admin-viewable.
-- Lazy Operational Data/Admin section execution.
-- Latest-30-day default window, 300-point trace cap and four-at-a-time chart panel sets while retaining all 12 configured fields.
-- See `PERFORMANCE_REPORT_v3.7.0.md` for before/after figures.
-
-## Deployment compatibility
-
+- v3.7 selective reads, caches, 300-point trace cap, four-panel pagination, atomic writes and external data-root support are retained.
 - `OPERAX_DATA_DIR` and legacy `OPERA_DATA_DIR` remain supported.
-- Internal server command/port and nginx subpath deployment remain unchanged.
-- Streamlit Community Cloud remains supported without secrets.
-- Use the code-only ZIP on the live GitHub/server deployment.
-- Run `scripts/upgrade_v370_live_data.py` against `~/opera_data` first as a dry run, then with `--apply` if additions are listed.
-- Never overlay the full build's `data/` folder on `~/opera_data`.
+- Internal server port/address and nginx subpath are unchanged.
+- Streamlit Community Cloud remains supported.
+- Use the code-only ZIP for the live server. No `~/opera_data` migration is required.
 
 ## Verification
 
-- 45 automated tests passed.
-- All configured Admin categories have direct E2E or retained regression coverage.
-- The migration passed dry-run, apply and idempotence checks.
-- Full and code-only package hashes are listed in `DELIVERABLE_SHA256SUMS_v3.7.0.txt`.
+- 45 retained tests passed.
+- 5 new v3.8 tests passed.
+- Python compilation passed for `app.py`, `opera/`, `scripts/` and `tests/`.
+- The production Cement mapping template was generated and opened successfully with its equipment-aware Field Catalogue.

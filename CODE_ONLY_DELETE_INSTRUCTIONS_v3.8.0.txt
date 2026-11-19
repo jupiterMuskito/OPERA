@@ -1,0 +1,2 @@
+No application file is deleted in v3.8.0.
+Overlay the code-only package at the repository root, keep OPERA_DATA_DIR=~/opera_data, and restart the app.

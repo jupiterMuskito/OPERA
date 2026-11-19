@@ -38,8 +38,8 @@ The fixed first ribbon carries OPERA-X branding. The fixed navigation bar direct
 
 Modules:
 
-- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, KPI fields, chart fields, table fields, and chart type.
-- CPP-style charts: 12 configurable template fields, rendered four panels at a time in a two-column grid for responsive loading, or in one combined same-axis chart.
+- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, KPI fields, chart fields, table fields, and chart type. Operations setup accepts DCS, Field, QAQC and Calculated fields in one catalog.
+- CPP-style charts: 12 configurable template fields, rendered four panels at a time in a two-column grid for responsive loading, or in one combined same-axis chart. v3.8 uses a compact 231 px chart height.
 - Operational Data uses one lazy-loaded ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes.
 - DCS endpoint setup and manual pipeline execution are under **Admin / Super Admin → DCS Connector**.
 - Event Log supports report, table, or picture events; notifications; and optional mapped Field Data updates.
@@ -64,7 +64,7 @@ When equipment or a dashboard template is selected, related data-field dropdowns
 
 The page provides three Excel workflows. The Excel workbook remains authoritative; a derived compressed runtime cache is rebuilt automatically when the workbook changes, cutting repeated page reads without hiding Admin edits:
 
-- **Excel Mapping Update Template** — editable equipment/template relationships plus Field Review metadata; controlled dropdown validation for Field ID, Equipment ID, Dashboard Template ID, Apply Update, Include and Confidence.
+- **Excel Mapping Update Template** — an equipment-aware Field Catalogue, editable equipment/template relationships and Field Review metadata; controlled dropdown validation for Field ID, Equipment ID, Dashboard Template ID, Apply Update, Include and Confidence.
 - **Bulk upload** — validates IDs, required sheets, non-empty relationships, confidence values and DCS/Field pair integrity before atomically updating the mapping database and audit log.
 - **Excel Mapping Database / Complete Mapping Workbook** — backend database review plus human-readable field, equipment and template views.
 
@@ -76,7 +76,7 @@ Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field 
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.7.0.zip`. It excludes the complete `data/` tree. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seed/runtime files that can replace readings and configuration entered through the app. After `git pull`, run `python scripts/upgrade_v370_live_data.py --data-dir ~/opera_data --package-data ./data` for a dry run, then repeat with `--apply` only after reviewing the additions. The migration backs up every file it changes, never replaces an existing reading, adds missing CF9–CF12/template defaults, and appends Obajana/Ibese sample rows only when their `(Date, Time, Equipment)` keys are absent. See `LIVE_DATA_UPDATE_v3.7.0.md`.
+For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.8.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.8 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.8.0.md`.
 
 ## Risk registers
 
@@ -95,6 +95,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The 45-test suite adds end-to-end Admin change tests for business units, users/roles, fields, UOM/ranges/targets, formulas/constants, equipment/validation lists, mappings and Excel bulk upload, dashboard templates, DCS ingest, presets, events and lessons. It also retains formula, role, storage, mapping, register, export, dashboard and Streamlit smoke coverage.
+The 50-test suite includes end-to-end Admin change tests plus v3.8 coverage for Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, version/sign-out UI and equipment-aware Field Catalogue updates.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `ROOT_CAUSE_AND_FIX_v3.7.0.md`, `PERFORMANCE_REPORT_v3.7.0.md`, `LIVE_DATA_UPDATE_v3.7.0.md`, and `CHANGE_MANIFEST_v3.7.0_vs_v3.6.0.md`.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.8.0.md`, `CHANGE_MANIFEST_v3.8.0_vs_v3.7.0.md`, and the retained v3.7 root-cause/performance reports.
