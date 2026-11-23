@@ -20,7 +20,7 @@ Additional v3.7.0 measurements:
 | Page | v3.7.0 (s) |
 |---|---:|
 | Event Log | 1.523 |
-| Risk Assessment | 1.042 |
+| Job Risk Assessment | 1.042 |
 | Lesson Bank | 0.403 |
 | Admin / Super Admin default area | 0.402 |
 | Admin / Field Mappings (10,012 fields) | 5.063 |

@@ -1,4 +1,4 @@
-# OPERA-X v3.7.0 — Engineering Mapping Quality Report
+# OPERA-X v3.9.0 — Engineering Mapping Quality Report
 
 ## Scope and method
 
@@ -104,7 +104,7 @@ These are not silent guesses. Most indicate that the physically correct equipmen
 | nascon | F4 | Salt Conveyor Belt Drift | NAS-SPARE-009 | Salt conveyor is not registered; spare mapping requires registration. |
 | nascon | F8 | Juice Pump Vibration | NAS-SPARE-010 | Juice pump is not registered; spare mapping requires identification. |
 | nascon | F9 | Clarifier Mud Level | NAS-SPARE-001 | Clarifier is not registered; spare mapping requires registration. |
-| nascon | F11 | Vacuum Pan Local Pressure | NAS-SPARE-002 | Local vacuum-pan pressure checks the DCS pan pressure; pan is not registered. |
+| nascon | F11 | Vacuum Pan Local Pressure | NAS-SPARE-002 | Local vacuum-pan pressure checks the Digital Data pan pressure; pan is not registered. |
 | nascon | F14 | Sugar Dryer Bearing Temperature | NAS-SPARE-003 | Sugar dryer is not registered; spare mapping requires registration. |
 | nascon | F15 | Sugar Conveyor Belt Drift | NAS-SPARE-011 | Sugar conveyor is not registered; spare mapping requires registration. |
 | nascon | F17 | Boiler Feed Pump Vibration | NAS-SPARE-004 | Boiler feed pump is not registered; spare mapping requires identification. |
@@ -117,46 +117,46 @@ These are not silent guesses. Most indicate that the physically correct equipmen
 
 | Business unit | Source group | Review placeholders | Basis |
 |---|---|---|---|
-| cement | DCS | 980 | Default placeholder mapping – review when field is named. |
+| cement | Digital Data | 980 | Default placeholder mapping – review when field is named. |
 | cement | QAQC | 980 | Default placeholder mapping – review when field is named. |
-| cement | Field | 980 | Default placeholder mapping – review when field is named. |
+| cement | Raw Field Data | 980 | Default placeholder mapping – review when field is named. |
 | cement | Others | 7000 | Default placeholder mapping – review when field is named. |
-| refinery | DCS | 980 | Default placeholder mapping – review when field is named. |
+| refinery | Digital Data | 980 | Default placeholder mapping – review when field is named. |
 | refinery | QAQC | 980 | Default placeholder mapping – review when field is named. |
-| refinery | Field | 980 | Default placeholder mapping – review when field is named. |
+| refinery | Raw Field Data | 980 | Default placeholder mapping – review when field is named. |
 | refinery | Others | 7000 | Default placeholder mapping – review when field is named. |
-| fertilizer | DCS | 980 | Default placeholder mapping – review when field is named. |
+| fertilizer | Digital Data | 980 | Default placeholder mapping – review when field is named. |
 | fertilizer | QAQC | 980 | Default placeholder mapping – review when field is named. |
-| fertilizer | Field | 980 | Default placeholder mapping – review when field is named. |
+| fertilizer | Raw Field Data | 980 | Default placeholder mapping – review when field is named. |
 | fertilizer | Others | 7000 | Default placeholder mapping – review when field is named. |
-| nascon | DCS | 980 | Default placeholder mapping – review when field is named. |
+| nascon | Digital Data | 980 | Default placeholder mapping – review when field is named. |
 | nascon | QAQC | 980 | Default placeholder mapping – review when field is named. |
-| nascon | Field | 980 | Default placeholder mapping – review when field is named. |
+| nascon | Raw Field Data | 980 | Default placeholder mapping – review when field is named. |
 | nascon | Others | 7000 | Default placeholder mapping – review when field is named. |
-| bu5 | DCS | 1000 | Default placeholder mapping – review when field is named. |
+| bu5 | Digital Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu5 | QAQC | 1000 | Default placeholder mapping – review when field is named. |
-| bu5 | Field | 1000 | Default placeholder mapping – review when field is named. |
+| bu5 | Raw Field Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu5 | Others | 7000 | Default placeholder mapping – review when field is named. |
-| bu6 | DCS | 1000 | Default placeholder mapping – review when field is named. |
+| bu6 | Digital Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu6 | QAQC | 1000 | Default placeholder mapping – review when field is named. |
-| bu6 | Field | 1000 | Default placeholder mapping – review when field is named. |
+| bu6 | Raw Field Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu6 | Others | 7000 | Default placeholder mapping – review when field is named. |
-| bu7 | DCS | 1000 | Default placeholder mapping – review when field is named. |
+| bu7 | Digital Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu7 | QAQC | 1000 | Default placeholder mapping – review when field is named. |
-| bu7 | Field | 1000 | Default placeholder mapping – review when field is named. |
+| bu7 | Raw Field Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu7 | Others | 7000 | Default placeholder mapping – review when field is named. |
-| bu8 | DCS | 1000 | Default placeholder mapping – review when field is named. |
+| bu8 | Digital Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu8 | QAQC | 1000 | Default placeholder mapping – review when field is named. |
-| bu8 | Field | 1000 | Default placeholder mapping – review when field is named. |
+| bu8 | Raw Field Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu8 | Others | 7000 | Default placeholder mapping – review when field is named. |
-| bu9 | DCS | 1000 | Default placeholder mapping – review when field is named. |
+| bu9 | Digital Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu9 | QAQC | 1000 | Default placeholder mapping – review when field is named. |
-| bu9 | Field | 1000 | Default placeholder mapping – review when field is named. |
+| bu9 | Raw Field Data | 1000 | Default placeholder mapping – review when field is named. |
 | bu9 | Others | 7000 | Default placeholder mapping – review when field is named. |
 
 ## Twenty named mappings for spot-checking
 
-| BU | Field | Equipment | Templates | Reason | Confidence |
+| BU | Raw Field Data | Equipment | Templates | Reason | Confidence |
 |---|---|---|---|---|---|
 | cement | DP1 — Kiln Feed Rate | Rotary Kiln; Rotary Kiln; Rotary Kiln | Plant Performance; Process Performance | Kiln feed is the solids throughput entering each rotary kiln. | High |
 | cement | DP8 — Clinker Cooler Outlet Temperature | Clinker Cooler; Clinker Cooler; Clinker Cooler | Process Performance; Quality and Compliance | Clinker outlet temperature is produced at the clinker cooler discharge. | High |
@@ -166,17 +166,17 @@ These are not silent guesses. Most indicate that the physically correct equipmen
 | refinery | DP2 — Butamer Reactor Inlet Temperature | Butamer Reactor 1; Butamer Reactor 2 | Process Performance | Reactor inlet temperature applies to the two-reactor Butamer train. | High |
 | refinery | DP11 — Feed Dryer Differential Pressure | Butamer Feed Dryer | Process Performance; Condition Monitoring | Differential pressure measures restriction across the Butamer feed dryer bed. | High |
 | refinery | L20 — Product Yield | Butamer Reactor 1; Butamer Reactor 2; Butamer Stabiliser | Plant Performance; Quality and Compliance | Product yield covers conversion through the reactor train and product recovery at the stabiliser. | High |
-| refinery | F17 — Local Flow Indicator | Butamer Feed Dryer; Butamer Charge Heater | Plant Performance; Process Performance | Local feed-flow indication checks the DCS Butamer feed flow through the front end. | High |
+| refinery | F17 — Local Flow Indicator | Butamer Feed Dryer; Butamer Charge Heater | Plant Performance; Process Performance | Local feed-flow indication checks the Digital Data Butamer feed flow through the front end. | High |
 | refinery | CF6 — Reactor Temperature Rise | Butamer Reactor 1; Butamer Reactor 2 | Process Performance | Calculated field inherits equipment from formula input(s): DP3, DP2. Formula: ABS([DP3]-[DP2]). | High |
 | fertilizer | DP9 — Urea Reactor Pressure | Urea Reactor | Process Performance | Urea synthesis pressure is measured on the urea reactor. | High |
 | fertilizer | DP14 — Granulator Feed Rate | Urea Granulator | Plant Performance; Process Performance | Granulator feed rate is the throughput entering the urea granulator. | High |
 | fertilizer | L7 — Granule Size 2–4 mm | Urea Granulator | Quality and Compliance; Process Performance | Two-to-four-millimetre granule fraction is a granulator product-size result. | High |
-| fertilizer | F7 — Urea Reactor Local Pressure | Urea Reactor | Process Performance | Local reactor pressure checks the DCS urea-reactor pressure. | High |
+| fertilizer | F7 — Urea Reactor Local Pressure | Urea Reactor | Process Performance | Local reactor pressure checks the Digital Data urea-reactor pressure. | High |
 | fertilizer | CF5 — Field-DCS Urea Pressure Deviation | Urea Reactor | Process Performance | Calculated field inherits equipment from formula input(s): F7, DP9. Formula: ABS([F7]-[DP9]). | High |
 | nascon | DP8 — Mill Extraction | Sugar Mill 1 | Plant Performance; Process Performance | Mill extraction is a sugar-mill performance KPI. | High |
 | nascon | DP14 — Centrifuge Speed | Sugar Centrifuge 1 | Process Performance; Condition Monitoring | Centrifuge speed is measured on the sugar centrifuge. | High |
 | nascon | L4 — Salt Iodine | Salt Packing Line 1 | Quality and Compliance | Iodine content is a finished iodised-salt compliance result. | High |
-| nascon | F1 — Salt Evaporator Body Temperature | Salt Evaporator 1 | Process Performance; Condition Monitoring | Local evaporator-body temperature checks the DCS salt-evaporator temperature. | High |
+| nascon | F1 — Salt Evaporator Body Temperature | Salt Evaporator 1 | Process Performance; Condition Monitoring | Local evaporator-body temperature checks the Digital Data salt-evaporator temperature. | High |
 | nascon | CF8 — Average Packing Rate | Salt Packing Line 1; Sugar Packing Line 1 | Plant Performance | Calculated field inherits equipment from formula input(s): DP6, DP16. Formula: ([DP6]+[DP16])/2. | High |
 
 ## Calculated-field check
@@ -185,4 +185,4 @@ The 32 packaged calculated fields were checked against their formulas. Misnamed 
 
 ## Instrument Check pairs recorded
 
-The Excel databases record the physically comparable local/DCS pairs for Refinery (Butamer feed flow, reactor temperatures and pressures), Fertilizer (urea-reactor pressure) and NASCON (salt-evaporator temperature and vacuum-pan pressure). Cement has no defensible same-point F/DP pair in the current 60-field sample, so none was fabricated.
+The Excel databases record the physically comparable Raw Field Data/Digital Data pairs for Refinery (Butamer feed flow, reactor temperatures and pressures), Fertilizer (urea-reactor pressure) and NASCON (salt-evaporator temperature and vacuum-pan pressure). Cement has no defensible same-point F/DP pair in the current 60-field sample, so none was fabricated.

@@ -34,7 +34,7 @@ The automated test performs the reported sequence in one process:
 1. Rename and activate placeholder `DP2` with UOM, range and target.
 2. Map `DP2` to equipment `EQ1` and Plant/Process Performance.
 3. Put `DP2` into the Plant Performance chart-panel defaults.
-4. Save a validated DCS value.
+4. Save a validated Digital Data value.
 5. Verify the registry metadata, mapping, template, source value and 12-panel defaults immediately, without restarting Streamlit.
 
 Result: PASS.

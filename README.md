@@ -1,6 +1,6 @@
 # OPERA-X — Operational Excellence and Reliability Assistant
 
-OPERA-X is a role-based Streamlit application for operational dashboards, validated plant data, event and lesson management, calculated KPIs, operating parameters, and register-backed risk assessments.
+OPERA-X is a role-based Streamlit application for operational dashboards, validated plant data, event and lesson management, calculated KPIs, operating parameters, process optimization, and register-backed Job Risk Assessments.
 
 ## Deployment
 
@@ -15,7 +15,7 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-For persistent server storage, set `OPERAX_DATA_DIR`. Existing deployments that still define `OPERA_DATA_DIR` remain compatible, but should migrate to the new variable name.
+For persistent server storage, set `OPERAX_DATA_DIR`. Existing deployments that define `OPERA_DATA_DIR=~/opera_data` remain fully compatible. The application also remains compatible with Streamlit Community Cloud and with the DDF nginx reverse-proxy deployment at `/operationaldashboard/` because the packaged brand images are local and are rendered without root-relative URLs.
 
 ## Seeded test logins
 
@@ -34,17 +34,19 @@ Change or disable every seeded account before production. Passwords are PBKDF2-S
 
 `Login → Business Unit → fixed OPERA-X brand ribbon → fixed merged navigation → module content`
 
-The fixed first ribbon carries OPERA-X branding. The fixed navigation bar directly contains navigation, business-unit/user context, notifications, **Change BU**, and **Sign Out**. The rounded blue page-title/subtitle hero has been removed from every authenticated module and was not replaced by another coloured banner.
+The fixed first ribbon carries OPERA-X branding. The fixed navigation bar directly contains navigation, business-unit/user context, notifications, **Change BU**, **Sign Out**, and a compact Vision 2030 mark. Navigation labels and the Home screen use four colour-coded categories: **Operational Data**, **Operational Knowledge**, **Process Optimization**, and **Job Risk Assessment**. The rounded blue page-title/subtitle hero has been removed from every authenticated module and was not replaced by another coloured banner.
 
 Modules:
 
-- Plant Overview, Equipment Overview and Operations Dashboard with configurable templates, KPI fields, chart fields, table fields, and chart type. Operations setup accepts DCS, Field, QAQC and Calculated fields in one catalog.
+- **Operational Data:** Plant Overview, Equipment Overview, Operations Dashboard, Operating Parameters, and the retained Operational Data workspace for Manual Entry, Bulk Upload, Derived Data and Analyze Data.
+- **Operational Knowledge:** Event Log and Lesson Bank.
+- **Process Optimization:** a standalone bounded-response decision-support module. It was moved out of Operational Data; no duplicate Optimization tab remains there.
+- **Job Risk Assessment:** deterministic, register-backed job hazard assessment with Job Risk Assessment PDF and Excel/CSV export labels.
+- Plant Overview, Equipment Overview and Operations Dashboard provide configurable templates, KPI fields, chart fields, table fields, and chart type. Operations setup accepts Digital Data, Raw Field Data, QAQC and Calculated fields in one catalog.
 - CPP-style charts: 12 configurable template fields, rendered four panels at a time in a two-column grid for responsive loading, or in one combined same-axis chart. v3.8 uses a compact 231 px chart height.
-- Operational Data uses one lazy-loaded ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes.
-- DCS endpoint setup and manual pipeline execution are under **Admin / Super Admin → DCS Connector**.
-- Event Log supports report, table, or picture events; notifications; and optional mapped Field Data updates.
-- Analyze Data supports grouped comparisons, statistics, forecast, bounded optimization, and Instrument Check.
-- Risk Assessment produces deterministic, register-backed OPERA-X PDF reports.
+- Operational Data uses one lazy-loaded ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes. Analyze Data contains comparisons, statistics, forecasts and Instrument Check.
+- Digital Data endpoint setup and manual pipeline execution are under **Admin / Super Admin → Digital Data Connector**.
+- Event Log supports report, table, or picture events; notifications; and optional mapped Raw Field Data updates.
 - Lesson Bank supports event links, attachments, read counts, and OPERA-X PDF downloads.
 
 ## Data-field mapping
@@ -54,7 +56,7 @@ Every input field, placeholder (`DP`, `L`, `F`, and `TA`–`TG`), and calculated
 - at least one equipment record; and
 - at least one of **Plant Performance**, **Condition Monitoring**, **Process Performance**, **Quality and Compliance**, or **Reliability**.
 - a plain-language **Mapping Basis** and **Confidence** (`High`, `Medium`, or `Review`); and
-- any same-point DCS/Field **Instrument Check Pair IDs**.
+- any same-point Digital Data/Raw Field Data **Instrument Check Pair IDs**.
 
 The named defaults are field-by-field process-engineering assignments, not round-robin/index/random mappings. Cement covers Okpella, Obajana and Ibese equipment; Refinery covers the Butamer process train; Fertilizer covers reforming, ammonia, urea and granulation; NASCON covers Salt and Sugar. Calculated fields inherit equipment from their formula inputs. Unnamed placeholders use source-aware SPARE equipment and are clearly labelled **Default placeholder mapping – review when field is named**.
 
@@ -64,19 +66,19 @@ When equipment or a dashboard template is selected, related data-field dropdowns
 
 The page provides three Excel workflows. The Excel workbook remains authoritative; a derived compressed runtime cache is rebuilt automatically when the workbook changes, cutting repeated page reads without hiding Admin edits:
 
-- **Excel Mapping Update Template** — an equipment-aware Field Catalogue, editable equipment/template relationships and Field Review metadata; controlled dropdown validation for Field ID, Equipment ID, Dashboard Template ID, Apply Update, Include and Confidence.
-- **Bulk upload** — validates IDs, required sheets, non-empty relationships, confidence values and DCS/Field pair integrity before atomically updating the mapping database and audit log.
+- **Excel Mapping Update Template** — a combined Field Catalogue where each editable row maps a field to both an Equipment ID and Dashboard Template ID, with dropdown validation for both columns plus Field ID and Include. Field Review retains controlled Apply Update and Confidence inputs. Separate equipment/template sheets remain for compatibility.
+- **Bulk upload** — validates IDs, required sheets, non-empty relationships, confidence values and Digital Data/Raw Field Data pair integrity before atomically updating the mapping database and audit log.
 - **Excel Mapping Database / Complete Mapping Workbook** — backend database review plus human-readable field, equipment and template views.
 
-Instrument Check reads recorded DCS/Field pairs from the mapping database and selects the appropriate same-point pair by default. See `MAPPING_QUALITY_REPORT.md` for counts by BU/template, all named `Review` items, grouped placeholder reviews, calculated-field checks, and 20 sample mappings with their reasoning.
+Instrument Check reads recorded Digital Data/Raw Field Data pairs from the mapping database and selects the appropriate same-point pair by default. See `MAPPING_QUALITY_REPORT.md` for counts by BU/template, all named `Review` items, grouped placeholder reviews, calculated-field checks, and 20 sample mappings with their reasoning.
 
 ## Data and persistence
 
-Each BU has one CSV per source: DCS (`DP1–DP1000`), Lab (`L1–L1000`), Field (`F1–F1000`), and placeholders `TA1–TG1000`. Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range, and abnormal jumps. CSV values are protected from spreadsheet-formula injection.
+Each BU has one CSV per source: Digital Data (`DP1–DP1000`, persisted internally as source key `DCS`), QAQC (`L1–L1000`), Raw Field Data (`F1–F1000`, persisted internally as source key `Field`), and placeholders `TA1–TG1000`. The internal source keys and DP/F field IDs are intentionally unchanged so existing CSVs, mappings and live readings continue to work. Manual and bulk rows use ISO dates and 24-hour time. Values are checked for numeric format, configured range, and abnormal jumps. CSV values are protected from spreadsheet-formula injection.
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.8.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.8 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.8.0.md`.
+For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.9.0_vs_v3.8.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.9 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.9.0.md`.
 
 ## Risk registers
 
@@ -86,7 +88,7 @@ Bundled approved Excel workbooks remain unchanged:
 - Refinery: `registers/DANGOTE_REFINERY_Master_Workbook_v1.xlsx`
 - Fertilizer: `registers/DANGOTE_FERTILISER_Master_Workbook_v1.xlsx`
 
-NASCON and new BUs require an approved register upload before risk assessments can be generated.
+NASCON and new BUs require an approved register upload before Job Risk Assessments can be generated. The packaged and live register filenames, `risk_assessments.csv`, `registers/` folder and risk-related Python identifiers remain unchanged for backward compatibility; only user-facing labels and new audit action values use “Job Risk Assessment”.
 
 ## Tests
 
@@ -95,6 +97,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The 50-test suite includes end-to-end Admin change tests plus v3.8 coverage for Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, version/sign-out UI and equipment-aware Field Catalogue updates.
+The 54-test suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, standalone Process Optimization, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and fixed-navigation UI.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.8.0.md`, `CHANGE_MANIFEST_v3.8.0_vs_v3.7.0.md`, and the retained v3.7 root-cause/performance reports.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.9.0.md`, `CHANGE_MANIFEST_v3.9.0_vs_v3.8.0.md`, and the retained earlier root-cause/performance reports.

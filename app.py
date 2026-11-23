@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import io
 import uuid
 import zipfile
@@ -17,11 +18,43 @@ from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
 
 APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_x_icon.png"
+DANGOTE_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_group_logo.webp"
+VISION_2030_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030.jpg"
+VISION_2030_COMPACT = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030_compact.jpg"
 st.set_page_config(page_title="OPERA-X", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
 PAGES = [
     "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data",
-    "Event Log", "Operating Parameters", "Risk Assessment", "Lesson Bank", "Admin / Super Admin",
+    "Event Log", "Operating Parameters", "Process Optimization", "Job Risk Assessment", "Lesson Bank", "Admin / Super Admin",
 ]
+MODULE_CATEGORIES = {
+    "Operational Data": ["Plant Overview", "Equipment Overview", "Operations Dashboard", "Operating Parameters", "Operational Data"],
+    "Operational Knowledge": ["Event Log", "Lesson Bank"],
+    "Process Optimization": ["Process Optimization"],
+    "Job Risk Assessment": ["Job Risk Assessment"],
+}
+CATEGORY_STYLE = {
+    "Operational Data": ("🔵", "category-data"),
+    "Operational Knowledge": ("🟢", "category-knowledge"),
+    "Process Optimization": ("🟣", "category-optimization"),
+    "Job Risk Assessment": ("🟠", "category-risk"),
+}
+PAGE_CATEGORY = {page: category for category, pages in MODULE_CATEGORIES.items() for page in pages}
+
+
+def asset_data_uri(path: Path) -> str:
+    """Encode a packaged brand asset for reliable display behind either proxy."""
+    mime = "image/webp" if path.suffix.lower() == ".webp" else "image/jpeg"
+    return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode('ascii')}"
+
+
+def navigation_label(page: str) -> str:
+    if page == "OPERA-X Home":
+        return "⌂ OPERA-X Home"
+    if page == "Admin / Super Admin":
+        return "⚙ Admin / Super Admin"
+    category = PAGE_CATEGORY.get(page, "")
+    icon = CATEGORY_STYLE.get(category, ("", ""))[0]
+    return f"{icon} {category} · {page}" if category and category != page else f"{icon} {page}".strip()
 
 
 def styles() -> None:
@@ -46,9 +79,9 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .nav-context{font-size:.76rem;color:var(--muted);padding:.1rem .25rem .25rem}.nav-context strong{color:var(--blue-dark)}
 .block-container{padding-top:2rem;padding-bottom:3rem;max-width:1500px}
 .login-brand{min-height:410px;border-radius:18px;padding:3.1rem;background:linear-gradient(145deg,#0F3F9C 0%,#1857C9 70%,#2F7DE1 100%);color:#fff;box-shadow:0 24px 64px rgba(15,63,156,.24);display:flex;flex-direction:column;justify-content:space-between}
-.login-brand .mark{width:58px;height:58px;border-radius:15px;background:#fff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:800;box-shadow:0 10px 24px rgba(0,0,0,.12)}
-.login-brand h1{font-size:3rem;line-height:1;margin:1rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:.82rem;color:#E7F0FF;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem}
-.login-heading{margin:.35rem 0 1.2rem}.login-heading h2{margin:0;color:var(--text);font-size:1.7rem}.login-heading p{color:var(--muted);margin:.35rem 0 0}
+.login-title{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}.login-title img{width:118px;height:auto;object-fit:contain;background:#fff;border-radius:12px;padding:.35rem .5rem;box-shadow:0 10px 24px rgba(0,0,0,.12)}
+.login-brand h1{font-size:3rem;line-height:1;margin:.8rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:1.2rem;line-height:1.3;color:#fff;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem;font-weight:800}
+.login-heading{margin:.35rem 0 1.2rem}.login-heading-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}.login-heading-row img{width:148px;height:auto;max-height:58px;object-fit:contain}.login-heading h2{margin:0;color:var(--text);font-size:1.7rem}.login-heading p{color:var(--muted);margin:.35rem 0 0}
 .panel-note{background:#fff;border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;color:#334E68}
 .badge-good,.badge-bad,.badge-neutral{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-weight:700;font-size:.75rem;margin-top:.35rem}.badge-good{background:#E4ECF9;color:var(--blue-dark)}.badge-bad{background:#FBE5E5;color:#9F1F2A}.badge-neutral{background:#EDF1F5;color:#44576B}
 .small-note{color:#60758A;font-size:.82rem;margin-top:.2rem}
@@ -63,10 +96,12 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 .metric-card.bad{border-top-color:var(--red)}.metric-value{font-size:1.65rem;font-weight:750;color:var(--blue-dark);line-height:1.15;margin:.55rem 0 .35rem}.metric-title{font-size:.84rem;color:var(--muted);font-weight:700;min-height:2.35rem;line-height:1.35}.metric-meta{font-size:.8rem;color:var(--muted);line-height:1.35}
 .kpi-field-selector{margin-bottom:.3rem}.home-card{height:124px;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:10px;padding:1rem 1.05rem .85rem;box-shadow:0 2px 8px rgba(21,34,56,.04)}.home-card h4{margin:0 0 .45rem;color:var(--blue-dark);font-size:1rem}.home-card p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.35}
 .st-key-home_metric_cards .stButton>button{min-height:86px;width:100%;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);color:var(--blue-dark);font-size:1rem;font-weight:800;white-space:pre-line;line-height:1.5;box-shadow:0 2px 8px rgba(21,34,56,.04)}
+.nav-category-legend{display:flex;gap:.4rem;flex-wrap:wrap;margin:.1rem .25rem .35rem}.category-chip,.module-category{border-radius:999px;padding:.22rem .65rem;font-size:.76rem;font-weight:800;display:inline-block}.module-category{font-size:.86rem;margin:.2rem 0 .6rem}.category-data{background:#E7F0FF;color:#0F3F9C}.category-knowledge{background:#E5F5EF;color:#176B51}.category-optimization{background:#F0EAFE;color:#6941C6}.category-risk{background:#FFF0E1;color:#A84F08}
+.vision-nav{text-align:center;height:32px;overflow:hidden;margin-top:.1rem}.vision-nav img{width:94px;height:31px;object-fit:contain;background:#fff;border-radius:5px;padding:1px 4px}
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.app-ribbon .ribbon-meta{align-items:flex-start}.home-card{height:auto;min-height:112px}}
+@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.app-ribbon .ribbon-meta{align-items:flex-start}.home-card{height:auto;min-height:112px}}
 </style>
 """,
         unsafe_allow_html=True,
@@ -81,13 +116,15 @@ def secret_users() -> dict[str, Any]:
 
 
 def do_login() -> None:
+    dangote_logo = asset_data_uri(DANGOTE_LOGO)
+    vision_logo = asset_data_uri(VISION_2030_LOGO)
     st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
     brand, sign_in = st.columns([1.08, .92], gap="large", vertical_alignment="center")
     with brand:
         st.markdown(
-            """
+            f"""
 <div class="login-brand">
-  <div><div class="mark">OX</div><h1>OPERA-X</h1><p>Operational Excellence and Reliability Assistant</p></div>
+  <div><div class="login-title"><img src="{dangote_logo}" alt="Dangote Group"><h1>OPERA-X</h1></div><p>Operational Excellence and Reliability Assistant</p></div>
   <div class="route">One Platform for All Plant Operational Data</div>
 </div>
 """,
@@ -95,7 +132,10 @@ def do_login() -> None:
         )
     with sign_in:
         with st.container(border=True):
-            st.markdown('<div class="login-heading"><h2>Sign In</h2><p>Use your OPERA-X account to continue.</p></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="login-heading"><div class="login-heading-row"><h2>Sign In</h2><img src="{vision_logo}" alt="Dangote Vision 2030"></div><p>Use your OPERA-X account to continue.</p></div>',
+                unsafe_allow_html=True,
+            )
             with st.form("login"):
                 username = st.text_input("Username", placeholder="Enter your username")
                 password = st.text_input("Password", type="password", placeholder="Enter your password")
@@ -170,21 +210,39 @@ def top_navigation(user: auth.User, bu: str) -> str:
     if current not in available:
         st.session_state.top_navigation = available[0]
     with st.container(key="primary_navigation"):
-        nav, notice, change, signout = st.columns([6.9, .65, 1.15, 1.3], vertical_alignment="center")
+        nav, notice, actions = st.columns([7.0, .65, 2.6], vertical_alignment="center")
         with nav:
             st.markdown(
                 f'<div class="nav-context"><strong>{name}</strong> · {user.display_name} · {user.role}</div>',
                 unsafe_allow_html=True,
             )
-            page = st.radio("Navigation", available, horizontal=True, key="top_navigation", label_visibility="collapsed")
+            legend = "".join(
+                f'<span class="category-chip {css_class}">{icon} {category}</span>'
+                for category, (icon, css_class) in CATEGORY_STYLE.items()
+            )
+            st.markdown(f'<div class="nav-category-legend">{legend}</div>', unsafe_allow_html=True)
+            page = st.radio(
+                "Navigation",
+                available,
+                horizontal=True,
+                key="top_navigation",
+                label_visibility="collapsed",
+                format_func=navigation_label,
+            )
         show_notifications = notice.toggle(f"🔔 {len(unread)}", key="show_notifications", help="Show unread notifications")
-        if change.button("⇄ Change BU", width="stretch", key="top_change_bu"):
-            st.session_state.pop("bu", None)
-            st.rerun()
-        if signout.button("↪ Sign Out", width="stretch", key="top_sign_out"):
-            storage.audit(bu, user.username, "logout")
-            st.session_state.clear()
-            st.rerun()
+        with actions:
+            change, signout = st.columns(2, gap="small")
+            if change.button("⇄ Change BU", width="stretch", key="top_change_bu"):
+                st.session_state.pop("bu", None)
+                st.rerun()
+            if signout.button("↪ Sign Out", width="stretch", key="top_sign_out"):
+                storage.audit(bu, user.username, "logout")
+                st.session_state.clear()
+                st.rerun()
+            st.markdown(
+                f'<div class="vision-nav"><img src="{asset_data_uri(VISION_2030_COMPACT)}" alt="Dangote Vision 2030"></div>',
+                unsafe_allow_html=True,
+            )
         if show_notifications:
             if unread.empty:
                 st.caption("No unread notifications.")
@@ -442,8 +500,8 @@ def home_detail_sheets(bu: str, username: str, detail: str) -> dict[str, pd.Data
     """Return complete Super Admin home-card drill-down tables."""
     if detail == "Readings":
         groups = {
-            "DCS": ("DCS",),
-            "Field": ("Field",),
+            "Digital Data": ("DCS",),
+            "Raw Field Data": ("Field",),
             "QAQC": ("Lab",),
             "Other TA": ("TA",),
             "Other TB": ("TB",),
@@ -460,7 +518,7 @@ def home_detail_sheets(bu: str, username: str, detail: str) -> dict[str, pd.Data
                 frame = storage.read_csv(storage.source_path(bu, source))
                 if frame.empty:
                     continue
-                frame.insert(0, "Source", source)
+                frame.insert(0, "Source", storage.source_label(source))
                 frames.append(frame)
             sheets[sheet_name] = pd.concat(frames, ignore_index=True, sort=False) if frames else pd.DataFrame()
         return sheets
@@ -521,27 +579,37 @@ def page_home(bu: str, user: auth.User) -> None:
             st.session_state.pop("home_detail", None)
             st.rerun()
     st.markdown("### Modules")
-    cards = [
-        ("Plant Overview", "Plant-level trends, conditions and period reports"),
-        ("Equipment Overview", "Equipment trends using configurable dashboard templates"),
-        ("Operations Dashboard", "Aligned KPI cards, targets, period views and chart grids"),
-        ("Operational Data", "Manual Entry, Bulk Upload, Derived Data and Analyze Data in one ribbon"),
-        ("Operating Parameters", "Process and QAQC trends across configured equipment"),
-        ("Event Log", "Events, Field updates, pictures and notifications"),
-        ("Risk Assessment", "Register-backed deterministic hazard assessment"),
-        ("Lesson Bank", "Searchable lessons, files and PDF downloads"),
-    ]
+    descriptions = {
+        "Plant Overview": "Plant-level trends, conditions and period reports",
+        "Equipment Overview": "Equipment trends using configurable dashboard templates",
+        "Operations Dashboard": "Aligned KPI cards, targets, period views and chart grids",
+        "Operational Data": "Manual Entry, Bulk Upload, Derived Data and Analyze Data in one ribbon",
+        "Operating Parameters": "Process and QAQC trends across configured equipment",
+        "Event Log": "Events, Raw Field Data updates, pictures and notifications",
+        "Lesson Bank": "Searchable lessons, files and PDF downloads",
+        "Process Optimization": "Bounded decision support using aligned historical readings",
+        "Job Risk Assessment": "Register-backed deterministic job hazard assessment",
+    }
+    for category, pages in MODULE_CATEGORIES.items():
+        icon, css_class = CATEGORY_STYLE[category]
+        st.markdown(f'<div class="module-category {css_class}">{icon} {category}</div>', unsafe_allow_html=True)
+        for start in range(0, len(pages), 3):
+            cols = st.columns(3, gap="medium")
+            for col, title in zip(cols, pages[start:start + 3]):
+                with col:
+                    st.markdown(f'<div class="home-card"><h4>{title}</h4><p>{descriptions[title]}</p></div>', unsafe_allow_html=True)
+                    if st.button(f"Open {title}", key=f"home_{title}", width="stretch"):
+                        st.session_state.requested_page = title
+                        st.rerun()
+            st.markdown("<div style='height:.8rem'></div>", unsafe_allow_html=True)
     if auth.allowed(user, "configure"):
-        cards.append(("Admin / Super Admin", "No-code fields, charts, templates, equipment and validation lists"))
-    for start in range(0, len(cards), 3):
-        cols = st.columns(3, gap="medium")
-        for col, (title, text) in zip(cols, cards[start:start + 3]):
-            with col:
-                st.markdown(f'<div class="home-card"><h4>{title}</h4><p>{text}</p></div>', unsafe_allow_html=True)
-                if st.button(f"Open {title}", key=f"home_{title}", width="stretch"):
-                    st.session_state.requested_page = title
-                    st.rerun()
-        st.markdown("<div style='height:.8rem'></div>", unsafe_allow_html=True)
+        st.markdown('<div class="module-category category-data">⚙ Administration</div>', unsafe_allow_html=True)
+        left, _, _ = st.columns(3, gap="medium")
+        with left:
+            st.markdown('<div class="home-card"><h4>Admin / Super Admin</h4><p>No-code fields, charts, templates, equipment and validation lists</p></div>', unsafe_allow_html=True)
+            if st.button("Open Admin / Super Admin", key="home_Admin / Super Admin", width="stretch"):
+                st.session_state.requested_page = "Admin / Super Admin"
+                st.rerun()
 
 
 def page_plant(bu: str, user: auth.User) -> None:
@@ -615,7 +683,7 @@ def page_equipment(bu: str, user: auth.User) -> None:
     if not chart_fields:
         chart_fields = list(view.groupby("field_id")["value"].count().sort_values(ascending=False).head(6).index)
     st.caption("The selected equipment and dashboard template automatically filter every data-field control. Admins can update these maps in Field Mappings.")
-    with st.expander("Data Field Selection Tool — DCS · Field · QAQC · Others", expanded=False):
+    with st.expander("Data Field Selection Tool — Digital Data · Raw Field Data · QAQC · Others", expanded=False):
         selected_fields = grouped_field_selector(bu, f"equipment_fields_{equipment_id}", available, chart_fields)
     if selected_fields:
         chart_fields = selected_fields
@@ -648,7 +716,7 @@ def operations_long(view: pd.DataFrame, definitions: pd.DataFrame, field_ids: li
 
 
 def operations_dashboard_data(bu: str) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
-    """Align DCS, Field, QAQC and calculated values for the Operations Dashboard."""
+    """Align Digital Data, Raw Field Data, QAQC and calculated values for the Operations Dashboard."""
     inputs = long_data(bu)
     if inputs.empty:
         input_wide = pd.DataFrame(columns=["Timestamp"])
@@ -679,7 +747,7 @@ def page_operations(bu: str, user: auth.User) -> None:
     if errors:
         st.warning("Formula warnings: " + " | ".join(errors))
     if frame.empty:
-        st.info("No DCS, Field, QAQC or calculated data is available.")
+        st.info("No Digital Data, Raw Field Data, QAQC or calculated data is available.")
         return
     template = template_selector(bu, "Operations Dashboard", "operations")
     view = period_filter(frame, "operations")
@@ -741,8 +809,7 @@ def manual_entry_panel(bu: str, user: auth.User) -> None:
     )
     equipment_id = equipment_label.split(" — ", 1)[0]
     equipment_row = equipment[equipment["equipment_id"] == equipment_id].iloc[0]
-    source_names = lambda value: "QAQC (Laboratory)" if value == "Lab" else value
-    source = st.selectbox("Source", list(storage.SOURCES), index=2, format_func=source_names, key="manual_source")
+    source = st.selectbox("Source", list(storage.SOURCES), index=2, format_func=storage.source_label, key="manual_source")
     registry = mapped_registry(bu, source, equipment_id=equipment_id)
     if registry.empty:
         st.info("No active data fields are mapped to this equipment and source. An Admin can update Field Mappings.")
@@ -763,7 +830,7 @@ def manual_entry_panel(bu: str, user: auth.User) -> None:
             safe_dataframe(issues, hide_index=True)
         else:
             count, flag_count = storage.save_validated_input(bu, source, clean, user.username)
-            storage.notify(bu, f"{count} {source} row saved ({flag_count} flags).", "error" if flag_count else "success", created_by=user.username)
+            storage.notify(bu, f"{count} {storage.source_label(source)} row saved ({flag_count} flags).", "error" if flag_count else "success", created_by=user.username)
             st.success(f"Saved {count} row; {flag_count} validation flag(s).")
 
 
@@ -779,8 +846,7 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
     equipment_options = {f"{row.equipment_id} — {row.equipment_name}": row.equipment_id for row in equipment.itertuples()}
     equipment_label = st.selectbox("1. Select Equipment Mapping Scope", list(equipment_options), key="bulk_equipment")
     equipment_id = equipment_options[equipment_label]
-    source_names = lambda value: "QAQC (Laboratory)" if value == "Lab" else value
-    source = st.selectbox("2. Select Source", list(storage.SOURCES), key="bulk_source", format_func=source_names)
+    source = st.selectbox("2. Select Source", list(storage.SOURCES), key="bulk_source", format_func=storage.source_label)
     registry = mapped_registry(bu, source, equipment_id=equipment_id)
     field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in registry.itertuples()}
     selected_labels = st.multiselect("3. Select Mapped Data Fields to Upload", list(field_options), key="bulk_fields")
@@ -789,7 +855,7 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
     st.download_button(
         "4. Download Tailored CSV Template",
         storage.template_bytes(bu, source, selected_ids, equipment_id=equipment_id),
-        f"{bu}_{source}_{equipment_id}_selected_template.csv",
+        f"{bu}_{storage.source_label(source).lower().replace(' ', '_')}_{equipment_id}_selected_template.csv",
         "text/csv",
         disabled=not selected_ids,
     )
@@ -864,31 +930,31 @@ def page_events(bu: str, user: auth.User) -> None:
             equipment_id = equipment_label.split(" — ", 1)[0]
             equipment_row = equipment[equipment["equipment_id"] == equipment_id].iloc[0]
             picture = st.file_uploader("Picture Attachment", type=["png", "jpg", "jpeg", "webp"], disabled=event_format != "Picture")
-            send_field_update = st.checkbox("Send a Field Data Update With This Event", value=False)
+            send_field_update = st.checkbox("Send a Raw Field Data Update With This Event", value=False)
             field_registry = mapped_registry(bu, "Field", equipment_id=equipment_id)
             field_options = {f"{row.field_id} — {row.field_name} ({row.uom})": row.field_id for row in field_registry.itertuples()}
-            selected_fields = st.multiselect("Field Data Fields", list(field_options), disabled=not send_field_update, help="Choose an active F field mapped to this equipment for later comparison with DCS data.")
+            selected_fields = st.multiselect("Raw Field Data Fields", list(field_options), disabled=not send_field_update, help="Choose an active F field mapped to this equipment for later comparison with Digital Data.")
             with st.form("event_input"):
                 first, second = st.columns(2)
                 day = first.date_input("Event Date", date.today())
                 time_value = second.time_input("Event Time", datetime.now().replace(second=0, microsecond=0).time())
                 title = st.text_input("Title")
                 details = st.text_area("Report / Table Data / Observations")
-                field_values = {field_options[label]: st.number_input(label, value=None, placeholder="Enter Field reading") for label in selected_fields}
+                field_values = {field_options[label]: st.number_input(label, value=None, placeholder="Enter Raw Field Data reading") for label in selected_fields}
                 send_notification = st.checkbox("Send Notification", value=True)
                 submit = st.form_submit_button("Save Event", type="primary")
             if submit:
                 if not selected_types or not title.strip():
                     st.error("Select an event type and enter a title.")
                 elif send_field_update and (not selected_fields or not any(value is not None for value in field_values.values())):
-                    st.error("Select at least one Field Data field and enter a value.")
+                    st.error("Select at least one Raw Field Data field and enter a value.")
                 else:
                     update_frame = pd.DataFrame()
                     if send_field_update:
                         update_frame = pd.DataFrame([{"Date": day.isoformat(), "Time": time_value.strftime("%H:%M"), "Business unit": bu, "Plant": equipment_row["plant"], "Unit/Section": equipment_row["unit_section"], "Equipment": equipment_id, **field_values}])
                         clean, issues, _ = storage.validate_rows(bu, "Field", update_frame)
                         if not issues.empty:
-                            st.error("The Field Data update was not saved because validation failed.")
+                            st.error("The Raw Field Data update was not saved because validation failed.")
                             safe_dataframe(issues, hide_index=True)
                             return
                         storage.save_validated_input(bu, "Field", clean, user.username)
@@ -900,12 +966,12 @@ def page_events(bu: str, user: auth.User) -> None:
                     if send_notification:
                         critical = any(item in selected_types for item in ["Safety", "Equipment Failure", "Shutdown"])
                         storage.notify(bu, f"New event {event_id}: {title}", "error" if critical else "success", created_by=user.username)
-                    st.success(f"Event {event_id} saved" + (" with a Field Data update." if send_field_update else "."))
+                    st.success(f"Event {event_id} saved" + (" with a Raw Field Data update." if send_field_update else "."))
 
 
 def page_analysis(bu: str, user: auth.User) -> None:
     data = long_data(bu)
-    compare, dcs_tab, optimization_tab = st.tabs(["Compare Any Data Field", "Instrument Check", "Optimization"])
+    compare, dcs_tab = st.tabs(["Compare Any Data Field", "Instrument Check"])
     with compare:
         st.markdown("#### Compare Any Data Field")
         if data.empty:
@@ -918,7 +984,7 @@ def page_analysis(bu: str, user: auth.User) -> None:
             chart_type, axis_mode = chart_controls("Line", "analysis")
             view = period_filter(data[data["field_id"].isin(selected_ids)], "analysis") if selected_ids else pd.DataFrame()
             if len(selected_ids) < 2:
-                st.info("Select two or more fields across DCS, Field, QAQC or Others.")
+                st.info("Select two or more fields across Digital Data, Raw Field Data, QAQC or Others.")
             elif view.empty:
                 st.info("No readings are available for the selected fields and period.")
             else:
@@ -938,7 +1004,7 @@ def page_analysis(bu: str, user: auth.User) -> None:
                 export_panel(summary, f"{analysis} Analysis", bu, user, "analysis")
     with dcs_tab:
         st.markdown("#### Instrument Check")
-        st.caption("Compare one Field reading with one DCS reading. These are the only comparison sources available in Instrument Check.")
+        st.caption("Compare one Raw Field Data reading with one Digital Data reading. These are the only comparison sources available in Instrument Check.")
         field_registry = active_registry(bu, "Field")
         dcs_registry = active_registry(bu, "DCS")
         recorded_pairs = dashboard.instrument_check_pairs(bu)
@@ -946,15 +1012,15 @@ def page_analysis(bu: str, user: auth.User) -> None:
         paired_field_ids = [field_id for field_id in recorded_pairs if field_id in set(field_registry["field_id"].astype(str))]
         paired_default = paired_field_ids[0] if paired_field_ids else ""
         field_index = next((index for index, label in enumerate(field_options) if label.startswith(paired_default + " — ")), 0)
-        field_label = st.selectbox("Field Reading", field_options, index=field_index)
+        field_label = st.selectbox("Raw Field Data Reading", field_options, index=field_index)
         selected_field_id = field_label.split(" — ", 1)[0]
         paired_dcs_ids = recorded_pairs.get(selected_field_id, [])
         dcs_options = dcs_registry.apply(lambda row: f"{row['field_id']} — {row['field_name']}", axis=1).tolist()
         paired_dcs_default = paired_dcs_ids[0] if paired_dcs_ids else ""
         dcs_index = next((index for index, label in enumerate(dcs_options) if label.startswith(paired_dcs_default + " — ")), 0)
-        dcs_label = st.selectbox("DCS Reading", dcs_options, index=dcs_index)
+        dcs_label = st.selectbox("Digital Data Reading", dcs_options, index=dcs_index)
         if paired_dcs_ids:
-            st.caption("Default pair loaded from the Admin Excel mapping database. You can still select another DCS point for an ad-hoc check.")
+            st.caption("Default pair loaded from the Admin Excel mapping database. You can still select another Digital Data point for an ad-hoc check.")
         monitor = st.number_input("Monitor Difference", min_value=0.0, value=5.0)
         critical = st.number_input("Critical Difference", min_value=monitor, value=max(10.0, monitor))
         exclude_shutdown = st.checkbox("Exclude Shutdown Days", value=True)
@@ -981,47 +1047,51 @@ def page_analysis(bu: str, user: auth.User) -> None:
             export_panel(comparison, "Instrument Check", bu, user, "instrument_check")
         else:
             st.info("No paired readings are available for this selection.")
-    with optimization_tab:
-        st.markdown("#### Bounded Response Optimization")
-        st.caption("This decision-support tool fits a linear response model from aligned historical readings, then applies bounds to maximize, minimize or match an outcome. Review operational and safety constraints before use.")
-        if data.empty:
-            st.info("No data is available for optimization.")
-        else:
-            available_ids = set(data["field_id"].astype(str))
-            default_decisions = list(data[data["source"] == "DCS"]["field_id"].drop_duplicates().head(2))
-            decision_ids = grouped_field_selector(bu, "optimization_decisions", available_ids, default_decisions)
-            label_map = dashboard.field_label_map(active_registry(bu))
-            outcome_options = [label_map[field] for field in data["field_id"].astype(str).drop_duplicates() if field in label_map and field not in decision_ids]
-            if outcome_options:
-                outcome_label = st.selectbox("Outcome Data Field", outcome_options)
-                outcome_id = outcome_label.split(" — ", 1)[0]
-                objective = st.selectbox("Optimization Goal", ["Maximize outcome", "Minimize outcome", "Match target outcome"])
-                target_value = st.number_input("Target Outcome", value=0.0, disabled=objective != "Match target outcome")
-                aligned = operational.prepare_optimization_frame(data, decision_ids, outcome_id)
-                bounds = {}
-                if decision_ids:
-                    st.markdown("##### Decision Bounds")
-                    for field_id in decision_ids:
-                        observed = pd.to_numeric(aligned.get(field_id, pd.Series(dtype=float)), errors="coerce").dropna()
-                        low_default = float(observed.min()) if not observed.empty else 0.0
-                        high_default = float(observed.max()) if not observed.empty else 0.0
-                        left, right = st.columns(2)
-                        bounds[field_id] = (left.number_input(f"{field_id} Minimum", value=low_default, key=f"opt_low_{field_id}"), right.number_input(f"{field_id} Maximum", value=high_default, key=f"opt_high_{field_id}"))
-                if st.button("Run Optimization", type="primary", disabled=not decision_ids):
-                    try:
-                        result = operational.optimize_linear_response(aligned, decision_ids, outcome_id, objective, target_value, bounds)
-                        st.session_state.optimization_result = (outcome_id, result)
-                        storage.audit(bu, user.username, "optimization_run", {"outcome": outcome_id, "decisions": decision_ids, "objective": objective})
-                    except Exception as exc:
-                        st.error(f"Optimization could not be completed: {exc}")
-                if "optimization_result" in st.session_state:
-                    saved_outcome, result = st.session_state.optimization_result
-                    st.metric(f"Predicted {saved_outcome}", f"{result['predicted_outcome']:,.3f}", delta=f"{result['predicted_outcome'] - result['baseline_outcome']:+,.3f} vs model baseline")
-                    st.caption(f"Model fit: {result['rows']} aligned readings · R² {result['r_squared']:.3f}")
-                    recommendations = pd.DataFrame([{"Data Field": field, "Recommended Setting": value, "Model Coefficient": result["coefficients"][field]} for field, value in result["recommendation"].items()])
-                    display_data_table(recommendations, bu, width="stretch", hide_index=True)
-            else:
-                st.info("Select fewer decision fields so an outcome remains available.")
+
+
+def page_process_optimization(bu: str, user: auth.User) -> None:
+    """Standalone Process Optimization module (moved from Operational Data)."""
+    data = long_data(bu)
+    st.markdown("#### Bounded Response Optimization")
+    st.caption("This decision-support tool fits a linear response model from aligned historical readings, then applies bounds to maximize, minimize or match an outcome. Review operational and safety constraints before use.")
+    if data.empty:
+        st.info("No data is available for optimization.")
+        return
+    available_ids = set(data["field_id"].astype(str))
+    default_decisions = list(data[data["source"] == "DCS"]["field_id"].drop_duplicates().head(2))
+    decision_ids = grouped_field_selector(bu, "optimization_decisions", available_ids, default_decisions)
+    label_map = dashboard.field_label_map(active_registry(bu))
+    outcome_options = [label_map[field] for field in data["field_id"].astype(str).drop_duplicates() if field in label_map and field not in decision_ids]
+    if not outcome_options:
+        st.info("Select fewer decision fields so an outcome remains available.")
+        return
+    outcome_label = st.selectbox("Outcome Data Field", outcome_options)
+    outcome_id = outcome_label.split(" — ", 1)[0]
+    objective = st.selectbox("Optimization Goal", ["Maximize outcome", "Minimize outcome", "Match target outcome"])
+    target_value = st.number_input("Target Outcome", value=0.0, disabled=objective != "Match target outcome")
+    aligned = operational.prepare_optimization_frame(data, decision_ids, outcome_id)
+    bounds = {}
+    if decision_ids:
+        st.markdown("##### Decision Bounds")
+        for field_id in decision_ids:
+            observed = pd.to_numeric(aligned.get(field_id, pd.Series(dtype=float)), errors="coerce").dropna()
+            low_default = float(observed.min()) if not observed.empty else 0.0
+            high_default = float(observed.max()) if not observed.empty else 0.0
+            left, right = st.columns(2)
+            bounds[field_id] = (left.number_input(f"{field_id} Minimum", value=low_default, key=f"opt_low_{field_id}"), right.number_input(f"{field_id} Maximum", value=high_default, key=f"opt_high_{field_id}"))
+    if st.button("Run Optimization", type="primary", disabled=not decision_ids):
+        try:
+            result = operational.optimize_linear_response(aligned, decision_ids, outcome_id, objective, target_value, bounds)
+            st.session_state.optimization_result = (outcome_id, result)
+            storage.audit(bu, user.username, "process_optimization_run", {"outcome": outcome_id, "decisions": decision_ids, "objective": objective})
+        except Exception as exc:
+            st.error(f"Optimization could not be completed: {exc}")
+    if "optimization_result" in st.session_state:
+        saved_outcome, result = st.session_state.optimization_result
+        st.metric(f"Predicted {saved_outcome}", f"{result['predicted_outcome']:,.3f}", delta=f"{result['predicted_outcome'] - result['baseline_outcome']:+,.3f} vs model baseline")
+        st.caption(f"Model fit: {result['rows']} aligned readings · R² {result['r_squared']:.3f}")
+        recommendations = pd.DataFrame([{"Data Field": field, "Recommended Setting": value, "Model Coefficient": result["coefficients"][field]} for field, value in result["recommendation"].items()])
+        display_data_table(recommendations, bu, width="stretch", hide_index=True)
 
 
 def page_output(bu: str, user: auth.User) -> None:
@@ -1110,9 +1180,10 @@ def page_parameters(bu: str, user: auth.User) -> None:
 
 
 def page_risk(bu: str, user: auth.User) -> None:
+    st.markdown("## Job Risk Assessment")
     register, source, problem = risk_store.resolve(bu)
     if not register:
-        st.warning(problem or "Risk register update required.")
+        st.warning(problem or "Job Risk Assessment register update required.")
         return
     st.caption(f"{source} · {register.hazard_count} hazards · Fingerprint {register.fingerprint}")
     preset_names = {f"{preset['id']} — {preset['n']}": preset for preset in register.presets}
@@ -1131,28 +1202,28 @@ def page_risk(bu: str, user: auth.User) -> None:
     equipment_record = register.equip(equipment)
     motion = st.selectbox("Equipment Motion", register.motions, index=register.motions.index(preset["mo"]) if preset.get("mo") in register.motions else 0)
     status = st.selectbox("Equipment Status", register.statuses, index=register.statuses.index(preset["st"]) if preset.get("st") in register.statuses else 0)
-    if st.button("Generate Risk Assessment", type="primary"):
+    if st.button("Generate Job Risk Assessment", type="primary"):
         hazards = collect_hazards(register, tags, equipment_record["t"] if equipment_record else None, motion, status)
         st.session_state.risk_hazards = hazards
         st.session_state.risk_context = {"preset": preset["n"], "description": description, "location": location, "equipment": equipment, "motion": motion, "status": status, "tags": tags}
-        storage.audit(bu, user.username, "risk_assessment_generated", {"preset": preset["n"], "hazards": len(hazards)})
+        storage.audit(bu, user.username, "job_risk_assessment_generated", {"preset": preset["n"], "hazards": len(hazards)})
     hazards = st.session_state.get("risk_hazards", [])
     context = st.session_state.get("risk_context", {})
     if hazards:
         table = pd.DataFrame([{"ID": hazard["uid"], "Category": hazard["cat"], "Hazard": hazard["hz"], "Initial": hazard["lv"], "Controls": hazard["ct"], "Residual": hazard["rd"], "Responsible": hazard["rp"]} for hazard in hazards])
         safe_dataframe(table, width="stretch", hide_index=True)
         excluded = st.multiselect("Review: Exclude Risks That Are Not Applicable", [hazard["uid"] for hazard in hazards])
-        if st.button("Prepare Printable PDF"):
+        if st.button("Prepare Job Risk Assessment PDF"):
             now = datetime.now(timezone.utc)
             serial = make_serial(now, context.get("equipment", ""), "")
-            payload = {"serial": serial, "bu": bu.title(), "company": "OPERA-X — DANGOTE INDUSTRIES", "form_title": "RISK ASSESSMENT FORM", "register_status": "Approved", "register_source": source, "fingerprint": register.fingerprint, "header": [("Assessment No.", serial), ("Preset / Job", context.get("preset")), ("Description", context.get("description")), ("Location", context.get("location")), ("Equipment", context.get("equipment")), ("Motion / Status", f"{context.get('motion')} / {context.get('status')}")], "hazards": hazards, "excluded": set(excluded), "categories": register.categories, "erp": ["Raise alarm and stop work.", "Make the area safe without personal exposure.", "Notify the control room and emergency response team.", "Provide first aid only when trained and safe."], "assessed_by": user.display_name, "reviewed_by": "", "generated": now.isoformat(timespec="seconds")}
+            payload = {"serial": serial, "bu": bu.title(), "company": "OPERA-X — DANGOTE INDUSTRIES", "form_title": "JOB RISK ASSESSMENT FORM", "register_status": "Approved", "register_source": source, "fingerprint": register.fingerprint, "header": [("Assessment No.", serial), ("Preset / Job", context.get("preset")), ("Description", context.get("description")), ("Location", context.get("location")), ("Equipment", context.get("equipment")), ("Motion / Status", f"{context.get('motion')} / {context.get('status')}")], "hazards": hazards, "excluded": set(excluded), "categories": register.categories, "erp": ["Raise alarm and stop work.", "Make the area safe without personal exposure.", "Notify the control room and emergency response team.", "Provide first aid only when trained and safe."], "assessed_by": user.display_name, "reviewed_by": "", "generated": now.isoformat(timespec="seconds")}
             st.session_state.risk_pdf = build_pdf(payload)
             st.session_state.risk_serial = serial
             storage.append_rows(storage.bu_dir(bu) / "risk_assessments.csv", [{"serial": serial, "timestamp": storage.utcnow(), "preset": context.get("preset"), "job_type": ";".join(context.get("tags", [])), "location": context.get("location"), "equipment": context.get("equipment"), "hazard_count": len(hazards) - len(excluded), "assessed_by": user.username}])
-            storage.audit(bu, user.username, "risk_assessment_exported", {"serial": serial, "format": "PDF"})
+            storage.audit(bu, user.username, "job_risk_assessment_exported", {"serial": serial, "format": "PDF"})
         if "risk_pdf" in st.session_state:
-            st.download_button("Print / Download PDF", st.session_state.risk_pdf, f"{st.session_state.risk_serial}.pdf", "application/pdf")
-        export_panel(table, "Risk Assessment Hazards", bu, user, "risk_table")
+            st.download_button("Print / Download Job Risk Assessment PDF", st.session_state.risk_pdf, f"job_risk_assessment_{st.session_state.risk_serial}.pdf", "application/pdf")
+        export_panel(table, "Job Risk Assessment Hazards", bu, user, "risk_table")
 
 
 def page_lessons(bu: str, user: auth.User) -> None:
@@ -1456,7 +1527,7 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
     first, second, third = st.columns(3)
     source_filter = first.multiselect(
         "Source",
-        [item for item in ["DCS", "Field", "QAQC", "Others", "Calculated"] if item in set(mappings["Source"])],
+        [item for item in ["Digital Data", "Raw Field Data", "QAQC", "Others", "Calculated"] if item in set(mappings["Source"])],
         key="mapping_source_filter",
     )
     status_filter = second.multiselect(
@@ -1649,7 +1720,7 @@ def page_admin(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
-    sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Risk Registers", "DCS Connector", "Presets", "Audit & Backup"]
+    sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Digital Data Connector", "Presets", "Audit & Backup"]
     section = st.radio("Administration Area", sections, horizontal=True, label_visibility="collapsed", key="admin_area")
     if section == sections[0]:
         safe_dataframe(config.business_units(), width="stretch", hide_index=True)
@@ -1679,7 +1750,7 @@ def page_admin(bu: str, user: auth.User) -> None:
             manage_user_form(user)
     elif section == sections[2]:
         registry = storage.registry(bu)
-        source_filter = st.selectbox("Source Registry", list(storage.SOURCES), key="admin_field_source")
+        source_filter = st.selectbox("Source Registry", list(storage.SOURCES), key="admin_field_source", format_func=storage.source_label)
         candidates = registry[registry["source"] == source_filter]
         field_label = st.selectbox("Input Field", candidates.apply(lambda row: f"{row['field_id']} — {row['field_name']}", axis=1))
         field_id = field_label.split(" — ", 1)[0]
@@ -1747,7 +1818,7 @@ def page_admin(bu: str, user: auth.User) -> None:
         register, source, problem = risk_store.resolve(bu)
         st.write(f"Current: {source or problem}")
         st.write(f"Fingerprint: {register.fingerprint if register else '—'}")
-        upload = st.file_uploader("Upload Approved Excel Risk Register", type=["xlsx"], key="risk_upload")
+        upload = st.file_uploader("Upload Approved Excel Job Risk Assessment Register", type=["xlsx"], key="risk_upload")
         note = st.text_input("Change Note")
         if upload and st.button("Validate and Activate Register"):
             try:
@@ -1767,16 +1838,16 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.error(str(exc))
     elif section == sections[7]:
         settings = storage.json_setting(storage.bu_dir(bu) / "pipeline.json", {})
-        url = st.text_input("DCS JSON Endpoint", settings.get("url", ""))
-        token_name = st.text_input("Secret Key Under [dcs]", settings.get("token_secret_name", ""))
+        url = st.text_input("Digital Data JSON Endpoint", settings.get("url", ""))
+        token_name = st.text_input("Secret Key Under [dcs] (internal compatibility section)", settings.get("token_secret_name", ""))
         if st.button("Save Connector Settings"):
             settings = {"url": url.strip(), "token_secret_name": token_name.strip()}
             storage.save_json(storage.bu_dir(bu) / "pipeline.json", settings)
-            storage.audit(bu, user.username, "dcs_connector_configured", {"url": url})
+            storage.audit(bu, user.username, "digital_data_connector_configured", {"url": url})
             st.success("Connector settings saved and available immediately; token value remains in Secrets.")
         st.markdown("#### Pipeline Run")
-        st.code(settings.get("url") or "DCS endpoint not configured")
-        if st.button("Pull DCS Data Now", disabled=not bool(settings.get("url")), key="admin_pull_dcs"):
+        st.code(settings.get("url") or "Digital Data endpoint not configured")
+        if st.button("Pull Digital Data Now", disabled=not bool(settings.get("url")), key="admin_pull_dcs"):
             try:
                 token = ""
                 if settings.get("token_secret_name"):
@@ -1784,7 +1855,7 @@ def page_admin(bu: str, user: auth.User) -> None:
                 count, flag_count = dcs_connector.ingest(bu, settings["url"], token, user.username)
                 st.success(f"Ingested {count} rows; {flag_count} flags.")
             except Exception as exc:
-                st.error(f"DCS pull failed: {exc}")
+                st.error(f"Digital Data pull failed: {exc}")
     elif section == sections[8]:
         presets = config.load_presets(bu)
         st.json(presets)
@@ -1798,7 +1869,17 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.error(str(exc))
     elif section == sections[9]:
         audit = storage.read_csv(storage.bu_dir(bu) / "audit_log.csv")
-        safe_dataframe(audit.sort_values("timestamp", ascending=False) if not audit.empty else audit, width="stretch", hide_index=True)
+        audit_view = audit.copy()
+        if not audit_view.empty and "action" in audit_view:
+            audit_view["action"] = audit_view["action"].replace(
+                {
+                    "risk_assessment_generated": "job_risk_assessment_generated",
+                    "risk_assessment_exported": "job_risk_assessment_exported",
+                    "risk_register_activated": "job_risk_assessment_register_activated",
+                    "dcs_connector_configured": "digital_data_connector_configured",
+                }
+            )
+        safe_dataframe(audit_view.sort_values("timestamp", ascending=False) if not audit_view.empty else audit_view, width="stretch", hide_index=True)
         if st.button("Prepare Business Unit Backup ZIP"):
             output = io.BytesIO()
             with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -1833,7 +1914,8 @@ def main() -> None:
     routes = {
         "OPERA-X Home": page_home, "Plant Overview": page_plant, "Equipment Overview": page_equipment,
         "Operations Dashboard": page_operations, "Operational Data": page_operational_data, "Event Log": page_events,
-        "Operating Parameters": page_parameters, "Risk Assessment": page_risk, "Lesson Bank": page_lessons,
+        "Operating Parameters": page_parameters, "Process Optimization": page_process_optimization,
+        "Job Risk Assessment": page_risk, "Lesson Bank": page_lessons,
         "Admin / Super Admin": page_admin,
     }
     routes[page](bu, user)

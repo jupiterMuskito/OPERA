@@ -1,27 +1,29 @@
-# OPERA-X v3.8.0 — Test Results
+# OPERA-X v3.9.0 test results
 
-## Result
+## Automated suite
 
-**PASS — 50 automated tests passed in bounded groups.** Python compilation also passed for `app.py`, `opera/`, `scripts/` and `tests/`.
+```text
+pytest -q
+54 passed
+```
 
-- Retained v3.7 and earlier smoke/regression/Admin E2E suite: **45 passed**.
-- New v3.8 feature suite: **5 passed**.
+The suite covers authentication, permissions, BU selection, formulas, storage validation, hierarchy/equipment administration, configurable dashboards, mapping persistence, Admin-to-chart propagation, responsive chart controls, Home data exports, and every authenticated route.
 
-The suite is intentionally split to keep peak memory bounded when Streamlit AppTest and large mapping workbooks run in the same container.
+## New v3.9 coverage
 
-## New v3.8 coverage
+1. Display labels are **Digital Data** and **Raw Field Data**, while persisted source keys remain `DCS` and `Field` and ID prefixes remain `DP` and `F`.
+2. Home reading Excel exports use Digital Data and Raw Field Data worksheet/source labels.
+3. The Field Catalogue contains Equipment ID/Equipment and Dashboard Template ID/Dashboard Template on the same row.
+4. Field Catalogue Equipment ID and Dashboard Template ID cells use controlled named-range dropdowns; Include remains validated.
+5. A single bulk upload updates both equipment and dashboard-template mappings and takes effect in the mapping database.
+6. Process Optimization is a standalone route and no Optimization tab remains in Operational Data → Analyze Data.
+7. Four module categories, all three brand placements and the enlarged sign-in tagline are packaged.
+8. Job Risk Assessment is used in navigation, Home, page/buttons, export titles/filenames, Admin labels, PDF metadata and audit labels while `risk_assessments.csv` remains stable.
 
-1. Package and banner version are `3.8.0`; full Sign Out text and least-privilege Home response are present.
-2. Readings export is separated into DCS, Field, QAQC and seven TA–TG Excel worksheets.
-3. Operations field catalog contains DCS, Field, Lab/QAQC and Calculated fields; every new Operations default includes all four categories.
-4. Chart height is exactly 231 px (30% below the v3.7 330 px value).
-5. Field Catalogue lists mapped equipment, exposes controlled dropdown validations, and applies a changed equipment mapping through the bulk-update path.
+## Additional checks
 
-## Retained regression coverage
+```text
+python -m py_compile app.py opera/*.py scripts/*.py
+```
 
-The retained suite continues to cover authentication, BU selection, role grants, Admin-to-chart propagation, fields/UOM/ranges/targets, formulas/constants, equipment and hierarchy lists, mappings and legacy Excel bulk update, templates, DCS ingest, presets, events/lessons, exports, storage locking/caches, Cement hierarchy/data, risk-register parsing and PDFs.
-
-## Additional verification
-
-- `python -m compileall -q app.py opera scripts tests` passed.
-- A production Cement Excel Mapping Update Template was generated and reopened successfully; its Field Catalogue contains the Equipment ID column and validation.
+Passed with no syntax errors.

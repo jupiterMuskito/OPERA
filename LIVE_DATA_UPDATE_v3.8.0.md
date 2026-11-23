@@ -22,13 +22,13 @@ The existing reverse-proxy URL remains `https://172.20.130.228/operationaldashbo
 
 ## Automatic compatibility behavior
 
-- If an Operations Dashboard template still has the exact v3.7 default `CF1`–`CF12` chart/table set and `CF1`–`CF8` KPI set, v3.8 presents the mixed DCS, Field, QAQC and Calculated default in memory.
+- If an Operations Dashboard template still has the exact v3.7 default `CF1`–`CF12` chart/table set and `CF1`–`CF8` KPI set, v3.8 presents the mixed Digital Data, Raw Field Data, QAQC and Calculated default in memory.
 - A genuinely customized Operations template is not replaced.
 - The runtime mapping database remains authoritative and unchanged.
 - The new equipment-aware Field Catalogue is generated only when a Super Admin prepares a new Excel Mapping Update Template.
 
 ## Full ZIP overwrite risk
 
-The full ZIP includes the unchanged seeded `data/` tree for fresh or isolated test deployments. Every file under that directory must be treated as live-state overwrite risk, including users/passwords, audit logs, readings, flags, events, lessons, notifications, field/equipment metadata, formulas, mappings, templates, constants, presets and DCS connector settings.
+The full ZIP includes the unchanged seeded `data/` tree for fresh or isolated test deployments. Every file under that directory must be treated as live-state overwrite risk, including users/passwords, audit logs, readings, flags, events, lessons, notifications, field/equipment metadata, formulas, mappings, templates, constants, presets and Digital Data connector settings.
 
 Use `OPERA-X_Code_Only_Update_v3.8.0.zip` for the server/GitHub update. It excludes `data/`, `registers/` and `reference_sources/`.

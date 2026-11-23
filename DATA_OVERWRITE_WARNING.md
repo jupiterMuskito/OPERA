@@ -1,19 +1,7 @@
-# OPERA-X v3.8.0 — Runtime Data Overwrite Warning
+# Runtime data overwrite warning
 
-No runtime data file changed between v3.7.0 and v3.8.0, and **nothing must be updated in live `~/opera_data`**.
+The recommended v3.9 code-only update contains no `data/`, `registers/` or `reference_sources/` tree and cannot overwrite live app state.
 
-The full deployment nevertheless contains the unchanged seeded runtime tree under `data/`. Do not overlay it on `~/opera_data`. Files in that tree can replace state entered through the running app, including users/passwords, audit logs, readings, flags, events, lessons, notifications, field/equipment metadata, formulas, mappings, templates, constants, presets and DCS settings.
+The full deployment ZIP contains the unchanged seeded runtime tree under `data/` for fresh/test deployment. Do not overlay it on `~/opera_data`. It can replace users/passwords, audit logs, Digital Data and Raw Field Data readings, flags, events, lessons, notifications, field/equipment metadata, formulas, mappings, templates, constants, presets and Digital Data connector settings.
 
-Use `OPERA-X_Code_Only_Update_v3.8.0.zip` for GitHub and the live server. It excludes the complete `data/`, `registers/` and `reference_sources/` trees.
-
-Required sequence:
-
-```bash
-cd ~/OPERA
-git pull
-source .venv/bin/activate
-export OPERA_DATA_DIR=~/opera_data
-~/OPERA/start_opera.sh
-```
-
-There is no v3.8 migration script to run. See `LIVE_DATA_UPDATE_v3.8.0.md`.
+No CSV, JSON or XLSX file must be updated in `~/opera_data` for v3.9.0. See `LIVE_DATA_UPDATE_v3.9.0.md`.

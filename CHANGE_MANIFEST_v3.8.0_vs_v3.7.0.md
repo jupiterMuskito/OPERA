@@ -9,7 +9,7 @@ v3.8.0 implements the six requested UI, Super Admin data-access, chart, Operatio
 - `VERSION` — updated to `3.8.0`.
 - `app.py` — banner version badge; full-width Sign Out control; clickable Home data cards with Super Admin authorization, data tables and Excel downloads; source-grouped Readings workbook; mixed-source Operations Dashboard data alignment; mixed-source Operations template administration.
 - `opera/__init__.py` — package version updated to `3.8.0`.
-- `opera/dashboard.py` — 231 px chart height (30% below 330 px); mixed DCS/Field/QAQC/Calculated Operations catalog and defaults; safe recognition of exact v3.7 calculated-only defaults; equipment-aware Field Catalogue with dropdown validation and bulk-update support.
+- `opera/dashboard.py` — 231 px chart height (30% below 330 px); mixed Digital Data/Raw Field Data/QAQC/Calculated Operations catalog and defaults; safe recognition of exact v3.7 calculated-only defaults; equipment-aware Field Catalogue with dropdown validation and bulk-update support.
 - `tests/test_app_smoke.py` — Home smoke assertion updated from passive metrics to the five requested data buttons.
 - `README.md` — v3.8 feature and deployment guidance.
 - `BUILD_NOTES.md` — v3.8 implementation and verification summary.

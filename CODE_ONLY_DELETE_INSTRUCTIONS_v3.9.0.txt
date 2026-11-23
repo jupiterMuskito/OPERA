@@ -1,0 +1,4 @@
+OPERA-X v3.9.0 vs v3.8.0
+
+No repository files need to be deleted for this update.
+Do not delete, rename or replace any file under live ~/opera_data.

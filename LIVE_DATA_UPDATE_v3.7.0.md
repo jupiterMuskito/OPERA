@@ -41,7 +41,7 @@ The script first creates a timestamped backup under `~/opera_data_backups/v3.7.0
 2. Fills missing template panel defaults up to 12 chart fields and 12 table fields while preserving the existing configured order and other template properties.
 3. Appends packaged Obajana/Ibese DCS, Lab and Field sample rows only when the exact `(Date, Time, Equipment)` key does not already exist in the live file.
 4. Leaves every existing reading unchanged.
-5. Makes no direct change to `users.csv`, audit/event/lesson/risk files, constants, presets, DCS settings or approved risk-register workbooks.
+5. Makes no direct change to `users.csv`, audit/event/lesson/risk files, constants, presets, Digital Data connector settings or approved risk-register workbooks.
 
 `field_mappings.xlsx` is reconciled automatically on first access after restart. Existing Admin overrides remain; missing records for the four new calculated fields are added. `field_mappings.runtime.json.gz` is a derived cache and may be deleted safely—the app rebuilds it from the Excel workbook.
 
