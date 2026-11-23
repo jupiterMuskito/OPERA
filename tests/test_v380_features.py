@@ -49,9 +49,9 @@ def _configure_demo(monkeypatch, tmp_path):
 
 def test_v380_version_banner_home_permissions_and_sign_out_text_are_present():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert __version__ == "3.10.0"
-    assert (ROOT / "VERSION").read_text(encoding="utf-8").strip() == "3.10.0"
-    assert 'f\'<div class="version">v{APP_VERSION}</div>' in source
+    assert __version__ == "3.10.1"
+    assert (ROOT / "VERSION").read_text(encoding="utf-8").strip() == "3.10.1"
+    assert "version_badge_html()" in source
     assert "Super Admin access is required to open and export this operational register" in source
     assert 'st.button("↪ Sign Out"' in source
     assert ".st-key-top_sign_out button{white-space:nowrap" in source

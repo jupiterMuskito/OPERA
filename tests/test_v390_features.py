@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_display_names_change_without_changing_persisted_source_ids():
-    assert __version__ == "3.10.0"
+    assert __version__ == "3.10.1"
     assert storage.SOURCES["DCS"] == "DP"
     assert storage.SOURCES["Field"] == "F"
     assert storage.source_label("DCS") == "Digital Data"
