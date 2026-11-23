@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from opera import dashboard
+from opera.version import get_version
 
 
 BUSINESS_UNITS = ["cement", "refinery", "fertilizer", "nascon", "bu5", "bu6", "bu7", "bu8", "bu9"]
@@ -102,7 +103,7 @@ def build_report() -> str:
     total_named = sum(int((frame["Field Type"] != "Placeholder").sum()) for frame in tables.values())
     total_placeholder = sum(int((frame["Field Type"] == "Placeholder").sum()) for frame in tables.values())
 
-    return f"""# OPERA-X v3.10.0 — Engineering Mapping Quality Report
+    return f"""# OPERA-X v{get_version()} — Engineering Mapping Quality Report
 
 ## Scope and method
 
