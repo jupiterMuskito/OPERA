@@ -26,7 +26,7 @@ def test_blue_page_hero_was_deleted_and_only_brand_navigation_structure_remains(
 def test_complete_mapping_includes_all_sources_placeholders_and_calculated_fields():
     mappings = dashboard.field_mapping_table("cement")
     assert len(mappings) == 10_012
-    assert set(mappings["Source"]) == {"DCS", "Field", "QAQC", "Others", "Calculated"}
+    assert set(mappings["Source"]) == {"Digital Data", "Raw Field Data", "QAQC", "Others", "Calculated"}
     assert set(mappings["Field Type"]) == {"Input", "Placeholder", "Calculated"}
     assert (mappings["Field Type"] == "Placeholder").sum() == 9_940
     assert (mappings["Field Type"] == "Calculated").sum() == 12
@@ -103,7 +103,8 @@ def test_every_authenticated_page_renders_without_exception():
         "Operational Data",
         "Event Log",
         "Operating Parameters",
-        "Risk Assessment",
+        "Process Optimization",
+        "Job Risk Assessment",
         "Lesson Bank",
         "Admin / Super Admin",
     ]

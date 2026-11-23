@@ -13,9 +13,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_four_field_groups_map_qaqc_to_lab_and_others_to_ta_tg():
     registry = storage.registry("cement")
     groups = operational.grouped_registry(registry)
-    assert set(groups) == {"DCS", "Field", "QAQC", "Others"}
-    assert set(groups["DCS"]["source"]) == {"DCS"}
-    assert set(groups["Field"]["source"]) == {"Field"}
+    assert set(groups) == {"Digital Data", "Raw Field Data", "QAQC", "Others"}
+    assert set(groups["Digital Data"]["source"]) == {"DCS"}
+    assert set(groups["Raw Field Data"]["source"]) == {"Field"}
     assert set(groups["QAQC"]["source"]) == {"Lab"}
     assert set(groups["Others"]["source"]).issubset({"TA", "TB", "TC", "TD", "TE", "TF", "TG"})
 

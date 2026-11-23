@@ -49,8 +49,8 @@ def _configure_demo(monkeypatch, tmp_path):
 
 def test_v380_version_banner_home_permissions_and_sign_out_text_are_present():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert __version__ == "3.8.0"
-    assert (ROOT / "VERSION").read_text(encoding="utf-8").strip() == "3.8.0"
+    assert __version__ == "3.9.0"
+    assert (ROOT / "VERSION").read_text(encoding="utf-8").strip() == "3.9.0"
     assert 'f\'<div class="version">v{APP_VERSION}</div>' in source
     assert "Super Admin access is required to open and export this operational register" in source
     assert 'signout.button("↪ Sign Out"' in source
@@ -67,7 +67,7 @@ def test_home_readings_export_is_grouped_into_excel_sheets(monkeypatch, tmp_path
     storage.atomic_write_csv(input_dir / "field.csv", pd.DataFrame([{"Date": "2026-11-18", "F1": "9"}]))
     storage.atomic_write_csv(input_dir / "lab.csv", pd.DataFrame([{"Date": "2026-11-18", "L1": "96"}]))
     sheets = home_detail_sheets("demo", "viewer", "Readings")
-    assert list(sheets) == ["DCS", "Field", "QAQC", "Other TA", "Other TB", "Other TC", "Other TD", "Other TE", "Other TF", "Other TG"]
+    assert list(sheets) == ["Digital Data", "Raw Field Data", "QAQC", "Other TA", "Other TB", "Other TC", "Other TD", "Other TE", "Other TF", "Other TG"]
     assert all(frame.empty or "Source" in frame.columns for frame in sheets.values())
     workbook = load_workbook(BytesIO(exports.excel_bytes(sheets)), read_only=True)
     assert workbook.sheetnames == list(sheets)
@@ -103,10 +103,10 @@ def test_field_catalogue_shows_equipment_and_uses_dropdown_for_bulk_update(monke
     workbook = load_workbook(BytesIO(payload))
     sheet = workbook["Field Catalogue"]
     assert [cell.value for cell in sheet[1]] == [
-        "Field ID", "Data Field", "Source", "Status", "Field Type", "Equipment ID", "Equipment", "Include"
+        "Field ID", "Data Field", "Source", "Status", "Field Type", "Equipment ID", "Equipment", "Dashboard Template ID", "Dashboard Template", "Include"
     ]
     formulas = {validation.formula1 for validation in sheet.data_validations.dataValidation}
-    assert formulas == {"=MappingFieldIDs", "=MappingEquipmentIDs", "=MappingIncludeOptions"}
+    assert formulas == {"=MappingFieldIDs", "=MappingEquipmentIDs", "=MappingTemplateIDs", "=MappingIncludeOptions"}
     assert any(sheet.cell(row, 7).value for row in range(2, sheet.max_row + 1))
 
     for row in range(2, sheet.max_row + 1):
