@@ -1,4 +1,4 @@
-# OPERA-X v3.10.0 — Engineering Mapping Quality Report
+# OPERA-X v3.10.1 — Engineering Mapping Quality Report
 
 ## Scope and method
 
@@ -156,7 +156,7 @@ These are not silent guesses. Most indicate that the physically correct equipmen
 
 ## Twenty named mappings for spot-checking
 
-| BU | Raw Field Data | Equipment | Templates | Reason | Confidence |
+| BU | Field | Equipment | Templates | Reason | Confidence |
 |---|---|---|---|---|---|
 | cement | DP1 — Kiln Feed Rate | Rotary Kiln; Rotary Kiln; Rotary Kiln | Plant Performance; Process Performance | Kiln feed is the solids throughput entering each rotary kiln. | High |
 | cement | DP8 — Clinker Cooler Outlet Temperature | Clinker Cooler; Clinker Cooler; Clinker Cooler | Process Performance; Quality and Compliance | Clinker outlet temperature is produced at the clinker cooler discharge. | High |

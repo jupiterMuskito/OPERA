@@ -1,0 +1,5 @@
+OPERA-X v3.10.1 vs v3.10.0
+
+No files must be deleted for this update.
+
+Do not delete, rename or replace any file under live ~/opera_data.

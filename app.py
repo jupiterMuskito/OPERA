@@ -12,10 +12,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from opera import __version__ as APP_VERSION
 from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, risk_store, storage
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
+from opera.version import version_badge_html
 
 APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_x_icon.png"
 DANGOTE_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_group_logo.webp"
@@ -188,7 +188,7 @@ def top_navigation(user: auth.User, bu: str) -> str:
         st.markdown(
             '<div class="app-ribbon"><div class="name">OPERA-X</div>'
             f'<div class="ribbon-meta"><div class="tagline">Operational Excellence and Reliability Assistant · One Platform for All Plant Operational Data</div>'
-            f'<div class="version">v{APP_VERSION}</div></div></div>',
+            f'{version_badge_html()}</div></div>',
             unsafe_allow_html=True,
         )
     available = [page for page in PAGES if page != "Admin / Super Admin" or auth.allowed(user, "configure")]
@@ -1433,17 +1433,31 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
     st.markdown("##### Excel mapping database and bulk update")
     st.caption(
         "Download the controlled update template for Excel dropdowns and bulk changes, or download the live backend "
-        "database for review. Bulk uploads validate every Field ID, Equipment ID and Dashboard Template ID before saving."
+        "database for review. In the update template, Field Catalogue places Dashboard Template ID and Dashboard Template "
+        "beside the equipment columns; add one row per additional equipment/template relationship. Bulk uploads validate "
+        "every Field ID, Equipment ID and Dashboard Template ID before saving."
     )
     prepare_template_col, prepare_database_col = st.columns(2)
     if prepare_template_col.button("Prepare Excel Mapping Update Template", key=f"prepare_mapping_update_template_{mapping_bu}"):
-        st.session_state.mapping_update_template = dashboard.mapping_update_template_bytes(mapping_bu)
-        st.session_state.mapping_update_template_bu = mapping_bu
-        storage.audit(mapping_bu, user.username, "field_mapping_update_template_prepared")
+        # Never leave an older, pre-upgrade workbook available if fresh
+        # generation fails while a live mapping database is being migrated.
+        st.session_state.pop("mapping_update_template", None)
+        st.session_state.pop("mapping_update_template_bu", None)
+        try:
+            st.session_state.mapping_update_template = dashboard.mapping_update_template_bytes(mapping_bu)
+            st.session_state.mapping_update_template_bu = mapping_bu
+            storage.audit(mapping_bu, user.username, "field_mapping_update_template_prepared")
+        except Exception as exc:
+            st.error(f"The Excel Mapping Update Template could not be prepared: {exc}")
     if prepare_database_col.button("Prepare Excel Mapping Database", key=f"prepare_mapping_database_{mapping_bu}"):
-        st.session_state.mapping_database_download = dashboard.mapping_database_bytes(mapping_bu)
-        st.session_state.mapping_database_download_bu = mapping_bu
-        storage.audit(mapping_bu, user.username, "field_mapping_database_prepared")
+        st.session_state.pop("mapping_database_download", None)
+        st.session_state.pop("mapping_database_download_bu", None)
+        try:
+            st.session_state.mapping_database_download = dashboard.mapping_database_bytes(mapping_bu)
+            st.session_state.mapping_database_download_bu = mapping_bu
+            storage.audit(mapping_bu, user.username, "field_mapping_database_prepared")
+        except Exception as exc:
+            st.error(f"The Excel Mapping Database could not be prepared: {exc}")
 
     download_template_col, download_database_col = st.columns(2)
     if st.session_state.get("mapping_update_template_bu") == mapping_bu and "mapping_update_template" in st.session_state:

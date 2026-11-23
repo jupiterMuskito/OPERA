@@ -63,6 +63,8 @@ The named defaults are field-by-field process-engineering assignments, not round
 
 When equipment or a dashboard template is selected, related data-field dropdowns are automatically filtered by the applicable map. This applies to Plant Overview, Equipment Overview, Manual Entry, Bulk Upload, Event Log field updates, and Operating Parameters. Operations Dashboard KPI and chart controls remain filtered by the chosen Operations template.
 
+To download the controlled mapping workbook, use **Admin / Super Admin → Data Field Mapping → Excel mapping database and bulk update → Prepare Excel Mapping Update Template → Download Excel Update Template**. In **Field Catalogue**, the Dashboard Template ID/Template columns sit beside the Equipment ID/Equipment columns. Add another included row for each additional equipment or dashboard-template relationship. The five Dashboard Template IDs are controlled by an Excel dropdown and are listed with their names in **Template Catalogue**.
+
 **Admin / Super Admin → Field Mappings** shows the complete effective mapping—not only overrides—with business-unit, plant, unit, equipment, dashboard-template, source and status filters plus Field ID/name search. It includes field, reverse-equipment and reverse-template views. Administrators can edit or reset any active, placeholder or calculated field. Saves are written to the audit log and persisted directly in `field_mappings.xlsx`; the `Default Mappings` sheet supplies the reset baseline.
 
 The page provides three Excel workflows. The Excel workbook remains authoritative; a derived compressed runtime cache is rebuilt automatically when the workbook changes, cutting repeated page reads without hiding Admin edits:
@@ -70,6 +72,8 @@ The page provides three Excel workflows. The Excel workbook remains authoritativ
 - **Excel Mapping Update Template** — a combined Field Catalogue where each editable row maps a field to both an Equipment ID and Dashboard Template ID, with dropdown validation for both columns plus Field ID and Include. Field Review retains controlled Apply Update and Confidence inputs. Separate equipment/template sheets remain for compatibility.
 - **Bulk upload** — validates IDs, required sheets, non-empty relationships, confidence values and Digital Data/Raw Field Data pair integrity before atomically updating the mapping database and audit log.
 - **Excel Mapping Database / Complete Mapping Workbook** — backend database review plus human-readable field, equipment and template views.
+
+Pre-v3.9 live mapping workbooks are upgraded automatically when loaded. Missing `Template IDs` and `Dashboard Templates` columns are added in place from the retained mappings/current engineering defaults; existing equipment mappings, administrator metadata and other worksheets are preserved. No manual `~/opera_data` edit is required.
 
 Instrument Check reads recorded Digital Data/Raw Field Data pairs from the mapping database and selects the appropriate same-point pair by default. See `MAPPING_QUALITY_REPORT.md` for counts by BU/template, all named `Review` items, grouped placeholder reviews, calculated-field checks, and 20 sample mappings with their reasoning.
 
@@ -79,7 +83,7 @@ Each BU has one CSV per source: Digital Data (`DP1–DP1000`, persisted internal
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.10.0_vs_v3.9.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.10 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.10.0.md`.
+For an existing v3.10.0 deployment, apply `OPERA-X_Code_Only_Update_v3.10.1_vs_v3.10.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.10.1 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.10.1.md`.
 
 ## Risk registers
 
@@ -98,6 +102,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The automated suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the stacked header layout, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and fixed-navigation UI.
+The automated suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the stacked header layout, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, fixed-navigation UI, and agreement between the banner, package version and authoritative `VERSION` file.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.10.0.md`, `CHANGE_MANIFEST_v3.10.0_vs_v3.9.0.md`, and the retained earlier root-cause/performance reports.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `ROOT_CAUSE_AND_FIX_v3.10.1.md`, `LIVE_DATA_UPDATE_v3.10.1.md`, `CHANGE_MANIFEST_v3.10.1_vs_v3.10.0.md`, and the retained earlier release, root-cause and performance reports.
