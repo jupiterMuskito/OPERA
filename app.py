@@ -19,42 +19,31 @@ from opera.risk_pdf import build_pdf
 
 APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_x_icon.png"
 DANGOTE_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_group_logo.webp"
-VISION_2030_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030.jpg"
-VISION_2030_COMPACT = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030_compact.jpg"
+VISION_2030_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030.png"
+VISION_2030_COMPACT = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030_compact.png"
 st.set_page_config(page_title="OPERA-X", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
 PAGES = [
-    "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data",
+    "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data Pipeline",
     "Event Log", "Operating Parameters", "Process Optimization", "Job Risk Assessment", "Lesson Bank", "Admin / Super Admin",
 ]
 MODULE_CATEGORIES = {
-    "Operational Data": ["Plant Overview", "Equipment Overview", "Operations Dashboard", "Operating Parameters", "Operational Data"],
-    "Operational Knowledge": ["Event Log", "Lesson Bank"],
-    "Process Optimization": ["Process Optimization"],
-    "Job Risk Assessment": ["Job Risk Assessment"],
+    "Operational Data": [
+        "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operating Parameters",
+        "Operational Data Pipeline", "Process Optimization",
+    ],
+    "Operational Knowledge": ["Event Log", "Lesson Bank", "Job Risk Assessment"],
 }
-CATEGORY_STYLE = {
-    "Operational Data": ("🔵", "category-data"),
-    "Operational Knowledge": ("🟢", "category-knowledge"),
-    "Process Optimization": ("🟣", "category-optimization"),
-    "Job Risk Assessment": ("🟠", "category-risk"),
-}
-PAGE_CATEGORY = {page: category for category, pages in MODULE_CATEGORIES.items() for page in pages}
 
 
 def asset_data_uri(path: Path) -> str:
     """Encode a packaged brand asset for reliable display behind either proxy."""
-    mime = "image/webp" if path.suffix.lower() == ".webp" else "image/jpeg"
+    mime = {
+        ".webp": "image/webp",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+    }.get(path.suffix.lower(), "application/octet-stream")
     return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode('ascii')}"
-
-
-def navigation_label(page: str) -> str:
-    if page == "OPERA-X Home":
-        return "⌂ OPERA-X Home"
-    if page == "Admin / Super Admin":
-        return "⚙ Admin / Super Admin"
-    category = PAGE_CATEGORY.get(page, "")
-    icon = CATEGORY_STYLE.get(category, ("", ""))[0]
-    return f"{icon} {category} · {page}" if category and category != page else f"{icon} {page}".strip()
 
 
 def styles() -> None:
@@ -86,7 +75,7 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .badge-good,.badge-bad,.badge-neutral{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-weight:700;font-size:.75rem;margin-top:.35rem}.badge-good{background:#E4ECF9;color:var(--blue-dark)}.badge-bad{background:#FBE5E5;color:#9F1F2A}.badge-neutral{background:#EDF1F5;color:#44576B}
 .small-note{color:#60758A;font-size:.82rem;margin-top:.2rem}
 .stButton>button,.stDownloadButton>button{border-radius:8px;border:1px solid var(--blue);font-weight:650;min-height:2.45rem}
-.st-key-top_sign_out button{white-space:nowrap;min-width:7rem;font-size:.86rem;padding-left:.65rem;padding-right:.65rem}
+.st-key-top_change_bu button,.st-key-top_sign_out button{white-space:nowrap;min-width:7rem;font-size:.82rem;padding-left:.5rem;padding-right:.5rem}
 .stButton>button[kind="primary"]{background:var(--blue);color:#fff}.stButton>button[kind="primary"]:hover{background:var(--blue-dark);color:#fff}
 div[data-testid="stForm"],div[data-testid="stVerticalBlockBorderWrapper"]{background:#fff;border-color:var(--border)!important;border-radius:12px}
 div[data-testid="stMetric"]{background:#fff;border:1px solid var(--border);padding:1rem 1.1rem;border-radius:10px;min-height:110px;display:flex;justify-content:center}
@@ -96,12 +85,12 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 .metric-card.bad{border-top-color:var(--red)}.metric-value{font-size:1.65rem;font-weight:750;color:var(--blue-dark);line-height:1.15;margin:.55rem 0 .35rem}.metric-title{font-size:.84rem;color:var(--muted);font-weight:700;min-height:2.35rem;line-height:1.35}.metric-meta{font-size:.8rem;color:var(--muted);line-height:1.35}
 .kpi-field-selector{margin-bottom:.3rem}.home-card{height:124px;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:10px;padding:1rem 1.05rem .85rem;box-shadow:0 2px 8px rgba(21,34,56,.04)}.home-card h4{margin:0 0 .45rem;color:var(--blue-dark);font-size:1rem}.home-card p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.35}
 .st-key-home_metric_cards .stButton>button{min-height:86px;width:100%;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);color:var(--blue-dark);font-size:1rem;font-weight:800;white-space:pre-line;line-height:1.5;box-shadow:0 2px 8px rgba(21,34,56,.04)}
-.nav-category-legend{display:flex;gap:.4rem;flex-wrap:wrap;margin:.1rem .25rem .35rem}.category-chip,.module-category{border-radius:999px;padding:.22rem .65rem;font-size:.76rem;font-weight:800;display:inline-block}.module-category{font-size:.86rem;margin:.2rem 0 .6rem}.category-data{background:#E7F0FF;color:#0F3F9C}.category-knowledge{background:#E5F5EF;color:#176B51}.category-optimization{background:#F0EAFE;color:#6941C6}.category-risk{background:#FFF0E1;color:#A84F08}
-.vision-nav{text-align:center;height:32px;overflow:hidden;margin-top:.1rem}.vision-nav img{width:94px;height:31px;object-fit:contain;background:#fff;border-radius:5px;padding:1px 4px}
+.module-group{margin:.25rem 0 .65rem;color:var(--blue-dark);font-size:1.05rem;font-weight:800}
+.vision-nav{height:72px;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;padding-top:1px}.vision-nav img{width:100%;max-width:142px;max-height:70px;object-fit:contain}
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.app-ribbon .ribbon-meta{align-items:flex-start}.home-card{height:auto;min-height:112px}}
+@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.app-ribbon .ribbon-meta{align-items:flex-start}.home-card{height:auto;min-height:112px}.vision-nav{height:62px}.vision-nav img{max-height:60px}}
 </style>
 """,
         unsafe_allow_html=True,
@@ -216,33 +205,29 @@ def top_navigation(user: auth.User, bu: str) -> str:
                 f'<div class="nav-context"><strong>{name}</strong> · {user.display_name} · {user.role}</div>',
                 unsafe_allow_html=True,
             )
-            legend = "".join(
-                f'<span class="category-chip {css_class}">{icon} {category}</span>'
-                for category, (icon, css_class) in CATEGORY_STYLE.items()
-            )
-            st.markdown(f'<div class="nav-category-legend">{legend}</div>', unsafe_allow_html=True)
             page = st.radio(
                 "Navigation",
                 available,
                 horizontal=True,
                 key="top_navigation",
                 label_visibility="collapsed",
-                format_func=navigation_label,
             )
         show_notifications = notice.toggle(f"🔔 {len(unread)}", key="show_notifications", help="Show unread notifications")
         with actions:
-            change, signout = st.columns(2, gap="small")
-            if change.button("⇄ Change BU", width="stretch", key="top_change_bu"):
-                st.session_state.pop("bu", None)
-                st.rerun()
-            if signout.button("↪ Sign Out", width="stretch", key="top_sign_out"):
-                storage.audit(bu, user.username, "logout")
-                st.session_state.clear()
-                st.rerun()
-            st.markdown(
-                f'<div class="vision-nav"><img src="{asset_data_uri(VISION_2030_COMPACT)}" alt="Dangote Vision 2030"></div>',
-                unsafe_allow_html=True,
-            )
+            button_stack, logo = st.columns([1.0, 1.2], gap="small", vertical_alignment="center")
+            with button_stack:
+                if st.button("⇄ Change BU", width="stretch", key="top_change_bu"):
+                    st.session_state.pop("bu", None)
+                    st.rerun()
+                if st.button("↪ Sign Out", width="stretch", key="top_sign_out"):
+                    storage.audit(bu, user.username, "logout")
+                    st.session_state.clear()
+                    st.rerun()
+            with logo:
+                st.markdown(
+                    f'<div class="vision-nav"><img src="{asset_data_uri(VISION_2030_COMPACT)}" alt="Dangote Vision 2030"></div>',
+                    unsafe_allow_html=True,
+                )
         if show_notifications:
             if unread.empty:
                 st.caption("No unread notifications.")
@@ -583,7 +568,7 @@ def page_home(bu: str, user: auth.User) -> None:
         "Plant Overview": "Plant-level trends, conditions and period reports",
         "Equipment Overview": "Equipment trends using configurable dashboard templates",
         "Operations Dashboard": "Aligned KPI cards, targets, period views and chart grids",
-        "Operational Data": "Manual Entry, Bulk Upload, Derived Data and Analyze Data in one ribbon",
+        "Operational Data Pipeline": "Manual Entry, Bulk Upload, Derived Data and Analyze Data in one ribbon",
         "Operating Parameters": "Process and QAQC trends across configured equipment",
         "Event Log": "Events, Raw Field Data updates, pictures and notifications",
         "Lesson Bank": "Searchable lessons, files and PDF downloads",
@@ -591,8 +576,7 @@ def page_home(bu: str, user: auth.User) -> None:
         "Job Risk Assessment": "Register-backed deterministic job hazard assessment",
     }
     for category, pages in MODULE_CATEGORIES.items():
-        icon, css_class = CATEGORY_STYLE[category]
-        st.markdown(f'<div class="module-category {css_class}">{icon} {category}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="module-group">{category}</div>', unsafe_allow_html=True)
         for start in range(0, len(pages), 3):
             cols = st.columns(3, gap="medium")
             for col, title in zip(cols, pages[start:start + 3]):
@@ -602,14 +586,6 @@ def page_home(bu: str, user: auth.User) -> None:
                         st.session_state.requested_page = title
                         st.rerun()
             st.markdown("<div style='height:.8rem'></div>", unsafe_allow_html=True)
-    if auth.allowed(user, "configure"):
-        st.markdown('<div class="module-category category-data">⚙ Administration</div>', unsafe_allow_html=True)
-        left, _, _ = st.columns(3, gap="medium")
-        with left:
-            st.markdown('<div class="home-card"><h4>Admin / Super Admin</h4><p>No-code fields, charts, templates, equipment and validation lists</p></div>', unsafe_allow_html=True)
-            if st.button("Open Admin / Super Admin", key="home_Admin / Super Admin", width="stretch"):
-                st.session_state.requested_page = "Admin / Super Admin"
-                st.rerun()
 
 
 def page_plant(bu: str, user: auth.User) -> None:
@@ -889,8 +865,9 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
 
 
 def page_operational_data(bu: str, user: auth.User) -> None:
+    st.markdown("### Operational Data Pipeline")
     sections = ["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"]
-    section = st.radio("Operational Data View", sections, horizontal=True, label_visibility="collapsed", key="operational_data_view")
+    section = st.radio("Operational Data Pipeline View", sections, horizontal=True, label_visibility="collapsed", key="operational_data_view")
     if section == "Manual Entry":
         manual_entry_panel(bu, user)
     elif section == "Bulk Upload":
@@ -1001,7 +978,7 @@ def page_analysis(bu: str, user: auth.User) -> None:
                             forecasts.append({"Field ID": field_id, "Data Field": name, "Trend Slope": slope, "Forecast End": intercept + slope * (len(values) + horizon - 1)})
                     display_data_table(pd.DataFrame(forecasts), bu, hide_index=True)
                 display_data_table(summary, bu, width="stretch", hide_index=True)
-                export_panel(summary, f"{analysis} Analysis", bu, user, "analysis")
+                export_panel(summary, f"Operational Data Pipeline {analysis} Analysis", bu, user, "analysis")
     with dcs_tab:
         st.markdown("#### Instrument Check")
         st.caption("Compare one Raw Field Data reading with one Digital Data reading. These are the only comparison sources available in Instrument Check.")
@@ -1044,13 +1021,13 @@ def page_analysis(bu: str, user: auth.User) -> None:
             chart_type, axis_mode = chart_controls("Line", "field_dcs")
             dashboard.render_chart_grid(chart, [field_id, dcs_id], chart_type, axis_mode, "field_dcs")
             display_data_table(comparison, bu, width="stretch", hide_index=True)
-            export_panel(comparison, "Instrument Check", bu, user, "instrument_check")
+            export_panel(comparison, "Operational Data Pipeline Instrument Check", bu, user, "instrument_check")
         else:
             st.info("No paired readings are available for this selection.")
 
 
 def page_process_optimization(bu: str, user: auth.User) -> None:
-    """Standalone Process Optimization module (moved from Operational Data)."""
+    """Process Optimization module within the Operational Data group."""
     data = long_data(bu)
     st.markdown("#### Bounded Response Optimization")
     st.caption("This decision-support tool fits a linear response model from aligned historical readings, then applies bounds to maximize, minimize or match an outcome. Review operational and safety constraints before use.")
@@ -1115,7 +1092,7 @@ def page_output(bu: str, user: auth.User) -> None:
         rows.append({"Business Unit": bu, "Calculated Field": field_id, "Name": metadata["field_name"], method: value, "UOM": metadata["uom"], "Target": metadata["period_target"], "Variance": variance, "Status": status})
     result = pd.DataFrame(rows)
     display_data_table(result, bu, width="stretch", hide_index=True)
-    export_panel(result, "Calculated Data Output", bu, user, "output")
+    export_panel(result, "Operational Data Pipeline Calculated Data Output", bu, user, "output")
     st.markdown("#### Complete Excel Workbooks")
     if st.button("Prepare Input, Calculated and Merged Excel"):
         inputs = storage.input_data(bu, list(storage.SOURCES))
@@ -1431,7 +1408,7 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
     st.markdown("#### Data Field Mapping")
     st.markdown(
         '<div class="panel-note"><strong>How mapping works:</strong> OPERA-X uses the equipment and dashboard-template '
-        'mappings below to filter data-field dropdowns across Plant Overview, Equipment Overview, Operational Data, '
+        'mappings below to filter data-field dropdowns across Plant Overview, Equipment Overview, Operational Data Pipeline, '
         'Event Log and Operating Parameters. The complete runtime mapping is stored in an Admin-viewable Excel database; '
         'a single edit or validated bulk upload creates an audited override that takes effect immediately.</div>',
         unsafe_allow_html=True,
@@ -1877,6 +1854,8 @@ def page_admin(bu: str, user: auth.User) -> None:
                     "risk_assessment_exported": "job_risk_assessment_exported",
                     "risk_register_activated": "job_risk_assessment_register_activated",
                     "dcs_connector_configured": "digital_data_connector_configured",
+                    "data_input_saved": "operational_data_pipeline_input_saved",
+                    "bulk_upload": "operational_data_pipeline_bulk_upload",
                 }
             )
         safe_dataframe(audit_view.sort_values("timestamp", ascending=False) if not audit_view.empty else audit_view, width="stretch", hide_index=True)
@@ -1913,7 +1892,7 @@ def main() -> None:
     page = top_navigation(user, bu)
     routes = {
         "OPERA-X Home": page_home, "Plant Overview": page_plant, "Equipment Overview": page_equipment,
-        "Operations Dashboard": page_operations, "Operational Data": page_operational_data, "Event Log": page_events,
+        "Operations Dashboard": page_operations, "Operational Data Pipeline": page_operational_data, "Event Log": page_events,
         "Operating Parameters": page_parameters, "Process Optimization": page_process_optimization,
         "Job Risk Assessment": page_risk, "Lesson Bank": page_lessons,
         "Admin / Super Admin": page_admin,

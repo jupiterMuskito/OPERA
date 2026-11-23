@@ -34,17 +34,18 @@ Change or disable every seeded account before production. Passwords are PBKDF2-S
 
 `Login → Business Unit → fixed OPERA-X brand ribbon → fixed merged navigation → module content`
 
-The fixed first ribbon carries OPERA-X branding. The fixed navigation bar directly contains navigation, business-unit/user context, notifications, **Change BU**, **Sign Out**, and a compact Vision 2030 mark. Navigation labels and the Home screen use four colour-coded categories: **Operational Data**, **Operational Knowledge**, **Process Optimization**, and **Job Risk Assessment**. The rounded blue page-title/subtitle hero has been removed from every authenticated module and was not replaced by another coloured banner.
+The fixed first ribbon carries OPERA-X branding. The fixed navigation bar retains the compact v3.8-style page labels and directly contains navigation, business-unit/user context and notifications. **Change BU** is stacked above **Sign Out**, with a transparent Vision 2030 mark beside the button stack. The rounded blue page-title/subtitle hero remains removed from authenticated modules.
 
 Modules:
 
-- **Operational Data:** Plant Overview, Equipment Overview, Operations Dashboard, Operating Parameters, and the retained Operational Data workspace for Manual Entry, Bulk Upload, Derived Data and Analyze Data.
-- **Operational Knowledge:** Event Log and Lesson Bank.
-- **Process Optimization:** a standalone bounded-response decision-support module. It was moved out of Operational Data; no duplicate Optimization tab remains there.
-- **Job Risk Assessment:** deterministic, register-backed job hazard assessment with Job Risk Assessment PDF and Excel/CSV export labels.
+- **Operational Data:** Plant Overview, Equipment Overview, Operations Dashboard, Operating Parameters, Process Optimization, and **Operational Data Pipeline**.
+- **Operational Data Pipeline:** the user-facing name for the retained Manual Entry, Bulk Upload, Derived Data and Analyze Data workspace. Internal route, file and storage identifiers remain unchanged.
+- **Operational Knowledge:** Event Log, Lesson Bank, and Job Risk Assessment.
+- **Process Optimization:** bounded-response decision support grouped under Operational Data; no duplicate Optimization tab remains in Operational Data Pipeline.
+- **Job Risk Assessment:** deterministic, register-backed job hazard assessment grouped under Operational Knowledge, with Job Risk Assessment PDF and Excel/CSV export labels.
 - Plant Overview, Equipment Overview and Operations Dashboard provide configurable templates, KPI fields, chart fields, table fields, and chart type. Operations setup accepts Digital Data, Raw Field Data, QAQC and Calculated fields in one catalog.
 - CPP-style charts: 12 configurable template fields, rendered four panels at a time in a two-column grid for responsive loading, or in one combined same-axis chart. v3.8 uses a compact 231 px chart height.
-- Operational Data uses one lazy-loaded ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes. Analyze Data contains comparisons, statistics, forecasts and Instrument Check.
+- Operational Data Pipeline uses one lazy-loaded ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes. Analyze Data contains comparisons, statistics, forecasts and Instrument Check.
 - Digital Data endpoint setup and manual pipeline execution are under **Admin / Super Admin → Digital Data Connector**.
 - Event Log supports report, table, or picture events; notifications; and optional mapped Raw Field Data updates.
 - Lesson Bank supports event links, attachments, read counts, and OPERA-X PDF downloads.
@@ -78,7 +79,7 @@ Each BU has one CSV per source: Digital Data (`DP1–DP1000`, persisted internal
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.9.0_vs_v3.8.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.9 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.9.0.md`.
+For an existing deployment, apply `OPERA-X_Code_Only_Update_v3.10.0_vs_v3.9.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.10 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.10.0.md`.
 
 ## Risk registers
 
@@ -97,6 +98,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The 54-test suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, standalone Process Optimization, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and fixed-navigation UI.
+The automated suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the stacked header layout, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and fixed-navigation UI.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.9.0.md`, `CHANGE_MANIFEST_v3.9.0_vs_v3.8.0.md`, and the retained earlier root-cause/performance reports.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.10.0.md`, `CHANGE_MANIFEST_v3.10.0_vs_v3.9.0.md`, and the retained earlier root-cause/performance reports.

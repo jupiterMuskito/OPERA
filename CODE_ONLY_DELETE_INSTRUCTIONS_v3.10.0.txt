@@ -1,0 +1,8 @@
+OPERA-X v3.10.0 vs v3.9.0
+
+Delete these obsolete, unused JPEG assets from the repository after applying the code-only ZIP:
+
+assets/dangote_vision_2030.jpg
+assets/dangote_vision_2030_compact.jpg
+
+Do not delete, rename or replace any file under live ~/opera_data.

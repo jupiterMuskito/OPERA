@@ -1,29 +1,32 @@
-# OPERA-X v3.9.0 test results
+# OPERA-X v3.10.0 test results
 
 ## Automated suite
 
 ```text
 pytest -q
-54 passed
+59 passed
 ```
 
-The suite covers authentication, permissions, BU selection, formulas, storage validation, hierarchy/equipment administration, configurable dashboards, mapping persistence, Admin-to-chart propagation, responsive chart controls, Home data exports, and every authenticated route.
+The complete retained suite passed, including authentication, permissions, BU selection, formulas, storage validation, hierarchy/equipment administration, configurable dashboards, mapping persistence, Admin propagation, Home exports and every authenticated route.
 
-## New v3.9 coverage
+## New v3.10 coverage
 
-1. Display labels are **Digital Data** and **Raw Field Data**, while persisted source keys remain `DCS` and `Field` and ID prefixes remain `DP` and `F`.
-2. Home reading Excel exports use Digital Data and Raw Field Data worksheet/source labels.
-3. The Field Catalogue contains Equipment ID/Equipment and Dashboard Template ID/Dashboard Template on the same row.
-4. Field Catalogue Equipment ID and Dashboard Template ID cells use controlled named-range dropdowns; Include remains validated.
-5. A single bulk upload updates both equipment and dashboard-template mappings and takes effect in the mapping database.
-6. Process Optimization is a standalone route and no Optimization tab remains in Operational Data → Analyze Data.
-7. Four module categories, all three brand placements and the enlarged sign-in tagline are packaged.
-8. Job Risk Assessment is used in navigation, Home, page/buttons, export titles/filenames, Admin labels, PDF metadata and audit labels while `risk_assessments.csv` remains stable.
+1. The Home category remains **Operational Data** and includes Operational Data Pipeline plus Process Optimization.
+2. Operational Knowledge includes Event Log, Lesson Bank and Job Risk Assessment.
+3. Operational Data Pipeline is used in navigation, Home, the module heading, export names and displayed audit labels.
+4. The rejected longer rename does not appear in application source.
+5. Navigation contains no v3.9 category prefixes, legend, category style mapping or category colour CSS.
+6. Admin / Super Admin is absent from Home and remains in the authorized top navigation route.
+7. Change BU precedes Sign Out in one vertical stack, with Vision 2030 in the adjacent column.
+8. Full and compact Vision 2030 PNGs have real transparent and opaque pixels; obsolete JPEG files are absent.
 
-## Additional checks
+## Compile check
 
 ```text
 python -m py_compile app.py opera/*.py scripts/*.py
+passed
 ```
 
-Passed with no syntax errors.
+## Visual check
+
+Headless Chromium rendered the sign-in page, Home/header and Operational Data Pipeline page at 1600×1000. All required labels and controls were found and no Streamlit exception panel was visible. See `VISUAL_VERIFICATION_v3.10.0.md` and `verification/`.
