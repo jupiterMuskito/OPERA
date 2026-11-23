@@ -179,6 +179,7 @@ MAPPING_COLUMNS = [
     "Field Type",
     "Equipment IDs",
     "Template IDs",
+    "Dashboard Templates",
     "Instrument Check Pair IDs",
     "Mapping Basis",
     "Confidence",
@@ -247,6 +248,129 @@ def _records_from_mapping_frame(frame: pd.DataFrame) -> dict[str, dict[str, Any]
     return records
 
 
+def _template_ids_from_names(value: Any) -> list[str]:
+    """Resolve human-readable dashboard-template names used by older workbooks."""
+    by_name = {name.casefold(): template_id for template_id, name in MAPPING_TEMPLATES.items()}
+    return list(
+        dict.fromkeys(
+            by_name[item.casefold()]
+            for item in _split_mapping_ids(value)
+            if item.casefold() in by_name
+        )
+    )
+
+
+def _workbook_template_relationships(workbook: Workbook) -> dict[str, list[str]]:
+    """Read any legacy standalone template-mapping sheet before schema upgrade."""
+    if "Template Mappings" not in workbook.sheetnames:
+        return {}
+    sheet = workbook["Template Mappings"]
+    headers = {str(cell.value or "").strip(): cell.column for cell in sheet[1]}
+    field_column = headers.get("Field ID")
+    template_column = headers.get("Dashboard Template ID") or headers.get("Template ID")
+    include_column = headers.get("Include")
+    if not field_column or not template_column:
+        return {}
+    relationships: dict[str, list[str]] = {}
+    for row in range(2, sheet.max_row + 1):
+        field_id = str(sheet.cell(row, field_column).value or "").strip()
+        template_id = str(sheet.cell(row, template_column).value or "").strip()
+        include = str(sheet.cell(row, include_column).value or "Yes").strip().lower() if include_column else "yes"
+        if field_id and template_id and include == "yes" and template_id in MAPPING_TEMPLATES:
+            relationships.setdefault(field_id, []).append(template_id)
+    return {field_id: list(dict.fromkeys(values)) for field_id, values in relationships.items()}
+
+
+def _upgrade_mapping_database_template_schema(bu: str, path: Path) -> bool:
+    """Add template mapping columns to pre-v3.9 live workbooks in place.
+
+    Existing cells, worksheets and administrator equipment mappings are retained.
+    Missing template values are recovered from a legacy Template Mappings sheet,
+    a pre-v3.6 JSON override, or the current engineering defaults, in that order.
+    """
+    workbook = load_workbook(path)
+    target_sheets = [name for name in ("Field Mappings", "Default Mappings") if name in workbook.sheetnames]
+    if not target_sheets:
+        workbook.close()
+        return False
+
+    needs_upgrade = False
+    for sheet_name in target_sheets:
+        headers = {str(cell.value or "").strip() for cell in workbook[sheet_name][1]}
+        if "Template IDs" not in headers or "Dashboard Templates" not in headers:
+            needs_upgrade = True
+            break
+    if not needs_upgrade:
+        workbook.close()
+        return False
+
+    seeded = _seed_field_mapping_records(bu)
+    standalone = _workbook_template_relationships(workbook)
+    legacy = storage.json_setting(_legacy_field_mappings_path(bu), {})
+    legacy = legacy if isinstance(legacy, dict) else {}
+
+    for sheet_name in target_sheets:
+        sheet = workbook[sheet_name]
+        original_headers = {str(cell.value or "").strip(): cell.column for cell in sheet[1]}
+        recovered: dict[str, list[str]] = {}
+        field_column = original_headers.get("Field ID", 1)
+        template_column = original_headers.get("Template IDs") or original_headers.get("Dashboard Template IDs")
+        template_name_column = original_headers.get("Dashboard Templates") or original_headers.get("Dashboard Template")
+        for row in range(2, sheet.max_row + 1):
+            field_id = str(sheet.cell(row, field_column).value or "").strip()
+            if not field_id:
+                continue
+            template_ids = _split_mapping_ids(sheet.cell(row, template_column).value) if template_column else []
+            if not template_ids and template_name_column:
+                template_ids = _template_ids_from_names(sheet.cell(row, template_name_column).value)
+            if template_ids:
+                recovered[field_id] = [item for item in template_ids if item in MAPPING_TEMPLATES]
+
+        headers = {str(cell.value or "").strip(): cell.column for cell in sheet[1]}
+        equipment_column = headers.get("Equipment IDs", sheet.max_column)
+        if "Template IDs" not in headers:
+            sheet.insert_cols(equipment_column + 1)
+            sheet.cell(1, equipment_column + 1).value = "Template IDs"
+        headers = {str(cell.value or "").strip(): cell.column for cell in sheet[1]}
+        template_column = headers["Template IDs"]
+        if "Dashboard Templates" not in headers:
+            sheet.insert_cols(template_column + 1)
+            sheet.cell(1, template_column + 1).value = "Dashboard Templates"
+        headers = {str(cell.value or "").strip(): cell.column for cell in sheet[1]}
+        field_column = headers.get("Field ID", 1)
+        template_column = headers["Template IDs"]
+        template_name_column = headers["Dashboard Templates"]
+
+        for row in range(2, sheet.max_row + 1):
+            field_id = str(sheet.cell(row, field_column).value or "").strip()
+            if not field_id:
+                continue
+            template_ids = recovered.get(field_id, [])
+            if not template_ids:
+                if sheet_name == "Field Mappings":
+                    template_ids = standalone.get(field_id, [])
+                    override = legacy.get(field_id, {})
+                    if not template_ids and isinstance(override, dict):
+                        template_ids = [item for item in override.get("template_ids", []) if item in MAPPING_TEMPLATES]
+                if not template_ids:
+                    template_ids = list(seeded.get(field_id, {}).get("template_ids", []))
+            template_ids = list(dict.fromkeys(item for item in template_ids if item in MAPPING_TEMPLATES))
+            if not template_ids:
+                raise ValueError(f"Field {field_id} has no recoverable dashboard-template mapping during schema upgrade.")
+            sheet.cell(row, template_column).value = "; ".join(template_ids)
+            sheet.cell(row, template_name_column).value = "; ".join(MAPPING_TEMPLATES[item] for item in template_ids)
+
+    output = BytesIO()
+    workbook.save(output)
+    workbook.close()
+    storage.atomic_write_bytes(path, output.getvalue())
+    _read_mapping_database_cached.cache_clear()
+    runtime_path = _field_mappings_runtime_path(bu)
+    if runtime_path.exists():
+        runtime_path.unlink()
+    return True
+
+
 @lru_cache(maxsize=32)
 def _read_mapping_database_cached(path_text: str, modified_ns: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     del modified_ns  # The modification time is part of the cache key.
@@ -310,6 +434,7 @@ def _mapping_database_frames(
                     "Field Type": str(field.field_type),
                     "Equipment IDs": "; ".join(record["equipment_ids"]),
                     "Template IDs": "; ".join(record["template_ids"]),
+                    "Dashboard Templates": "; ".join(MAPPING_TEMPLATES.get(item, item) for item in record["template_ids"]),
                     "Instrument Check Pair IDs": "; ".join(record.get("instrument_check_pairs", [])),
                     "Mapping Basis": str(record.get("mapping_basis", "")).replace("DCS", "Digital Data"),
                     "Confidence": str(record.get("confidence", "Review")),
@@ -330,6 +455,7 @@ def _mapping_database_frames(
             {"Item": "Computed Default", "Explanation": "The baseline mapping stored in the Default Mappings sheet and restored by Reset to Computed Default."},
             {"Item": "Admin Override", "Explanation": "A mapping saved in the Admin UI or applied by an audited bulk upload."},
             {"Item": "Multiple values", "Explanation": "Equipment IDs and Template IDs are separated with semicolons."},
+            {"Item": "Dashboard Templates", "Explanation": "Human-readable names corresponding to the semicolon-separated Template IDs for each field."},
             {"Item": "Mapping Basis", "Explanation": "Plain-language engineering reason for the equipment and dashboard-template assignment."},
             {"Item": "Confidence", "Explanation": "High, Medium or Review. Filter Review first; it normally indicates missing equipment-register detail or an unconfirmed sample point."},
             {"Item": "Instrument Check Pair IDs", "Explanation": "A same-point Digital Data/Raw Field Data pair that Instrument Check uses as its default comparison."},
@@ -420,6 +546,7 @@ def _ensure_mapping_database_cached(
     path = storage._path(path_text)
     if path.exists() and path.stat().st_size:
         try:
+            _upgrade_mapping_database_template_schema(bu, path)
             runtime = _runtime_mapping_records(bu)
             if runtime:
                 effective, defaults = runtime
