@@ -100,7 +100,7 @@ def test_every_authenticated_page_renders_without_exception():
         "Plant Overview",
         "Equipment Overview",
         "Operations Dashboard",
-        "Operational Data",
+        "Operational Data Pipeline",
         "Event Log",
         "Operating Parameters",
         "Process Optimization",
