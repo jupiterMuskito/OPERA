@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 
 SOURCE_GROUPS: dict[str, tuple[str, ...]] = {
-    "DCS": ("DCS",),
-    "Field": ("Field",),
+    "Digital Data": ("DCS",),
+    "Raw Field Data": ("Field",),
     "QAQC": ("Lab",),
     "Others": ("TA", "TB", "TC", "TD", "TE", "TF", "TG"),
 }

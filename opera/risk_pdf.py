@@ -1,4 +1,4 @@
-"""PDF risk assessment form and register-request notice - colour scheme of the original OKPELLA HTML app."""
+"""PDF Job Risk Assessment form and register-request notice."""
 from __future__ import annotations
 
 import io
@@ -153,8 +153,8 @@ def build_pdf(a: dict) -> bytes:
     buf = io.BytesIO()
     W = A4[0] - 28 * mm
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=14 * mm, rightMargin=14 * mm, topMargin=12 * mm, bottomMargin=18 * mm,
-                            title=f"Risk Assessment {a['serial']}", author=a.get("assessed_by", ""), subject=a["bu"])
-    story = [_banner(a["company"], a.get("form_title") or "RISK ASSESSMENT FORM", W), Spacer(1, 6)]
+                            title=f"Job Risk Assessment {a['serial']}", author=a.get("assessed_by", ""), subject=a["bu"])
+    story = [_banner(a["company"], a.get("form_title") or "JOB RISK ASSESSMENT FORM", W), Spacer(1, 6)]
     if "draft" in (a.get("register_status") or "").lower():
         warn = Table([[P(f"Register status: {a['register_status']}. Hazards must be validated by the business unit HSE lead.", "body")]], colWidths=[W])
         warn.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fff8e6")), ("LINEBEFORE", (0, 0), (0, -1), 3, colors.HexColor("#d9a441")),
@@ -200,9 +200,9 @@ def build_register_request_pdf(r: dict) -> bytes:
     buf = io.BytesIO()
     W = A4[0] - 28 * mm
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=14 * mm, rightMargin=14 * mm, topMargin=12 * mm, bottomMargin=18 * mm,
-                            title="Risk Register Update Request", subject=r["bu"])
-    alert = Table([[[P("Risk assessments cannot be generated for this business unit", "erp_h"),
-                     P("The Risk Assessment Generator takes every hazard, control measure and PPE item from the business unit's own approved "
+                            title="Job Risk Assessment Register Update Request", subject=r["bu"])
+    alert = Table([[[P("Job Risk Assessments cannot be generated for this business unit", "erp_h"),
+                     P("The Job Risk Assessment Generator takes every hazard, control measure and PPE item from the business unit's own approved "
                        "risk register. No usable register is available for this business unit, so no assessment can be produced until the "
                        "register owner uploads or updates it.", "body")]]], colWidths=[W])
     alert.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fbe9e7")), ("LINEBEFORE", (0, 0), (0, -1), 3.5, RED),
@@ -212,7 +212,7 @@ def build_register_request_pdf(r: dict) -> bytes:
              "ToolRecognition, InferenceRules and Synonyms are recommended.",
              "3. Have the register reviewed and approved by the business unit HSE lead.",
              "4. Upload the approved workbook on the app's Register admin tab (app administrator access required)."]
-    story = [_banner(r["bu"].upper(), "RISK REGISTER UPDATE REQUIRED", W), Spacer(1, 8), alert, Spacer(1, 8), _kv(r["rows"], W, 48), Spacer(1, 8),
+    story = [_banner(r["bu"].upper(), "JOB RISK ASSESSMENT REGISTER UPDATE REQUIRED", W), Spacer(1, 8), alert, Spacer(1, 8), _kv(r["rows"], W, 48), Spacer(1, 8),
              _bar("Action required by the register owner", W), Spacer(1, 4)] + [P(s, "body") for s in steps]
     doc.build(story, canvasmaker=lambda *x, **k: _NumberedCanvas(*x, footer=f"Register update request · {r['bu']} · {r['when']}", **k))
     return buf.getvalue()

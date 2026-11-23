@@ -17,7 +17,7 @@ def pull_json(url: str, token: str = "", timeout: int = 30) -> pd.DataFrame:
     payload = response.json()
     rows = payload.get("data", payload) if isinstance(payload, dict) else payload
     if not isinstance(rows, list):
-        raise ValueError("DCS endpoint must return a JSON array or {'data': [...]}.")
+        raise ValueError("Digital Data endpoint must return a JSON array or {'data': [...]}.")
     return pd.DataFrame(rows)
 
 
@@ -25,5 +25,5 @@ def ingest(bu: str, url: str, token: str, user: str) -> tuple[int, int]:
     frame = pull_json(url, token)
     clean, issues, flags = storage.validate_rows(bu, "DCS", frame)
     if not issues.empty:
-        raise ValueError("DCS payload failed validation: " + "; ".join(issues["message"].head(5)))
+        raise ValueError("Digital Data payload failed validation: " + "; ".join(issues["message"].head(5)))
     return storage.save_validated_input(bu, "DCS", clean, user)

@@ -402,7 +402,7 @@ def blank_template_bytes(bu_name: str = "") -> bytes:
         ws.append(hdr)
         for c in ws[1]:
             c.font = c.font.copy(bold=True)
-    for k, v in (("BusinessUnit", bu_name), ("CompanyName", ""), ("FormTitle", "RISK ASSESSMENT FORM"), ("RegisterStatus", "DRAFT"),
+    for k, v in (("BusinessUnit", bu_name), ("CompanyName", ""), ("FormTitle", "JOB RISK ASSESSMENT FORM"), ("RegisterStatus", "DRAFT"),
                  ("ERP1", ""), ("ERP2", ""), ("ERP3", "")):
         wb["Settings"].append([k, v])
     lists = wb["Lists"]

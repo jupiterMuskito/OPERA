@@ -16,6 +16,19 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_ROOT = Path(os.getenv("OPERAX_DATA_DIR", os.getenv("OPERA_DATA_DIR", ROOT / "data")))
 BASE_COLUMNS = ["Date", "Time", "Business unit", "Plant", "Unit/Section", "Equipment", "Recorded by", "Recorded at"]
 SOURCES = {"DCS": "DP", "Lab": "L", "Field": "F", "TA": "TA", "TB": "TB", "TC": "TC", "TD": "TD", "TE": "TE", "TF": "TF", "TG": "TG"}
+SOURCE_LABELS = {
+    "DCS": "Digital Data",
+    "Field": "Raw Field Data",
+    "Lab": "QAQC",
+    "TA": "Other TA",
+    "TB": "Other TB",
+    "TC": "Other TC",
+    "TD": "Other TD",
+    "TE": "Other TE",
+    "TF": "Other TF",
+    "TG": "Other TG",
+    "Calculated": "Calculated",
+}
 ATTACHMENT_TYPES = {
     ".doc": "application/msword", ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ".txt": "text/plain", ".pdf": "application/pdf",
@@ -26,6 +39,11 @@ ATTACHMENT_TYPES = {
 
 def utcnow() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def source_label(source: str) -> str:
+    """Return a user-facing data-type name without changing persisted source IDs."""
+    return SOURCE_LABELS.get(str(source), str(source))
 
 
 def _path(path: str | Path) -> Path:

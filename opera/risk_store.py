@@ -31,7 +31,7 @@ def register_path(bu: str) -> Path | None:
 def resolve(bu: str) -> tuple[Register | None, str, str | None]:
     path = register_path(bu)
     if path is None or not path.exists():
-        return None, "", "No approved risk register is linked to this business unit."
+        return None, "", "No approved Job Risk Assessment register is linked to this business unit."
     try:
         source = "Uploaded" if path.parent == UPLOAD_DIR else "Bundled approved register"
         return load_register(path), source, None
@@ -50,7 +50,7 @@ def activate(bu: str, data: bytes, user: str, note: str = "") -> Path:
     history = UPLOAD_DIR / "history" / bu
     history.mkdir(parents=True, exist_ok=True)
     storage.atomic_write_bytes(history / f"{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}_{register.fingerprint}.xlsx", data)
-    storage.audit(bu, user, "risk_register_activated", {"fingerprint": register.fingerprint, "note": note})
+    storage.audit(bu, user, "job_risk_assessment_register_activated", {"fingerprint": register.fingerprint, "note": note})
     return target
 
 
@@ -69,7 +69,7 @@ def github_commit(bu: str, data: bytes, user: str, github: dict[str, Any]) -> st
     except urllib.error.HTTPError as exc:
         if exc.code != 404:
             raise RuntimeError(f"GitHub read failed ({exc.code}).") from exc
-    body = {"message": f"OPERA-X risk register update for {bu} by {user}", "content": base64.b64encode(data).decode(), "branch": branch}
+    body = {"message": f"OPERA-X Job Risk Assessment register update for {bu} by {user}", "content": base64.b64encode(data).decode(), "branch": branch}
     if sha:
         body["sha"] = sha
     request = urllib.request.Request(url, data=json.dumps(body).encode(), headers={**headers, "Content-Type": "application/json"}, method="PUT")

@@ -71,8 +71,8 @@ MAPPING_TEMPLATES = {
 }
 
 SOURCE_GROUPS = {
-    "DCS": "DCS",
-    "Field": "Field",
+    "DCS": "Digital Data",
+    "Field": "Raw Field Data",
     "Lab": "QAQC",
     "TA": "Others",
     "TB": "Others",
@@ -311,7 +311,7 @@ def _mapping_database_frames(
                     "Equipment IDs": "; ".join(record["equipment_ids"]),
                     "Template IDs": "; ".join(record["template_ids"]),
                     "Instrument Check Pair IDs": "; ".join(record.get("instrument_check_pairs", [])),
-                    "Mapping Basis": str(record.get("mapping_basis", "")),
+                    "Mapping Basis": str(record.get("mapping_basis", "")).replace("DCS", "Digital Data"),
                     "Confidence": str(record.get("confidence", "Review")),
                     "Mapping Type": str(record.get("mapping_type", "Computed Default")),
                 }
@@ -332,7 +332,7 @@ def _mapping_database_frames(
             {"Item": "Multiple values", "Explanation": "Equipment IDs and Template IDs are separated with semicolons."},
             {"Item": "Mapping Basis", "Explanation": "Plain-language engineering reason for the equipment and dashboard-template assignment."},
             {"Item": "Confidence", "Explanation": "High, Medium or Review. Filter Review first; it normally indicates missing equipment-register detail or an unconfirmed sample point."},
-            {"Item": "Instrument Check Pair IDs", "Explanation": "A same-point DCS/Field pair that Instrument Check uses as its default comparison."},
+            {"Item": "Instrument Check Pair IDs", "Explanation": "A same-point Digital Data/Raw Field Data pair that Instrument Check uses as its default comparison."},
         ]
     )
     return {
@@ -743,7 +743,7 @@ def _field_mapping_table_uncached(bu: str) -> pd.DataFrame:
                 "Template IDs": "; ".join(template_ids),
                 "Dashboard Templates": "; ".join(template_names),
                 "Instrument Check Pair IDs": "; ".join(record.get("instrument_check_pairs", [])),
-                "Mapping Basis": str(record.get("mapping_basis", "")),
+                "Mapping Basis": str(record.get("mapping_basis", "")).replace("DCS", "Digital Data"),
                 "Confidence": str(record.get("confidence", "Review")),
                 "_equipment_ids": equipment_ids,
                 "_plants": plants_tuple,
@@ -860,8 +860,10 @@ def mapping_export_sheets(bu: str, mappings: pd.DataFrame | None = None) -> dict
 
 
 def mapping_database_bytes(bu: str) -> bytes:
-    """Return the live Excel mapping database for Admin backend review."""
-    return ensure_mapping_database(bu).read_bytes()
+    """Return a current-label export of the live Excel mapping database."""
+    return _mapping_workbook_bytes(
+        _mapping_database_frames(bu, load_effective_field_mappings(bu), load_default_field_mappings(bu))
+    )
 
 
 def instrument_check_pairs(bu: str) -> dict[str, list[str]]:
@@ -898,11 +900,11 @@ def mapping_update_template_bytes(bu: str) -> bytes:
     instructions.append(["Item", "Guidance"])
     instruction_rows = [
         ("Purpose", "Update OPERA-X data-field mappings in bulk. Upload this .xlsx file from Admin / Super Admin > Field Mappings."),
-        ("Editable sheets", "Edit Field Catalogue, Template Mappings and Field Review. Field Catalogue shows one row per field/equipment relationship and provides controlled Equipment ID dropdowns."),
-        ("Controlled inputs", "Field IDs, Equipment IDs, Dashboard Template IDs and Include values use Excel dropdown validation lists."),
+        ("Editable sheets", "Edit Field Catalogue and Field Review. Field Catalogue maps equipment and dashboard templates together on one row, with controlled dropdowns for both. The separate Equipment Mappings and Template Mappings sheets remain available for compatibility."),
+        ("Controlled inputs", "Field IDs, Equipment IDs, Dashboard Template IDs and Include values use Excel dropdown validation lists in the Field Catalogue."),
         ("Include", "Use Yes to include a relationship. Use No or delete the row to exclude it. Duplicate relationships are automatically de-duplicated."),
         ("Partial update", "Only Field IDs marked Apply Update = Yes in Field Review are applied. All other database mappings remain unchanged."),
-        ("Example", "For DP1, use a Field Catalogue row such as DP1 | ... | EQ-001 | equipment name | Yes and a Template Mappings row such as DP1 | plant-performance | Yes."),
+        ("Example", "For DP1, use a Field Catalogue row such as DP1 | ... | EQ-001 | equipment name | plant-performance | Plant Performance | Yes."),
         ("Safety", "Validate the business unit before applying. The app rejects unknown IDs, missing required sheets, empty mappings and invalid controlled values."),
     ]
     for row in instruction_rows:
@@ -924,14 +926,14 @@ def mapping_update_template_bytes(bu: str) -> bytes:
             [
                 field_id,
                 "No",
-                record.get("mapping_basis", ""),
+                str(record.get("mapping_basis", "")).replace("DCS", "Digital Data"),
                 record.get("confidence", "Review"),
                 "; ".join(record.get("instrument_check_pairs", [])),
             ]
         )
 
     catalogue = workbook.create_sheet("Field Catalogue")
-    catalogue.append(["Field ID", "Data Field", "Source", "Status", "Field Type", "Equipment ID", "Equipment", "Include"])
+    catalogue.append(["Field ID", "Data Field", "Source", "Status", "Field Type", "Equipment ID", "Equipment", "Dashboard Template ID", "Dashboard Template", "Include"])
     equipment_names = {
         str(getattr(row, "equipment_id", "")): str(getattr(row, "equipment_name", ""))
         for row in equipment.itertuples()
@@ -942,18 +944,21 @@ def mapping_update_template_bytes(bu: str) -> bytes:
             continue
         field = catalog_by_id.loc[field_id]
         for equipment_id in effective[field_id]["equipment_ids"]:
-            catalogue.append(
-                [
-                    field_id,
-                    str(field["field_name"]),
-                    str(field["source"]),
-                    str(field["status"]),
-                    str(field["field_type"]),
-                    equipment_id,
-                    equipment_names.get(equipment_id, equipment_id),
-                    "Yes",
-                ]
-            )
+            for template_id in effective[field_id]["template_ids"]:
+                catalogue.append(
+                    [
+                        field_id,
+                        str(field["field_name"]),
+                        str(field["source"]),
+                        str(field["status"]),
+                        str(field["field_type"]),
+                        equipment_id,
+                        equipment_names.get(equipment_id, equipment_id),
+                        template_id,
+                        MAPPING_TEMPLATES.get(template_id, template_id),
+                        "Yes",
+                    ]
+                )
 
     equipment_catalogue = workbook.create_sheet("Equipment Catalogue")
     equipment_catalogue.append(["Equipment ID", "Equipment", "Plant", "Unit / Section", "Equipment Type"])
@@ -1008,7 +1013,8 @@ def mapping_update_template_bytes(bu: str) -> bytes:
         (review_sheet, "D", "=MappingConfidenceOptions"),
         (catalogue, "A", "=MappingFieldIDs"),
         (catalogue, "F", "=MappingEquipmentIDs"),
-        (catalogue, "H", "=MappingIncludeOptions"),
+        (catalogue, "H", "=MappingTemplateIDs"),
+        (catalogue, "J", "=MappingIncludeOptions"),
     ]
     validation_last_row = max(50000, equipment_sheet.max_row + 5000, template_sheet.max_row + 5000)
     for sheet, column, formula in validation_specs:
@@ -1059,10 +1065,12 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
         raise ValueError(f"The mapping update sheets could not be read: {exc}") from exc
 
     catalogue_frame = sheets.get("Field Catalogue", pd.DataFrame())
-    catalogue_columns = {"Field ID", "Equipment ID", "Include"}
+    catalogue_columns = {"Field ID", "Equipment ID", "Dashboard Template ID", "Include"}
     legacy_equipment_frame = sheets["Equipment Mappings"]
-    equipment_frame = catalogue_frame if catalogue_columns.issubset(catalogue_frame.columns) else legacy_equipment_frame
-    template_frame = sheets["Template Mappings"]
+    legacy_template_frame = sheets["Template Mappings"]
+    catalogue_has_combined_mapping = catalogue_columns.issubset(catalogue_frame.columns)
+    equipment_frame = catalogue_frame if catalogue_has_combined_mapping else legacy_equipment_frame
+    template_frame = catalogue_frame if catalogue_has_combined_mapping else legacy_template_frame
     review_frame = sheets["Field Review"]
     if not {"Field ID", "Equipment ID", "Include"}.issubset(equipment_frame.columns):
         raise ValueError("Equipment Mappings must contain Field ID, Equipment ID and Include columns.")
@@ -1100,10 +1108,12 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
 
     equipment_frame.attrs["sheet_name"] = "Field Catalogue" if equipment_frame is catalogue_frame else "Equipment Mappings"
     legacy_equipment_frame.attrs["sheet_name"] = "Equipment Mappings"
-    template_frame.attrs["sheet_name"] = "Template Mappings"
+    template_frame.attrs["sheet_name"] = "Field Catalogue" if catalogue_has_combined_mapping else "Template Mappings"
+    legacy_template_frame.attrs["sheet_name"] = "Template Mappings"
     equipment_values, _ = clean(equipment_frame, "Equipment ID", valid_equipment)
     legacy_equipment_values, _ = clean(legacy_equipment_frame, "Equipment ID", valid_equipment)
     template_values, _ = clean(template_frame, "Dashboard Template ID", valid_templates)
+    legacy_template_values, _ = clean(legacy_template_frame, "Dashboard Template ID", valid_templates)
 
     review_values: dict[str, dict[str, Any]] = {}
     touched: set[str] = set()
@@ -1128,16 +1138,16 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
                 raise ValueError(f"Field Review row {row_number}: unknown Instrument Check Pair ID '{pair_id}'.")
             source_pair = {source_by_field.get(field_id), source_by_field.get(pair_id)}
             if source_pair != {"DCS", "Field"}:
-                raise ValueError(f"Field Review row {row_number}: Instrument Check pairs must link one Field reading and one DCS reading.")
+                raise ValueError(f"Field Review row {row_number}: Instrument Check pairs must link one Raw Field Data reading and one Digital Data reading.")
         review_values[field_id] = {"mapping_basis": basis, "confidence": confidence, "instrument_check_pairs": pairs}
         if apply_update == "yes":
             touched.add(field_id)
     if not touched:
         raise ValueError("No fields are marked Apply Update = Yes in Field Review.")
-    if catalogue_columns.issubset(catalogue_frame.columns):
-        current_equipment = load_effective_field_mappings(bu)
+    if catalogue_has_combined_mapping:
+        current_mapping = load_effective_field_mappings(bu)
         for field_id in touched:
-            baseline = list(current_equipment.get(field_id, {}).get("equipment_ids", []))
+            baseline = list(current_mapping.get(field_id, {}).get("equipment_ids", []))
             catalogue_choice = equipment_values.get(field_id, [])
             legacy_choice = legacy_equipment_values.get(field_id, [])
             catalogue_changed = catalogue_choice != baseline
@@ -1146,6 +1156,15 @@ def bulk_update_field_mappings(bu: str, workbook_bytes: bytes) -> dict[str, int]
                 raise ValueError(f"Field {field_id} has conflicting equipment edits in Field Catalogue and Equipment Mappings.")
             if legacy_changed and not catalogue_changed:
                 equipment_values[field_id] = legacy_choice
+            template_baseline = list(current_mapping.get(field_id, {}).get("template_ids", []))
+            catalogue_template_choice = template_values.get(field_id, [])
+            legacy_template_choice = legacy_template_values.get(field_id, [])
+            catalogue_template_changed = catalogue_template_choice != template_baseline
+            legacy_template_changed = legacy_template_choice != template_baseline
+            if catalogue_template_changed and legacy_template_changed and catalogue_template_choice != legacy_template_choice:
+                raise ValueError(f"Field {field_id} has conflicting dashboard-template edits in Field Catalogue and Template Mappings.")
+            if legacy_template_changed and not catalogue_template_changed:
+                template_values[field_id] = legacy_template_choice
     for field_id in sorted(touched):
         if not equipment_values.get(field_id):
             raise ValueError(f"Field {field_id} must include at least one Equipment ID.")
