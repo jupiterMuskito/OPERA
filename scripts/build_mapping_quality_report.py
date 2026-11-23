@@ -20,6 +20,11 @@ SAMPLE_FIELDS = {
 }
 
 
+def display_text(value: object) -> str:
+    """Apply current data-type terminology to report narratives only."""
+    return str(value).replace("DCS", "Digital Data")
+
+
 def markdown_table(frame: pd.DataFrame) -> str:
     if frame.empty:
         return "_None._"
@@ -63,7 +68,7 @@ def build_report() -> str:
                     "Field ID": str(row["Field ID"]),
                     "Data field": str(row["Data Field"]),
                     "Equipment IDs": str(row["Equipment IDs"]),
-                    "Mapping basis": str(row["Mapping Basis"]),
+                    "Mapping basis": display_text(row["Mapping Basis"]),
                 }
             )
         placeholders = mappings[mappings["Field Type"] == "Placeholder"]
@@ -84,7 +89,7 @@ def build_report() -> str:
                     "Field": f"{field_id} — {row['Data Field']}",
                     "Equipment": row["Equipment Names"],
                     "Templates": row["Dashboard Templates"],
-                    "Reason": row["Mapping Basis"],
+                    "Reason": display_text(row["Mapping Basis"]),
                     "Confidence": row["Confidence"],
                 }
             )
@@ -97,7 +102,7 @@ def build_report() -> str:
     total_named = sum(int((frame["Field Type"] != "Placeholder").sum()) for frame in tables.values())
     total_placeholder = sum(int((frame["Field Type"] == "Placeholder").sum()) for frame in tables.values())
 
-    return f"""# OPERA-X v3.7.0 — Engineering Mapping Quality Report
+    return f"""# OPERA-X v3.9.0 — Engineering Mapping Quality Report
 
 ## Scope and method
 
@@ -140,7 +145,7 @@ The 32 packaged calculated fields were checked against their formulas. Misnamed 
 
 ## Instrument Check pairs recorded
 
-The Excel databases record the physically comparable local/DCS pairs for Refinery (Butamer feed flow, reactor temperatures and pressures), Fertilizer (urea-reactor pressure) and NASCON (salt-evaporator temperature and vacuum-pan pressure). Cement has no defensible same-point F/DP pair in the current 60-field sample, so none was fabricated.
+The Excel databases record the physically comparable Raw Field Data/Digital Data pairs for Refinery (Butamer feed flow, reactor temperatures and pressures), Fertilizer (urea-reactor pressure) and NASCON (salt-evaporator temperature and vacuum-pan pressure). Cement has no defensible same-point F/DP pair in the current 60-field sample, so none was fabricated.
 """
 
 
