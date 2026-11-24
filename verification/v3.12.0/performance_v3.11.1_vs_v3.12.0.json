@@ -1,0 +1,110 @@
+{
+  "method": "Median of warm authenticated click-to-settled-page transitions",
+  "cycles": 3,
+  "baselineLabel": "v3.11.1",
+  "targetLabel": "v3.12.0",
+  "baseline": {
+    "samplesMs": {
+      "plant": [
+        2647.41,
+        2173.58,
+        2372.17
+      ],
+      "equipment": [
+        1840.04,
+        2331.55,
+        2283.83
+      ],
+      "operations": [
+        18338.73,
+        18901.49,
+        23516.33
+      ],
+      "admin": [
+        69091.78,
+        4560.32,
+        4201.75
+      ],
+      "home": [
+        8403.85,
+        5945.85,
+        5584.34
+      ]
+    },
+    "medianMs": {
+      "plant": 2372.17,
+      "equipment": 2283.83,
+      "operations": 18901.49,
+      "admin": 4560.32,
+      "home": 5945.85
+    }
+  },
+  "target": {
+    "samplesMs": {
+      "plant": [
+        1066.14,
+        992.86,
+        1100.66
+      ],
+      "equipment": [
+        1706.65,
+        1494.78,
+        1459.52
+      ],
+      "operations": [
+        7938.9,
+        7717.55,
+        7005.65
+      ],
+      "admin": [
+        2768.37,
+        1359.25,
+        1230.46
+      ],
+      "home": [
+        1299.19,
+        1532.05,
+        1792.38
+      ]
+    },
+    "medianMs": {
+      "plant": 1066.14,
+      "equipment": 1494.78,
+      "operations": 7717.55,
+      "admin": 1359.25,
+      "home": 1532.05
+    }
+  },
+  "comparison": {
+    "plant": {
+      "v3.11.1Ms": 2372.17,
+      "v3.12.0Ms": 1066.14,
+      "changeMs": -1306.03,
+      "changePercent": -55.1
+    },
+    "equipment": {
+      "v3.11.1Ms": 2283.83,
+      "v3.12.0Ms": 1494.78,
+      "changeMs": -789.05,
+      "changePercent": -34.5
+    },
+    "operations": {
+      "v3.11.1Ms": 18901.49,
+      "v3.12.0Ms": 7717.55,
+      "changeMs": -11183.94,
+      "changePercent": -59.2
+    },
+    "admin": {
+      "v3.11.1Ms": 4560.32,
+      "v3.12.0Ms": 1359.25,
+      "changeMs": -3201.07,
+      "changePercent": -70.2
+    },
+    "home": {
+      "v3.11.1Ms": 5945.85,
+      "v3.12.0Ms": 1532.05,
+      "changeMs": -4413.8,
+      "changePercent": -74.2
+    }
+  }
+}

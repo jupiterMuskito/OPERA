@@ -1,0 +1,910 @@
+[
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1920,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1920,
+      "outerWidth": 1920,
+      "clientWidth": 1920,
+      "scrollWidth": 1920,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1903,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1536,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1536,
+      "outerWidth": 1536,
+      "clientWidth": 1536,
+      "scrollWidth": 1536,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1519,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1366,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1366,
+      "outerWidth": 1366,
+      "clientWidth": 1366,
+      "scrollWidth": 1366,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1349,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1272,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1272,
+      "outerWidth": 1272,
+      "clientWidth": 1272,
+      "scrollWidth": 1272,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1255,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1099,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1099,
+      "outerWidth": 1099,
+      "clientWidth": 1099,
+      "scrollWidth": 1099,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1082,
+      "dpr": 1,
+      "mediaCompact": true
+    },
+    "desktopVisible": false,
+    "mobileVisible": true,
+    "buttonRows": [],
+    "packedMenuWidth": null
+  },
+  {
+    "browser": "chrome",
+    "page": "home",
+    "contentBorders": {
+      "select": 0,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "plant",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "equipment",
+    "contentBorders": {
+      "select": 4,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "kpis",
+    "contentBorders": {
+      "select": 13,
+      "multiselect": 0,
+      "input": 2,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "parameters",
+    "contentBorders": {
+      "select": 1,
+      "multiselect": 4,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "pipeline",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "optimization",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 4,
+      "input": 5,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "events",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 4,
+      "input": 5,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "lessons",
+    "contentBorders": {
+      "select": 0,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "risk",
+    "contentBorders": {
+      "select": 0,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "page": "admin",
+    "contentBorders": {
+      "select": 4,
+      "multiselect": 1,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "chrome",
+    "headerActions": "pass"
+  },
+  {
+    "browser": "chrome",
+    "path": "root",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.5,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1.5,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1920,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1920,
+      "outerWidth": 1920,
+      "clientWidth": 1920,
+      "scrollWidth": 1920,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1903,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1536,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1536,
+      "outerWidth": 1536,
+      "clientWidth": 1536,
+      "scrollWidth": 1536,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1519,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1366,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1366,
+      "outerWidth": 1366,
+      "clientWidth": 1366,
+      "scrollWidth": 1366,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1349,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1272,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1272,
+      "outerWidth": 1272,
+      "clientWidth": 1272,
+      "scrollWidth": 1272,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1255,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1099,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1099,
+      "outerWidth": 1099,
+      "clientWidth": 1099,
+      "scrollWidth": 1099,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1082,
+      "dpr": 1,
+      "mediaCompact": true
+    },
+    "desktopVisible": false,
+    "mobileVisible": true,
+    "buttonRows": [],
+    "packedMenuWidth": null
+  },
+  {
+    "browser": "chrome",
+    "path": "operationaldashboard",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.5,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1.5,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1920,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1920,
+      "outerWidth": 1920,
+      "clientWidth": 1920,
+      "scrollWidth": 1920,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1903,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1536,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1536,
+      "outerWidth": 1536,
+      "clientWidth": 1536,
+      "scrollWidth": 1536,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1519,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1366,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1366,
+      "outerWidth": 1366,
+      "clientWidth": 1366,
+      "scrollWidth": 1366,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1349,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1272,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1272,
+      "outerWidth": 1272,
+      "clientWidth": 1272,
+      "scrollWidth": 1272,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1255,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1099,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1099,
+      "outerWidth": 1099,
+      "clientWidth": 1099,
+      "scrollWidth": 1099,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1082,
+      "dpr": 1,
+      "mediaCompact": true
+    },
+    "desktopVisible": false,
+    "mobileVisible": true,
+    "buttonRows": [],
+    "packedMenuWidth": null
+  },
+  {
+    "browser": "edge",
+    "page": "home",
+    "contentBorders": {
+      "select": 0,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "plant",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "equipment",
+    "contentBorders": {
+      "select": 4,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "kpis",
+    "contentBorders": {
+      "select": 13,
+      "multiselect": 0,
+      "input": 2,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "parameters",
+    "contentBorders": {
+      "select": 1,
+      "multiselect": 4,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "pipeline",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "optimization",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 4,
+      "input": 5,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "events",
+    "contentBorders": {
+      "select": 2,
+      "multiselect": 4,
+      "input": 5,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "lessons",
+    "contentBorders": {
+      "select": 0,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "risk",
+    "contentBorders": {
+      "select": 5,
+      "multiselect": 1,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "page": "admin",
+    "contentBorders": {
+      "select": 0,
+      "multiselect": 0,
+      "input": 0,
+      "uploader": 0,
+      "expander": 0
+    },
+    "visibleH1": 0
+  },
+  {
+    "browser": "edge",
+    "headerActions": "pass"
+  },
+  {
+    "browser": "edge",
+    "path": "root",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.5,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1.5,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1920,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1920,
+      "outerWidth": 1920,
+      "clientWidth": 1920,
+      "scrollWidth": 1920,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1903,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1536,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1536,
+      "outerWidth": 1536,
+      "clientWidth": 1536,
+      "scrollWidth": 1536,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1519,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1366,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1366,
+      "outerWidth": 1366,
+      "clientWidth": 1366,
+      "scrollWidth": 1366,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1349,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 939.52
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1272,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1272,
+      "outerWidth": 1272,
+      "clientWidth": 1272,
+      "scrollWidth": 1272,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1255,
+      "dpr": 1,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1099,
+    "requestedDeviceScaleFactor": 1.0,
+    "viewport": {
+      "innerWidth": 1099,
+      "outerWidth": 1099,
+      "clientWidth": 1099,
+      "scrollWidth": 1099,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1082,
+      "dpr": 1,
+      "mediaCompact": true
+    },
+    "desktopVisible": false,
+    "mobileVisible": true,
+    "buttonRows": [],
+    "packedMenuWidth": null
+  },
+  {
+    "browser": "edge",
+    "path": "operationaldashboard",
+    "width": 1280,
+    "requestedDeviceScaleFactor": 1.5,
+    "viewport": {
+      "innerWidth": 1280,
+      "outerWidth": 1280,
+      "clientWidth": 1280,
+      "scrollWidth": 1280,
+      "clientHeight": 700,
+      "scrollHeight": 700,
+      "appUsableWidth": 1263,
+      "dpr": 1.5,
+      "mediaCompact": false
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      68.0
+    ],
+    "packedMenuWidth": 829.52
+  }
+]
