@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_display_names_change_without_changing_persisted_source_ids():
-    assert __version__ == "3.10.1"
+    assert __version__ == "3.11.1"
     assert storage.SOURCES["DCS"] == "DP"
     assert storage.SOURCES["Field"] == "F"
     assert storage.source_label("DCS") == "Digital Data"
@@ -67,7 +67,7 @@ def test_branding_and_optimization_are_packaged():
     analysis = source[source.index("def page_analysis"):source.index("def page_process_optimization")]
     assert '"Optimization"' not in analysis
     assert "def page_process_optimization" in source
-    assert "login-title" in source and "login-heading-row" in source and "vision-nav" in source
+    assert "login-title" in source and "login-heading-row" in source and "opera-vision-block" in source
 
 
 def test_job_risk_assessment_is_the_user_facing_name():

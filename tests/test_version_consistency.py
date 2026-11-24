@@ -12,11 +12,11 @@ def test_banner_version_file_and_package_version_agree():
     expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     app_source = (ROOT / "app.py").read_text(encoding="utf-8")
 
-    assert expected == "3.10.1"
+    assert expected == "3.11.1"
     assert opera.__version__ == expected
     assert get_version() == expected
     assert version_badge_html() == f'<div class="version">v{expected}</div>'
-    assert "from opera.version import version_badge_html" in app_source
+    assert "from opera.version import get_version, version_badge_html" in app_source
     assert "version_badge_html()" in app_source
     assert "APP_VERSION" not in app_source
 

@@ -54,7 +54,7 @@ def test_pre_v39_live_data_is_upgraded_before_in_app_template_download(monkeypat
 
     # Reproduces the live-server combination: current app/version code plus an
     # old persistent OPERA_DATA_DIR mapping workbook.
-    assert version_badge_html() == '<div class="version">v3.10.1</div>'
+    assert version_badge_html() == '<div class="version">v3.11.1</div>'
     payload = dashboard.mapping_update_template_bytes("demo")
 
     template = load_workbook(BytesIO(payload))
