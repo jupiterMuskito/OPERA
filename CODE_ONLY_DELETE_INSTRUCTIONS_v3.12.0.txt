@@ -1,0 +1,2 @@
+OPERA-X v3.12.0 vs v3.11.1 deletes no tracked files.
+Overlay every file in the code-only ZIP at the repository root. Do not delete or replace data/, registers/ or reference_sources/.

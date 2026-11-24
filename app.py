@@ -5,6 +5,7 @@ import io
 import uuid
 import zipfile
 from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache
 from html import escape
 from pathlib import Path
 from typing import Any
@@ -21,8 +22,8 @@ from opera.version import get_version, version_badge_html
 
 APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_x_icon.png"
 DANGOTE_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_group_logo.webp"
-VISION_2030_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030.png"
-VISION_2030_COMPACT = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030_compact.png"
+VISION_2030_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030.webp"
+VISION_2030_COMPACT = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030_compact.webp"
 st.set_page_config(page_title="OPERA-X", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
 PAGES = [
     "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operating Parameters",
@@ -32,7 +33,7 @@ NAV_LABELS = {
     "OPERA-X Home": "Home",
     "Plant Overview": "Plant",
     "Equipment Overview": "Equipment",
-    "Operations Dashboard": "Dashboards",
+    "Operations Dashboard": "KPI's",
     "Operating Parameters": "Parameters",
     "Operational Data Pipeline": "Data Pipeline",
     "Process Optimization": "Optimization",
@@ -50,6 +51,7 @@ MODULE_CATEGORIES = {
 }
 
 
+@lru_cache(maxsize=8)
 def asset_data_uri(path: Path) -> str:
     """Encode a packaged brand asset for reliable display behind either proxy."""
     mime = {
@@ -82,22 +84,24 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .opera-vision-block{width:145px;min-width:145px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:2px}.opera-vision-block img{width:132px;height:43px;object-fit:contain}.opera-vision-block .version{font-size:.66rem;line-height:1;color:#7B8391;font-weight:650;letter-spacing:.02em;margin-top:-1px}
 .st-key-primary_navigation{position:sticky;top:68px;z-index:1002;background:#30336A;height:52px;min-height:52px;box-sizing:border-box;padding:0 .65rem;margin-top:-16px;border:0;border-radius:0!important;box-shadow:0 3px 8px rgba(25,27,65,.18);overflow:visible!important}
 .st-key-primary_navigation>[data-testid="stLayoutWrapper"],.st-key-primary_navigation>[data-testid="stLayoutWrapper"]>[data-testid="stHorizontalBlock"]{height:52px;min-height:52px}
-.st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.35rem;align-items:center;flex-wrap:nowrap}
+.st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.18rem;align-items:center;flex-wrap:nowrap}
 .st-key-primary_navigation [data-testid="stColumn"]>[data-testid="stVerticalBlock"]{gap:0;justify-content:center}
-.st-key-desktop_navigation{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:0!important;height:52px!important;min-height:52px;padding:0!important;margin:0!important;overflow:visible!important}
-.st-key-desktop_navigation>[data-testid="stElementContainer"]{flex:0 0 auto;width:auto!important}
-.st-key-desktop_navigation .stButton{height:52px;width:auto}
-.st-key-desktop_navigation .stButton>button{height:52px;min-height:52px;width:auto;padding:0 13px;border:0;border-radius:0;background:transparent;color:#E8E9F2;font-size:.78rem;font-weight:700;white-space:nowrap;box-shadow:none}
-.st-key-desktop_navigation .stButton>button:hover{background:rgba(255,255,255,.08);color:#fff}
-.st-key-desktop_navigation .stButton>button[kind="primary"]{background:transparent;color:#fff;border-bottom:4px solid #D7262F}
-.st-key-nav_plant,.st-key-nav_event_log,.st-key-nav_admin{border-left:1px solid rgba(255,255,255,.28)}
+.st-key-desktop_navigation{display:block;height:52px!important;min-height:52px;padding:0!important;margin:0!important;overflow:visible!important}
+.st-key-desktop_navigation [data-testid="stRadio"]{height:52px;min-height:52px;margin:0;padding:0}
+.st-key-desktop_navigation [role="radiogroup"]{display:flex;flex-flow:row nowrap;align-items:center;gap:0;height:52px;min-height:52px;background:transparent}
+.st-key-desktop_navigation label[data-testid="stRadioOption"]{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;height:52px;min-height:52px;width:auto;padding:0 13px;margin:0;border:0;border-radius:0;background:transparent;color:#E8E9F2;font-size:14px;font-weight:700;white-space:nowrap;box-sizing:border-box;cursor:pointer}
+.st-key-desktop_navigation label[data-testid="stRadioOption"]>div>div:first-child{display:none!important}
+.st-key-desktop_navigation label[data-testid="stRadioOption"] p{font-size:14px;font-weight:700;color:inherit;white-space:nowrap}
+.st-key-desktop_navigation label[data-testid="stRadioOption"]:hover{background:rgba(255,255,255,.08);color:#fff}
+.st-key-desktop_navigation label[data-testid="stRadioOption"]:has(input:checked){background:transparent;color:#fff;border-bottom:4px solid #D7262F}
+.st-key-desktop_navigation label[data-testid="stRadioOption"]:nth-child(2),.st-key-desktop_navigation label[data-testid="stRadioOption"]:nth-child(8),.st-key-desktop_navigation label[data-testid="stRadioOption"]:nth-child(11){border-left:1px solid rgba(255,255,255,.28)}
 .st-key-mobile_navigation{display:none}
 .st-key-notifications_menu button,.st-key-user_menu button{height:38px;min-height:38px;border:0;background:transparent;color:#fff;box-shadow:none;white-space:nowrap;position:relative}
 .st-key-notifications_menu button:hover,.st-key-user_menu button:hover{background:rgba(255,255,255,.10);color:#fff}
 .st-key-notifications_menu button{width:36px;padding:0}.st-key-notifications_menu button p{font-size:0}
-.st-key-notifications_menu [data-testid="stPopoverButton"]>div>div:last-child,.st-key-user_menu [data-testid="stPopoverButton"]>div>div:last-child,.st-key-mobile_menu [data-testid="stPopoverButton"]>div>div:last-child{display:none!important}
-.st-key-notifications_menu [data-testid="stPopoverButton"]>div,.st-key-user_menu [data-testid="stPopoverButton"]>div,.st-key-mobile_menu [data-testid="stPopoverButton"]>div{gap:0!important;justify-content:center}
 .st-key-user_menu button{width:38px;padding:0;border-radius:50%;background:#D7262F;border:2px solid #fff;color:#fff;font-size:.72rem;font-weight:850}
+.st-key-user_menu button p{font-size:.72rem;font-weight:850;color:#fff}
+.st-key-header_mobile_panel,.st-key-header_notice_panel,.st-key-header_user_panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem .75rem;box-shadow:0 8px 20px rgba(21,34,56,.14);position:relative;z-index:1004}
 .header-popover-title{font-size:.96rem;font-weight:850;color:#30336A}.header-popover-meta{font-size:.78rem;color:#606A7C;line-height:1.45;margin:.1rem 0 .6rem}.header-help{font-size:.79rem;line-height:1.45;color:#48556A;background:#F3F5F9;border-left:3px solid #30336A;padding:.55rem .65rem;margin:.25rem 0 .5rem}.header-version{font-size:.7rem;color:#7B8391;text-align:center;margin-top:.45rem}
 .st-key-user_sign_out button{color:#B51F2A;border-color:#E9A8AD}.st-key-user_sign_out button:hover{color:#941923;border-color:#D7262F;background:#FFF5F5}
 .st-key-breadcrumb_strip{position:sticky;top:120px;z-index:1001;background:#F8FAFD;border:0;border-bottom:1px solid #E0E5EC;border-radius:0!important;height:40px;min-height:40px;box-sizing:border-box;margin-top:-16px;box-shadow:0 2px 7px rgba(20,32,46,.04);overflow:visible!important;gap:0!important}
@@ -112,6 +116,24 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .small-note{color:#60758A;font-size:.82rem;margin-top:.2rem}
 .stButton>button,.stDownloadButton>button{border-radius:8px;border:1px solid var(--blue);font-weight:650;min-height:2.45rem}
 .stButton>button[kind="primary"]{background:var(--blue);color:#fff}.stButton>button[kind="primary"]:hover{background:var(--blue-dark);color:#fff}
+/* Content controls: keep header rules isolated and restore an explicit,
+   accessible boundary even when browser/theme defaults differ. */
+.stApp [data-testid="stMainBlockContainer"] :is([data-testid="stSelectbox"],[data-testid="stMultiSelect"],[data-testid="stDateInput"],[data-testid="stTextInput"],[data-testid="stNumberInput"],[data-testid="stTimeInput"]) [data-baseweb="select"],
+.stApp [data-testid="stMainBlockContainer"] :is([data-testid="stSelectbox"],[data-testid="stMultiSelect"],[data-testid="stDateInput"],[data-testid="stTextInput"],[data-testid="stNumberInput"],[data-testid="stTimeInput"]) [data-baseweb="input"]{
+  border:1px solid #8195B3!important;border-radius:7px!important;background:#fff!important;box-shadow:0 1px 2px rgba(21,34,56,.05)!important;
+}
+.stApp [data-testid="stMainBlockContainer"] :is([data-testid="stSelectbox"],[data-testid="stMultiSelect"]) [data-rac][role="group"],
+.stApp [data-testid="stMainBlockContainer"] :is([data-testid="stDateInputField"],[data-testid="stTimeInputField"],[data-testid="stTextInputRootElement"],[data-testid="stNumberInputContainer"]){
+  border:1px solid #8195B3!important;border-radius:7px!important;background:#fff!important;box-shadow:0 1px 2px rgba(21,34,56,.05)!important;
+}
+.stApp [data-testid="stMainBlockContainer"] :is([data-testid="stTextInput"],[data-testid="stNumberInput"]) input{background:#fff!important}
+.stApp [data-testid="stMainBlockContainer"] :is([data-testid="stSelectbox"],[data-testid="stMultiSelect"],[data-testid="stDateInput"],[data-testid="stTextInput"],[data-testid="stNumberInput"],[data-testid="stTimeInput"]):focus-within :is([data-baseweb],[data-rac][role="group"],[data-testid="stDateInputField"],[data-testid="stTimeInputField"],[data-testid="stTextInputRootElement"],[data-testid="stNumberInputContainer"]){
+  border-color:var(--blue)!important;box-shadow:0 0 0 3px rgba(24,87,201,.18)!important;
+}
+.stApp [data-testid="stMainBlockContainer"] [data-testid="stFileUploaderDropzone"]{border:1px dashed #8195B3!important;border-radius:8px!important;background:#fff!important}
+.stApp [data-testid="stMainBlockContainer"] [data-testid="stFileUploaderDropzone"]:focus-within{border-color:var(--blue)!important;box-shadow:0 0 0 3px rgba(24,87,201,.18)!important}
+.stApp [data-testid="stMainBlockContainer"] [data-testid="stExpander"] details{border:1px solid #8195B3!important;border-radius:8px!important;background:#fff!important}
+.stApp [data-testid="stMainBlockContainer"] :is(.stButton,.stDownloadButton)>button:focus-visible{outline:3px solid rgba(24,87,201,.28)!important;outline-offset:2px}
 div[data-testid="stForm"],div[data-testid="stVerticalBlockBorderWrapper"]{background:#fff;border-color:var(--border)!important;border-radius:12px}
 div[data-testid="stMetric"]{background:#fff;border:1px solid var(--border);padding:1rem 1.1rem;border-radius:10px;min-height:110px;display:flex;justify-content:center}
 [data-testid="stDataFrame"]{background:#fff;border:1px solid var(--border-soft);border-radius:10px;overflow:hidden}
@@ -124,7 +146,8 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:1279px){.st-key-desktop_navigation{display:none}.st-key-mobile_navigation{display:flex;align-items:center;justify-content:flex-start!important;align-self:flex-start;width:40px!important;height:52px;min-height:52px;padding:0!important;margin:0!important}.st-key-mobile_navigation>[data-testid="stLayoutWrapper"],.st-key-mobile_navigation [data-testid="stPopover"]{width:40px!important}.st-key-mobile_navigation button{width:40px;height:38px;min-height:38px;padding:0;background:transparent;border:0;color:#fff;white-space:nowrap;font-size:1.15rem}.st-key-mobile_navigation button:hover{background:rgba(255,255,255,.1);color:#fff;border-color:#fff}}
+@media(min-width:1100px) and (max-width:1365px){.st-key-desktop_navigation label[data-testid="stRadioOption"]{padding-left:8px;padding-right:8px;font-size:14px}.st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.1rem}}
+@media(max-width:1099px){.st-key-desktop_navigation{display:none}.st-key-mobile_navigation{display:flex;align-items:center;justify-content:flex-start!important;align-self:flex-start;width:40px!important;height:52px;min-height:52px;padding:0!important;margin:0!important}.st-key-mobile_navigation .stButton{width:40px!important}.st-key-mobile_navigation button{width:40px;height:38px;min-height:38px;padding:0;background:transparent;border:0;color:#fff;white-space:nowrap;font-size:1.15rem}.st-key-mobile_navigation button:hover{background:rgba(255,255,255,.1);color:#fff;border-color:#fff}}
 @media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.home-card{height:auto;min-height:112px}.opera-brandbar{padding:0 .7rem;gap:.6rem}.opera-dangote-logo{width:46px}.opera-brand-divider,.opera-tagline{display:none}.opera-wordmark{font-size:1.25rem}.opera-vision-block{width:118px;min-width:118px}.opera-vision-block img{width:110px}.opera-breadcrumb{padding:0 .7rem}}
 </style>
 """,
@@ -230,27 +253,10 @@ def _user_initials(display_name: str) -> str:
     return "".join(word[0] for word in words[:2]).upper() or "OX"
 
 
-def _select_page(page: str) -> None:
-    st.session_state.top_navigation = page
-
-
-def _render_nav_buttons(available: list[str], current: str, key_prefix: str) -> None:
-    slugs = {
-        "OPERA-X Home": "home", "Plant Overview": "plant", "Equipment Overview": "equipment",
-        "Operations Dashboard": "dashboards", "Operating Parameters": "parameters",
-        "Operational Data Pipeline": "data_pipeline", "Process Optimization": "optimization",
-        "Event Log": "event_log", "Lesson Bank": "lessons", "Job Risk Assessment": "risk_assessment",
-        "Admin / Super Admin": "admin",
-    }
-    for page in available:
-        st.button(
-            NAV_LABELS[page],
-            key=f"{key_prefix}{slugs[page]}",
-            type="primary" if page == current else "secondary",
-            width="content",
-            on_click=_select_page,
-            args=(page,),
-        )
+def _select_mobile_page(widget_key: str) -> None:
+    selected = st.session_state.get(widget_key)
+    if selected in PAGES:
+        st.session_state.top_navigation = selected
 
 
 def top_navigation(user: auth.User, bu: str) -> str:
@@ -290,36 +296,53 @@ def top_navigation(user: auth.User, bu: str) -> str:
     with st.container(key="primary_navigation"):
         menu, notice, account = st.columns([12, .5, .5], gap="small", vertical_alignment="center")
         with menu:
-            with st.container(
-                key="desktop_navigation", horizontal=True, wrap=False,
-                horizontal_alignment="left", vertical_alignment="center", gap=None,
-            ):
-                _render_nav_buttons(available, current, "nav_")
+            with st.container(key="desktop_navigation"):
+                desktop_key = "desktop_navigation_page"
+                if st.session_state.get(desktop_key) not in available or st.session_state.get(desktop_key) != current:
+                    st.session_state[desktop_key] = current
+                st.radio(
+                    "Navigation", available, key=desktop_key, format_func=lambda page: NAV_LABELS[page],
+                    horizontal=True, label_visibility="collapsed",
+                    on_change=_select_mobile_page, args=(desktop_key,),
+                )
             with st.container(key="mobile_navigation"):
-                with st.popover("☰", key="mobile_menu", width="content", help="Open navigation menu"):
-                    st.markdown('<div class="header-popover-title">Navigate</div>', unsafe_allow_html=True)
-                    for page in available:
-                        st.button(
-                            NAV_LABELS[page], key=f"mobile_nav_{NAV_LABELS[page].lower().replace(' ', '_')}",
-                            type="primary" if page == current else "secondary", width="stretch",
-                            on_click=_select_page, args=(page,),
-                        )
+                if st.button("☰", key="mobile_menu", help="Open navigation menu"):
+                    st.session_state.header_mobile_open = not st.session_state.get("header_mobile_open", False)
         with notice:
-            with st.popover(
+            if st.button(
                 f"Notifications, {len(unread)} unread", key="notifications_menu",
                 help=f"{len(unread)} unread notification(s)", icon=":material/notifications:",
             ):
-                st.markdown('<div class="header-popover-title">Notifications</div>', unsafe_allow_html=True)
-                if unread.empty:
-                    st.caption("No unread notifications.")
-                else:
-                    for _, row in unread.head(10).iterrows():
-                        (st.error if row["level"] == "error" else st.success)(row["message"])
-                    if st.button("Mark All as Read", key="top_mark_notifications", width="stretch"):
-                        storage.mark_notifications_read(bu, user.username)
-                        st.rerun()
+                st.session_state.header_notifications_open = not st.session_state.get("header_notifications_open", False)
         with account:
-            with st.popover(_user_initials(user.display_name), key="user_menu", help="Account menu"):
+            if st.button(_user_initials(user.display_name), key="user_menu", help="Account menu"):
+                st.session_state.header_user_open = not st.session_state.get("header_user_open", False)
+
+    if st.session_state.get("header_mobile_open"):
+        with st.container(key="header_mobile_panel"):
+            st.markdown('<div class="header-popover-title">Navigate</div>', unsafe_allow_html=True)
+            mobile_key = "mobile_navigation_page"
+            if st.session_state.get(mobile_key) not in available or st.session_state.get(mobile_key) != current:
+                st.session_state[mobile_key] = current
+            st.selectbox(
+                "Page", available, key=mobile_key, format_func=lambda page: NAV_LABELS[page],
+                on_change=_select_mobile_page, args=(mobile_key,),
+            )
+    if st.session_state.get("header_notifications_open"):
+        with st.container(key="header_notice_panel"):
+            st.markdown('<div class="header-popover-title">Notifications</div>', unsafe_allow_html=True)
+            if unread.empty:
+                st.caption("No unread notifications.")
+            else:
+                for _, row in unread.head(10).iterrows():
+                    (st.error if row["level"] == "error" else st.success)(row["message"])
+                if st.button("Mark All as Read", key="top_mark_notifications", width="stretch"):
+                    storage.mark_notifications_read(bu, user.username)
+                    st.rerun()
+    if st.session_state.get("header_user_open"):
+        _, panel = st.columns([3, 1])
+        with panel:
+            with st.container(key="header_user_panel"):
                 st.markdown(
                     f'<div class="header-popover-title">{escape(user.display_name)}</div>'
                     f'<div class="header-popover-meta">{escape(user.role)}<br>{escape(name)}</div>',
@@ -627,17 +650,16 @@ def home_detail_sheets(bu: str, username: str, detail: str) -> dict[str, pd.Data
     if detail == "Events":
         return {"Events": storage.read_csv(storage.bu_dir(bu) / "events.csv")}
     if detail == "Lessons":
-        return {"Lessons": storage.read_csv(storage.bu_dir(bu) / "lessons.csv")}
+        return {"Lessons": storage.load_lessons(bu)}
     if detail == "Notifications":
         return {"Notifications": storage.unread_notifications(bu, username)}
     raise ValueError(f"Unknown home detail: {detail}")
 
 
 def page_home(bu: str, user: auth.User) -> None:
-    st.title("OPERA-X Home")
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
-    lessons = storage.read_csv(storage.bu_dir(bu) / "lessons.csv")
+    lessons = storage.load_lessons(bu)
     values = [
         storage.reading_count(bu), len(flags[flags.get("status", "").astype(str).str.lower() == "open"]) if not flags.empty and "status" in flags else 0,
         len(events), len(lessons), len(storage.unread_notifications(bu, user.username)),
@@ -737,7 +759,6 @@ def page_plant(bu: str, user: auth.User) -> None:
 
 
 def page_equipment(bu: str, user: auth.User) -> None:
-    st.title("Equipment Overview")
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
     if equipment.empty:
@@ -805,8 +826,28 @@ def operations_long(view: pd.DataFrame, definitions: pd.DataFrame, field_ids: li
     return trend.dropna(subset=["value"])
 
 
-def operations_dashboard_data(bu: str) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
-    """Align Digital Data, Raw Field Data, QAQC and calculated values for the Operations Dashboard."""
+def _operations_data_signature(bu: str) -> tuple[tuple[str, int, int], ...]:
+    """Return a deterministic cache key that changes with every dashboard input."""
+    folder = storage.bu_dir(bu)
+    paths = [storage.source_path(bu, source) for source in storage.SOURCES]
+    paths += [folder / "fields.csv", folder / "calculated_fields.csv", folder / "constants.json"]
+    signature = []
+    for path in paths:
+        try:
+            stat = path.stat()
+            signature.append((str(path), stat.st_mtime_ns, stat.st_size))
+        except FileNotFoundError:
+            signature.append((str(path), 0, 0))
+    return tuple(signature)
+
+
+@lru_cache(maxsize=24)
+def _operations_dashboard_data_cached(
+    bu: str,
+    signature: tuple[tuple[str, int, int], ...],
+) -> tuple[pd.DataFrame, pd.DataFrame, tuple[str, ...]]:
+    """Build an immutable Operations Dashboard snapshot for an exact file state."""
+    del signature
     inputs = long_data(bu)
     if inputs.empty:
         input_wide = pd.DataFrame(columns=["Timestamp"])
@@ -829,7 +870,13 @@ def operations_dashboard_data(bu: str) -> tuple[pd.DataFrame, pd.DataFrame, list
     if "Timestamp" in view:
         view["Timestamp"] = pd.to_datetime(view["Timestamp"], errors="coerce")
         view = view.sort_values("Timestamp")
-    return view, definitions, errors
+    return view, definitions, tuple(errors)
+
+
+def operations_dashboard_data(bu: str) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
+    """Align dashboard data, reusing it until an input file actually changes."""
+    view, definitions, errors = _operations_dashboard_data_cached(bu, _operations_data_signature(bu))
+    return view.copy(deep=True), definitions.copy(deep=True), list(errors)
 
 
 def page_operations(bu: str, user: auth.User) -> None:
@@ -1319,24 +1366,27 @@ def page_risk(bu: str, user: auth.User) -> None:
 
 def page_lessons(bu: str, user: auth.User) -> None:
     path = storage.bu_dir(bu) / "lessons.csv"
-    lessons = storage.read_csv(path)
-    required = ["lesson_id", "timestamp", "event_id", "unit_section", "equipment", "lesson_title", "lesson", "attachment_path", "attachment_name", "attachment_type", "read_count", "entered_by"]
-    for column in required:
-        if column not in lessons:
-            lessons[column] = ""
+    lessons = storage.load_lessons(bu)
+    required = storage.LESSON_COLUMNS
+    configured_categories = dashboard.hierarchy_options(bu)["lesson_categories"]
+    saved_categories = [item for item in lessons["category"].astype(str).unique() if item]
+    categories = list(dict.fromkeys(configured_categories + sorted(saved_categories)))
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     review, entry = st.tabs(["Review Lessons", "Input Lesson"])
     with review:
         if lessons.empty:
             st.info("No lessons have been recorded.")
         else:
-            first, second, third = st.columns(3)
+            first, second, third, fourth = st.columns(4)
+            category_filter = first.selectbox("Category", ["All"] + categories, key="lesson_category_filter")
             units = sorted([item for item in lessons["unit_section"].unique() if item])
             equipment_items = sorted([item for item in lessons["equipment"].unique() if item])
-            unit = first.selectbox("Unit / Section", ["All"] + units)
-            equipment_filter = second.selectbox("Equipment", ["All"] + equipment_items)
-            order = third.selectbox("Sort", ["Newest", "Most Read"])
+            unit = second.selectbox("Unit / Section", ["All"] + units)
+            equipment_filter = third.selectbox("Equipment", ["All"] + equipment_items)
+            order = fourth.selectbox("Sort", ["Newest", "Most Read"])
             view = lessons.copy()
+            if category_filter != "All":
+                view = view[view["category"] == category_filter]
             if unit != "All":
                 view = view[view["unit_section"] == unit]
             if equipment_filter != "All":
@@ -1345,8 +1395,15 @@ def page_lessons(bu: str, user: auth.User) -> None:
                 view = view.assign(_reads=pd.to_numeric(view["read_count"], errors="coerce").fillna(0)).sort_values(["_reads", "timestamp"], ascending=[False, False]).drop(columns="_reads")
             else:
                 view = view.sort_values("timestamp", ascending=False)
-            display_columns = ["lesson_id", "lesson_title", "unit_section", "equipment", "event_id", "read_count", "entered_by", "timestamp"]
+            display_columns = ["lesson_id", "lesson_title", "category", "unit_section", "equipment", "event_id", "read_count", "entered_by", "timestamp"]
             safe_dataframe(view[display_columns], width="stretch", hide_index=True)
+            st.download_button(
+                "Download Filtered Lessons Excel",
+                exports.excel_bytes({"Lessons": view[required]}),
+                f"{bu}_lesson_bank.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="lesson_excel_download",
+            )
             labels = {f"{row.lesson_id} — {row.lesson_title or 'Untitled lesson'}": row.lesson_id for row in view.itertuples()}
             if labels:
                 selected_label = st.selectbox("Saved Lesson", list(labels))
@@ -1363,9 +1420,9 @@ def page_lessons(bu: str, user: auth.User) -> None:
                     row = selected_rows.iloc[0]
                     with st.container(border=True):
                         st.markdown(f"### {row['lesson_title'] or 'Untitled lesson'}")
-                        st.caption(f"{row['unit_section']} · {row['equipment'] or 'No equipment'} · Event {row['event_id'] or 'Unlinked'} · {row['read_count']} read(s)")
+                        st.caption(f"{row['category']} · {row['unit_section']} · {row['equipment'] or 'No equipment'} · Event {row['event_id'] or 'Unlinked'} · {row['read_count']} read(s)")
                         st.write(row["lesson"])
-                        metadata = {"Lesson ID": row["lesson_id"], "Unit / Section": row["unit_section"], "Equipment": row["equipment"], "Event": row["event_id"], "Entered By": row["entered_by"], "Recorded": row["timestamp"], "Attachment": row["attachment_name"]}
+                        metadata = {"Lesson ID": row["lesson_id"], "Category": row["category"], "Unit / Section": row["unit_section"], "Equipment": row["equipment"], "Event": row["event_id"], "Entered By": row["entered_by"], "Recorded": row["timestamp"], "Attachment": row["attachment_name"]}
                         pdf = exports.lesson_pdf_bytes(row["lesson_title"] or row["lesson_id"], metadata, row["lesson"])
                         st.download_button("Download Lesson as PDF", pdf, f"{row['lesson_id']}.pdf", "application/pdf")
                         if row["attachment_path"]:
@@ -1383,26 +1440,50 @@ def page_lessons(bu: str, user: auth.User) -> None:
         if not auth.allowed(user, "lessons"):
             st.warning("Your role cannot add lessons.")
         else:
+            category = st.selectbox("Lesson Category", categories, key="lesson_category")
             link_event = st.checkbox("Link This Lesson to an Event", value=False, disabled=events.empty)
             event_row = None
+            equipment_id = ""
+            unit_section = ""
             if link_event and not events.empty:
                 event_labels = {f"{row.event_id} — {row.title}": row for row in events.itertuples()}
                 label = st.selectbox("Event", list(event_labels))
                 event_row = event_labels[label]
-                unit_section, equipment_id = event_row.unit_section, event_row.equipment
-                st.caption(f"Unit / Section: {unit_section} · Equipment: {equipment_id}")
+                unit_section = event_row.unit_section
+                if category == "Equipment":
+                    equipment_id = event_row.equipment
+                else:
+                    keep_event_equipment = st.checkbox("Associate the linked event's equipment", value=False)
+                    equipment_id = event_row.equipment if keep_event_equipment else ""
+                st.caption(f"Unit / Section: {unit_section} · Equipment: {equipment_id or 'Not associated'}")
             else:
                 equipment = storage.equipment(bu)
                 equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
                 equipment_labels = {f"{row.equipment_id} — {row.equipment_name}": row for row in equipment.itertuples()}
-                equipment_label = st.selectbox("Equipment", list(equipment_labels))
-                equipment_row = equipment_labels[equipment_label]
-                equipment_id, unit_section = equipment_row.equipment_id, equipment_row.unit_section
+                if category == "Equipment":
+                    if equipment_labels:
+                        equipment_label = st.selectbox("Equipment", list(equipment_labels))
+                        equipment_row = equipment_labels[equipment_label]
+                        equipment_id, unit_section = equipment_row.equipment_id, equipment_row.unit_section
+                    else:
+                        st.warning("No active equipment is configured. Add equipment before recording an Equipment lesson.")
+                else:
+                    units = dashboard.hierarchy_options(bu)["units"] or ["Plant-wide"]
+                    unit_section = st.selectbox("Unit / Section", units, key="lesson_unit_section")
+                    matching = {
+                        label: row for label, row in equipment_labels.items()
+                        if str(row.unit_section) == str(unit_section)
+                    }
+                    optional_label = st.selectbox("Equipment (Optional)", ["No equipment"] + list(matching), key="lesson_optional_equipment")
+                    if optional_label != "No equipment":
+                        equipment_id = matching[optional_label].equipment_id
             title = st.text_input("Lesson Title")
             lesson = st.text_area("Lesson Learned")
             attachment = st.file_uploader("Supporting File (Word, text, image, PDF or video)", type=[suffix.lstrip(".") for suffix in storage.ATTACHMENT_TYPES])
             if st.button("Save Lesson", type="primary"):
-                if not title.strip() or not lesson.strip():
+                if category == "Equipment" and not equipment_id:
+                    st.error("Select equipment for an Equipment lesson.")
+                elif not title.strip() or not lesson.strip():
                     st.error("Enter a lesson title and lesson details.")
                 else:
                     try:
@@ -1411,9 +1492,9 @@ def page_lessons(bu: str, user: auth.User) -> None:
                         attachment_path = storage.save_attachment(bu, attachment.name, attachment.getvalue()) if attachment else ""
                         attachment_name = attachment.name if attachment else ""
                         attachment_type = storage.attachment_mime(attachment_name) if attachment else ""
-                        row = {"lesson_id": lesson_id, "timestamp": storage.utcnow(), "event_id": event_id, "unit_section": unit_section, "equipment": equipment_id, "lesson_title": title.strip(), "lesson": lesson, "attachment_path": attachment_path, "attachment_name": attachment_name, "attachment_type": attachment_type, "read_count": "0", "entered_by": user.username}
+                        row = {"lesson_id": lesson_id, "timestamp": storage.utcnow(), "event_id": event_id, "category": category, "unit_section": unit_section, "equipment": equipment_id, "lesson_title": title.strip(), "lesson": lesson, "attachment_path": attachment_path, "attachment_name": attachment_name, "attachment_type": attachment_type, "read_count": "0", "entered_by": user.username}
                         storage.append_rows(path, [row], required)
-                        storage.audit(bu, user.username, "lesson_created", {"lesson_id": lesson_id, "event_id": event_id or None, "attachment": attachment_name})
+                        storage.audit(bu, user.username, "lesson_created", {"lesson_id": lesson_id, "category": category, "event_id": event_id or None, "attachment": attachment_name})
                         st.success(f"Lesson {lesson_id} saved" + (f" and linked to {event_id}." if event_id else " without an event link."))
                     except Exception as exc:
                         st.error(f"Lesson could not be saved: {exc}")
@@ -1786,10 +1867,15 @@ def equipment_admin(bu: str, user: auth.User) -> None:
         plants_text = st.text_area("Plants (One per Line)", "\n".join(options["plants"]), height=140)
         units_text = st.text_area("Units / Sections (One per Line)", "\n".join(options["units"]), height=180)
         types_text = st.text_area("Equipment Types (One per Line)", "\n".join(options["equipment_types"]), height=180)
+        categories_text = st.text_area("Lesson Categories (One per Line)", "\n".join(options["lesson_categories"]), height=140)
         if st.button("Save Validation Lists", type="primary"):
-            dashboard.save_hierarchy_options(bu, {"plants": plants_text.splitlines(), "units": units_text.splitlines(), "equipment_types": types_text.splitlines()})
-            storage.audit(bu, user.username, "equipment_validation_lists_changed")
-            st.success("Validation lists saved. The equipment dropdowns now use these values.")
+            categories = [item.strip() for item in categories_text.splitlines() if item.strip()]
+            if not {"Equipment", "General"}.issubset(categories):
+                st.error("Lesson Categories must retain Equipment and General for compatibility with existing lessons.")
+            else:
+                dashboard.save_hierarchy_options(bu, {"plants": plants_text.splitlines(), "units": units_text.splitlines(), "equipment_types": types_text.splitlines(), "lesson_categories": categories})
+                storage.audit(bu, user.username, "validation_lists_changed", {"lesson_categories": categories})
+                st.success("Validation lists saved. Equipment and Lesson Bank dropdowns now use these values.")
     with records_tab:
         equipment = storage.equipment(bu)
         mode = st.radio("Record Set", ["Spare Placeholders", "All Equipment"], horizontal=True)
@@ -1825,7 +1911,6 @@ def page_admin(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
-    st.title("Admin / Super Admin")
     sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Digital Data Connector", "Presets", "Audit & Backup"]
     section = st.radio("Administration Area", sections, horizontal=True, label_visibility="collapsed", key="admin_area")
     if section == sections[0]:
