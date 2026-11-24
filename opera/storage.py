@@ -35,6 +35,11 @@ ATTACHMENT_TYPES = {
     ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
     ".mp4": "video/mp4", ".mov": "video/quicktime", ".avi": "video/x-msvideo", ".mkv": "video/x-matroska", ".webm": "video/webm",
 }
+LESSON_COLUMNS = [
+    "lesson_id", "timestamp", "event_id", "category", "unit_section", "equipment",
+    "lesson_title", "lesson", "attachment_path", "attachment_name", "attachment_type",
+    "read_count", "entered_by",
+]
 
 
 def utcnow() -> str:
@@ -145,6 +150,31 @@ def registry(bu: str) -> pd.DataFrame:
 
 def equipment(bu: str) -> pd.DataFrame:
     return read_csv(bu_dir(bu) / "equipment.csv")
+
+
+def load_lessons(bu: str, migrate: bool = True) -> pd.DataFrame:
+    """Load the Lesson Bank with a backward-compatible category schema.
+
+    Pre-category rows are classified deterministically: Equipment when an
+    equipment ID is present, otherwise General.  The one-time write is atomic,
+    so a live OPERA_DATA_DIR upgrades without a manual CSV edit.
+    """
+    path = bu_dir(bu) / "lessons.csv"
+    lessons = read_csv(path)
+    changed = list(lessons.columns) != LESSON_COLUMNS
+    for column in LESSON_COLUMNS:
+        if column not in lessons:
+            lessons[column] = ""
+    blank_category = lessons["category"].astype(str).str.strip().eq("")
+    if blank_category.any():
+        has_equipment = lessons["equipment"].astype(str).str.strip().ne("")
+        lessons.loc[blank_category & has_equipment, "category"] = "Equipment"
+        lessons.loc[blank_category & ~has_equipment, "category"] = "General"
+        changed = True
+    lessons = lessons.reindex(columns=LESSON_COLUMNS)
+    if migrate and changed and path.exists():
+        atomic_write_csv(path, lessons)
+    return lessons
 
 
 def input_data(bu: str, sources: Iterable[str] | None = None) -> pd.DataFrame:

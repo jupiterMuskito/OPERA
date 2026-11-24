@@ -1397,6 +1397,7 @@ def hierarchy_options(bu: str) -> dict[str, list[str]]:
         "plants": sorted({str(x).strip() for x in equipment.get("plant", pd.Series(dtype=str)) if str(x).strip()}),
         "units": sorted({str(x).strip() for x in equipment.get("unit_section", pd.Series(dtype=str)) if str(x).strip() and str(x).strip() != "Unassigned"}),
         "equipment_types": sorted({str(x).strip() for x in equipment.get("equipment_type", pd.Series(dtype=str)) if str(x).strip() and str(x).strip() != "Placeholder"}),
+        "lesson_categories": ["Equipment", "Safety", "General", "Plant Operations"],
     }
     saved = storage.json_setting(hierarchy_path(bu), {})
     for key in derived:
