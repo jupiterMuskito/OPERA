@@ -27,15 +27,16 @@ def test_v38_style_navigation_has_no_category_labels_or_colour_formatting():
     assert "category-data" not in source
 
 
-def test_admin_is_navigation_only_and_header_actions_are_stacked_beside_logo():
+def test_admin_is_navigation_only_and_header_actions_are_in_the_user_menu():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     home = source[source.index("def page_home"):source.index("def page_plant")]
     navigation = source[source.index("def top_navigation"):source.index("def source_frame")]
     assert "Admin / Super Admin" not in home
     assert '"Admin / Super Admin": page_admin' in source
-    assert "button_stack, logo = st.columns" in navigation
-    assert navigation.index('button("⇄ Change BU"') < navigation.index('button("↪ Sign Out"')
-    assert navigation.index('button("↪ Sign Out"') < navigation.index("with logo:")
+    assert 'st.button(_user_initials(user.display_name), key="user_menu"' in navigation
+    assert 'with st.container(key="header_user_panel")' in navigation
+    assert navigation.index('button("Change Business Unit"') < navigation.index('button("Help"')
+    assert navigation.index('button("Help"') < navigation.index('button("Sign Out"')
 
 
 def test_vision_2030_assets_have_real_transparency_and_old_jpegs_are_removed():
