@@ -1,54 +1,29 @@
-# OPERA-X v3.10.1 build notes
+# OPERA-X v3.11.0 build notes
 
-## Version-banner correction
+## Approved header/navigation redesign
 
-- Made the repository-root `VERSION` file the single source of truth and set it to `3.10.1`.
-- Removed the duplicate hardcoded package version from `opera/__init__.py`; `opera.__version__` is now derived from `VERSION` through `opera/version.py`.
-- Removed the banner's imported `APP_VERSION` value. The top ribbon now calls `version_badge_html()` on every render, and that helper reads `VERSION` rather than retaining a hardcoded or process-cached banner value.
-- Added a regression test that checks the `VERSION` file, package version, badge HTML and the banner integration in `app.py` together. A second test proves that changing the authoritative file changes the generated badge without a Python-module reload.
-- The code-only update includes `VERSION`, `opera/__init__.py`, `opera/version.py`, `app.py` and the new test, so GitHub, Streamlit Community Cloud and the DDF server receive the complete version path.
+- Replaced the old radio-button header with the approved Option B flat menu.
+- Added a 68 px white brand bar with the Dangote mark, navy/red OPERA-X wordmark, tagline, and Vision 2030 mark. The version is read from the repository-root `VERSION` file and appears directly under Vision 2030.
+- Added a 52 px navy navigation bar with this order: Home | Plant · Equipment · Dashboards · Parameters · Data Pipeline · Optimization | Event Log · Lessons · Risk Assessment | Admin.
+- Kept full route and page-title names. For example, Dashboards opens Operations Dashboard and Risk Assessment opens Job Risk Assessment.
+- Added light group dividers, non-wrapping labels, and a red active-page underline.
+- Kept Admin conditional on the existing `configure` permission.
+- Replaced the notification toggle with a native notification popover and red unread-count badge.
+- Replaced the separate Change BU/Sign Out controls and Help icon with a native avatar popover containing user name, role, business unit, Change Business Unit, Help, Sign Out, and version.
+- Added a 40 px breadcrumb strip with the business-unit pill, category, and full page name.
+- Added a native mobile menu below 1280 px. The desktop menu is hidden rather than wrapped.
 
-## Field Catalogue/template-mapping correction
+All clickable navigation and account actions are Streamlit controls. No HTML `<a href>` navigation is used, so page selection remains in the authenticated Streamlit session.
 
-- Reproduced the defect with current v3.10.0 application code pointed at a persistent data directory containing a pre-v3.9 `field_mappings.xlsx` without `Template IDs`.
-- Added an in-place schema upgrade that runs before the workbook is cached or used to prepare a download. It inserts `Template IDs` and `Dashboard Templates` beside `Equipment IDs` in both backend mapping sheets and fills them from any legacy Template Mappings sheet, legacy JSON override or the current engineering defaults.
-- The migration preserves existing equipment mappings, administrator metadata, extra columns and extra worksheets. It invalidates only the derived runtime cache, which is rebuilt automatically.
-- The in-app Field Catalogue always contains `Dashboard Template ID` and `Dashboard Template` beside `Equipment ID` and `Equipment`. Multiple templates use multiple included rows, matching the equipment relationship model.
-- The Dashboard Template ID uses a controlled dropdown backed by the five packaged templates: Plant Performance, Condition Monitoring, Process Performance, Quality and Compliance, and Reliability.
-- The backend Excel Mapping Database now shows both semicolon-separated Template IDs and human-readable Dashboard Templates per field.
-- Bulk upload reads all included Field Catalogue rows, de-duplicates multiple template relationships, rejects unknown template IDs with the worksheet row number, and writes validated relationships to the backend workbook.
-- The Admin page now clears any previously prepared workbook before building a fresh download. A schema/generation error therefore cannot leave an older pre-upgrade workbook available for download.
+## Compatibility and maintenance
 
-## Retained v3.10.0 changes
+- Pinned Streamlit to `streamlit==1.66.1`. The custom header CSS depends on the tested DOM/classes and must be visually regression-tested before that version is changed.
+- Brand images remain packaged and embedded as data URIs, preserving Community Cloud and nginx `/operationaldashboard/` sub-path compatibility.
+- Removed dead authenticated-header code and CSS for the radio group, old blue ribbon, context row, stacked action buttons, and legacy Vision navigation wrapper.
+- Preserved the v3.9–v3.10.1 fixes: Digital Data/Raw Field Data labels, Field Catalogue equipment/template mapping columns and auto-upgrade, Job Risk Assessment display name, Operational Data Pipeline display name, and `VERSION` as the single source of truth.
 
-- Restored the authenticated top navigation to the v3.8 presentation: plain page labels, no category names in navigation labels, no category legend, no category icons and no category colour formatting.
-- Renamed only the user-facing module previously called **Operational Data** to **Operational Data Pipeline**. The Home card, navigation, module heading, export names and displayed Admin audit labels use the new name.
-- Preserved compatibility-sensitive identifiers such as `page_operational_data`, `operational_data_view`, `data_input_saved`, `bulk_upload`, source keys, CSV names and live-data paths. The Admin audit view translates the two retained stored action values for display instead of rewriting historical audit rows.
-- Kept the Home category/group name **Operational Data**. It contains Plant Overview, Equipment Overview, Operations Dashboard, Operating Parameters, Operational Data Pipeline and Process Optimization.
-- Placed Job Risk Assessment under **Operational Knowledge** with Event Log and Lesson Bank.
-- Removed the Admin / Super Admin card from Home. Admin / Super Admin remains available to authorized users from the top navigation.
-- Rebuilt the supplied Vision 2030 artwork as transparent PNG assets and removed the obsolete JPEG renditions.
-- Stacked **Change BU** above **Sign Out**. The compact transparent Vision 2030 mark sits beside the button stack, aligned from the top and spanning the level of the two controls without increasing the ribbon beyond the compact two-row navigation layout.
-- Removed the unused v3.9 category formatting functions, mappings and CSS.
+## Deployment
 
-## Header and branding layout
+Apply the full code-only ZIP to the verified v3.10.1 repository; do not cherry-pick a subset and do not skip versions. After `git pull`, fully restart with `~/OPERA/start_opera.sh`. No file under `~/opera_data` requires a manual update.
 
-The first ribbon remains the compact OPERA-X brand/version ribbon. Directly below it, the navigation uses unprefixed page names. Business-unit/user context remains at the upper left, notifications remain between navigation and actions, Change BU is above Sign Out, and Vision 2030 is positioned to the right of that stack. The logo has a real alpha channel and no white rectangle, so the application background shows through.
-
-Visual captures are included under `verification/` and summarized in `VISUAL_VERIFICATION_v3.10.0.md`.
-
-## Deployment and data safety
-
-- The full ZIP is for fresh/test deployment and includes the v3.9 runtime data unchanged.
-- The code-only ZIP is the correct GitHub/DDF update and excludes `data/`, `registers/` and `reference_sources/`.
-- No CSV, JSON or Excel runtime file changed versus v3.9.0.
-- No manual change is required under live `~/opera_data`. On first mapping access, the app automatically upgrades an old `field_mappings.xlsx` in place and regenerates its derived runtime cache; existing mapping data is retained.
-- Keep `OPERA_DATA_DIR=~/opera_data` (or `OPERAX_DATA_DIR=~/opera_data`) when restarting the DDF service.
-- Local brand assets are embedded as data URIs, so both Streamlit Community Cloud and the nginx `/operationaldashboard/` deployment remain supported.
-
-## Verification
-
-- `pytest -q`: **64 passed**.
-- `python -m py_compile app.py opera/*.py scripts/*.py`: passed.
-- Playwright/Chromium rendered the sign-in page, Home/header and Operational Data Pipeline page at 1600×1000 with no Streamlit exception panels.
-- The browser check confirmed the corrected Home groups, absence of the Admin Home card, transparent Vision 2030 mark, stacked actions and working Operational Data Pipeline route.
+See `VISUAL_VERIFICATION_v3.11.0.md`, `LIVE_DATA_UPDATE_v3.11.0.md`, `TEST_RESULTS.md`, and `CHANGE_MANIFEST_v3.11.0_vs_v3.10.1.md`.

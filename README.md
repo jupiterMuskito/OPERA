@@ -19,7 +19,7 @@ For persistent server storage, set `OPERAX_DATA_DIR`. Existing deployments that 
 
 ## Seeded test logins
 
-All seeded accounts use the temporary password ``.
+All seeded accounts use the temporary password `ChangeMe!2026`.
 
 | Username | Role | Business-unit access |
 |---|---|---|
@@ -32,9 +32,11 @@ Change or disable every seeded account before production. Passwords are PBKDF2-S
 
 ## Main application flow
 
-`Login → Business Unit → fixed OPERA-X brand ribbon → fixed merged navigation → module content`
+`Login → Business Unit → fixed brand bar → fixed flat navigation → breadcrumb → module content`
 
-The fixed first ribbon carries OPERA-X branding. The fixed navigation bar retains the compact v3.8-style page labels and directly contains navigation, business-unit/user context and notifications. **Change BU** is stacked above **Sign Out**, with a transparent Vision 2030 mark beside the button stack. The rounded blue page-title/subtitle hero remains removed from authenticated modules.
+The authenticated header is approximately 160 px high. Its white brand bar contains the Dangote mark, OPERA-X wordmark, tagline, and the Vision 2030 mark with the version directly underneath. The navy navigation bar exposes every page through short, non-wrapping labels; the active page has a red underline. At widths below 1280 px the flat menu collapses to a native Streamlit menu rather than wrapping. Notifications and the avatar open native Streamlit popovers. The avatar menu contains user context, **Change Business Unit**, **Help**, **Sign Out**, and the version. A breadcrumb keeps the business unit, category, and full page name visible.
+
+Navigation actions use Streamlit-native buttons, not HTML links, so selecting a page stays in the current authenticated session. The custom header selectors are verified against and depend on the exact `streamlit==1.66.1` pin in `requirements.txt`; test the header before changing that pin.
 
 Modules:
 
@@ -83,7 +85,7 @@ Each BU has one CSV per source: Digital Data (`DP1–DP1000`, persisted internal
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing v3.10.0 deployment, apply `OPERA-X_Code_Only_Update_v3.10.1_vs_v3.10.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.10.1 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.10.1.md`.
+For an existing verified v3.10.1 deployment, apply the complete `OPERA-X_Code_Only_Update_v3.11.0_vs_v3.10.1.zip`; do not skip intermediate versions. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.11.0 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.11.0.md`.
 
 ## Risk registers
 
@@ -102,6 +104,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The automated suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the stacked header layout, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, fixed-navigation UI, and agreement between the banner, package version and authoritative `VERSION` file.
+The automated suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the responsive flat header, native session-preserving navigation, admin-only visibility, breadcrumb/category mapping, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and agreement between the header, package version and authoritative `VERSION` file.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `ROOT_CAUSE_AND_FIX_v3.10.1.md`, `LIVE_DATA_UPDATE_v3.10.1.md`, `CHANGE_MANIFEST_v3.10.1_vs_v3.10.0.md`, and the retained earlier release, root-cause and performance reports.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.11.0.md`, `CHANGE_MANIFEST_v3.11.0_vs_v3.10.1.md`, `VISUAL_VERIFICATION_v3.11.0.md`, and the retained earlier release, root-cause and performance reports.

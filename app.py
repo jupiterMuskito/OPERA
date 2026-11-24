@@ -5,6 +5,7 @@ import io
 import uuid
 import zipfile
 from datetime import date, datetime, timedelta, timezone
+from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,7 @@ import streamlit as st
 from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, risk_store, storage
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
-from opera.version import version_badge_html
+from opera.version import get_version, version_badge_html
 
 APP_ICON = Path(__file__).resolve().parent / "assets" / "opera_x_icon.png"
 DANGOTE_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_group_logo.webp"
@@ -23,9 +24,22 @@ VISION_2030_LOGO = Path(__file__).resolve().parent / "assets" / "dangote_vision_
 VISION_2030_COMPACT = Path(__file__).resolve().parent / "assets" / "dangote_vision_2030_compact.png"
 st.set_page_config(page_title="OPERA-X", page_icon=str(APP_ICON), layout="wide", initial_sidebar_state="collapsed")
 PAGES = [
-    "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operational Data Pipeline",
-    "Event Log", "Operating Parameters", "Process Optimization", "Job Risk Assessment", "Lesson Bank", "Admin / Super Admin",
+    "OPERA-X Home", "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operating Parameters",
+    "Operational Data Pipeline", "Process Optimization", "Event Log", "Lesson Bank", "Job Risk Assessment", "Admin / Super Admin",
 ]
+NAV_LABELS = {
+    "OPERA-X Home": "Home",
+    "Plant Overview": "Plant",
+    "Equipment Overview": "Equipment",
+    "Operations Dashboard": "Dashboards",
+    "Operating Parameters": "Parameters",
+    "Operational Data Pipeline": "Data Pipeline",
+    "Process Optimization": "Optimization",
+    "Event Log": "Event Log",
+    "Lesson Bank": "Lessons",
+    "Job Risk Assessment": "Risk Assessment",
+    "Admin / Super Admin": "Admin",
+}
 MODULE_CATEGORIES = {
     "Operational Data": [
         "Plant Overview", "Equipment Overview", "Operations Dashboard", "Operating Parameters",
@@ -56,17 +70,31 @@ def styles() -> None:
 }
 html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;color:var(--text)}
 .stApp{background:var(--bg)}
-[data-testid="stHeader"]{background:rgba(238,243,250,.90);backdrop-filter:blur(8px)}
+[data-testid="stHeader"]{height:0;background:transparent}
+[data-testid="stToolbar"],[data-testid="stDecoration"]{display:none}
 [data-testid="stSidebar"]{display:none}
-.st-key-brand_ribbon{position:sticky;top:2.8rem;z-index:1001;background:var(--bg);padding-top:.15rem}
-.app-ribbon{background:linear-gradient(120deg,var(--blue-dark),var(--blue));color:#fff;border-radius:12px 12px 0 0;padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(15,63,156,.14)}
-.app-ribbon .name{font-size:1.45rem;font-weight:850;letter-spacing:.02em}.app-ribbon .ribbon-meta{display:flex;flex-direction:column;align-items:flex-end;gap:.15rem}.app-ribbon .tagline{font-size:.9rem;color:#E7F0FF;font-weight:600}.app-ribbon .version{font-size:.72rem;color:#fff;font-weight:750;letter-spacing:.05em;background:rgba(255,255,255,.14);padding:.08rem .42rem;border-radius:999px}
-.st-key-primary_navigation{position:sticky;top:6.45rem;z-index:1000;background:#fff;border:1px solid var(--border);border-radius:0 0 10px 10px;padding:.42rem .5rem .5rem;margin-bottom:.65rem;box-shadow:0 8px 18px rgba(21,34,56,.08)}
-.st-key-primary_navigation div[role="radiogroup"]{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.28rem;background:#fff;padding:.1rem}
-.st-key-primary_navigation div[role="radiogroup"] label{border:1px solid transparent;border-radius:7px;padding:.34rem .45rem;margin:0;color:var(--blue-dark);font-weight:700;justify-content:center;text-align:center;min-height:2.35rem}
-.st-key-primary_navigation div[role="radiogroup"] label:has(input:checked){background:#E7F0FF;border-color:#AFC7EA}
-.nav-context{font-size:.76rem;color:var(--muted);padding:.1rem .25rem .25rem}.nav-context strong{color:var(--blue-dark)}
-.block-container{padding-top:2rem;padding-bottom:3rem;max-width:1500px}
+.st-key-brand_ribbon{position:sticky;top:0;z-index:1003;background:#fff;border-bottom:1px solid #E4E8EF;box-shadow:0 2px 7px rgba(20,32,46,.06)}
+.opera-brandbar{height:68px;display:flex;align-items:center;justify-content:space-between;gap:1.25rem;padding:0 1.1rem;background:#fff;box-sizing:border-box}
+.opera-brand-left{min-width:0;display:flex;align-items:center;gap:1rem}.opera-dangote-logo{width:58px;height:48px;object-fit:contain}.opera-wordmark{font-size:1.55rem;font-weight:900;letter-spacing:-.035em;white-space:nowrap}.opera-wordmark .opera{color:#30336A}.opera-wordmark .x{color:#D7262F}.opera-brand-divider{height:32px;width:1px;background:#CDD3DE}.opera-tagline{color:#4C566B;font-size:.88rem;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opera-vision-block{width:145px;min-width:145px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:2px}.opera-vision-block img{width:132px;height:43px;object-fit:contain}.opera-vision-block .version{font-size:.66rem;line-height:1;color:#7B8391;font-weight:650;letter-spacing:.02em;margin-top:-1px}
+.st-key-primary_navigation{position:sticky;top:68px;z-index:1002;background:#30336A;height:52px;box-sizing:border-box;padding:.26rem .65rem;box-shadow:0 3px 8px rgba(25,27,65,.18)}
+.st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.22rem;align-items:center}
+.st-key-desktop_navigation [data-testid="stHorizontalBlock"]{gap:0}
+.st-key-desktop_navigation .stButton{height:44px}
+.st-key-desktop_navigation .stButton>button{height:44px;min-height:44px;width:100%;padding:.35rem .28rem;border:0;border-radius:0;background:transparent;color:#E8E9F2;font-size:clamp(.67rem,.75vw,.84rem);font-weight:700;white-space:nowrap;box-shadow:none}
+.st-key-desktop_navigation .stButton>button:hover{background:rgba(255,255,255,.08);color:#fff}
+.st-key-desktop_navigation .stButton>button[kind="primary"]{background:transparent;color:#fff;border-bottom:4px solid #D7262F}
+.st-key-nav_plant,.st-key-nav_event_log,.st-key-nav_admin{border-left:1px solid rgba(255,255,255,.28);padding-left:.18rem}
+.st-key-mobile_navigation{display:none}
+.st-key-notifications_menu button,.st-key-user_menu button{height:38px;min-height:38px;border:0;background:transparent;color:#fff;box-shadow:none;white-space:nowrap}
+.st-key-notifications_menu button:hover,.st-key-user_menu button:hover{background:rgba(255,255,255,.10);color:#fff}
+.st-key-notifications_menu button{width:42px;padding:0;position:relative}.st-key-notifications_menu button p{font-size:0}
+.st-key-user_menu button{width:38px;padding:0;border-radius:50%;background:#D7262F;border:2px solid #fff;color:#fff;font-size:.72rem;font-weight:850}
+.header-popover-title{font-size:.96rem;font-weight:850;color:#30336A}.header-popover-meta{font-size:.78rem;color:#606A7C;line-height:1.45;margin:.1rem 0 .6rem}.header-help{font-size:.79rem;line-height:1.45;color:#48556A;background:#F3F5F9;border-left:3px solid #30336A;padding:.55rem .65rem;margin:.25rem 0 .5rem}.header-version{font-size:.7rem;color:#7B8391;text-align:center;margin-top:.45rem}
+.st-key-user_sign_out button{color:#B51F2A;border-color:#E9A8AD}.st-key-user_sign_out button:hover{color:#941923;border-color:#D7262F;background:#FFF5F5}
+.st-key-breadcrumb_strip{position:sticky;top:120px;z-index:1001;background:#fff;border-bottom:1px solid #E0E5EC;height:40px;box-sizing:border-box;box-shadow:0 2px 7px rgba(20,32,46,.04)}
+.opera-breadcrumb{height:40px;display:flex;align-items:center;gap:.55rem;padding:0 1.1rem;color:#566174;font-size:.78rem;font-weight:650;white-space:nowrap;overflow:hidden}.opera-bu-badge{display:inline-flex;align-items:center;border-radius:999px;background:#30336A;color:#fff;padding:.2rem .62rem;font-size:.67rem;font-weight:850;letter-spacing:.055em}.opera-breadcrumb .chevron{color:#A0A7B3}.opera-breadcrumb .page{color:#30336A;font-weight:800;overflow:hidden;text-overflow:ellipsis}
+.block-container{padding-top:.6rem;padding-bottom:3rem;max-width:1800px}
 .login-brand{min-height:410px;border-radius:18px;padding:3.1rem;background:linear-gradient(145deg,#0F3F9C 0%,#1857C9 70%,#2F7DE1 100%);color:#fff;box-shadow:0 24px 64px rgba(15,63,156,.24);display:flex;flex-direction:column;justify-content:space-between}
 .login-title{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}.login-title img{width:118px;height:auto;object-fit:contain;background:#fff;border-radius:12px;padding:.35rem .5rem;box-shadow:0 10px 24px rgba(0,0,0,.12)}
 .login-brand h1{font-size:3rem;line-height:1;margin:.8rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:1.2rem;line-height:1.3;color:#fff;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem;font-weight:800}
@@ -75,7 +103,6 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .badge-good,.badge-bad,.badge-neutral{display:inline-block;padding:.18rem .55rem;border-radius:999px;font-weight:700;font-size:.75rem;margin-top:.35rem}.badge-good{background:#E4ECF9;color:var(--blue-dark)}.badge-bad{background:#FBE5E5;color:#9F1F2A}.badge-neutral{background:#EDF1F5;color:#44576B}
 .small-note{color:#60758A;font-size:.82rem;margin-top:.2rem}
 .stButton>button,.stDownloadButton>button{border-radius:8px;border:1px solid var(--blue);font-weight:650;min-height:2.45rem}
-.st-key-top_change_bu button,.st-key-top_sign_out button{white-space:nowrap;min-width:7rem;font-size:.82rem;padding-left:.5rem;padding-right:.5rem}
 .stButton>button[kind="primary"]{background:var(--blue);color:#fff}.stButton>button[kind="primary"]:hover{background:var(--blue-dark);color:#fff}
 div[data-testid="stForm"],div[data-testid="stVerticalBlockBorderWrapper"]{background:#fff;border-color:var(--border)!important;border-radius:12px}
 div[data-testid="stMetric"]{background:#fff;border:1px solid var(--border);padding:1rem 1.1rem;border-radius:10px;min-height:110px;display:flex;justify-content:center}
@@ -86,11 +113,11 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 .kpi-field-selector{margin-bottom:.3rem}.home-card{height:124px;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:10px;padding:1rem 1.05rem .85rem;box-shadow:0 2px 8px rgba(21,34,56,.04)}.home-card h4{margin:0 0 .45rem;color:var(--blue-dark);font-size:1rem}.home-card p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.35}
 .st-key-home_metric_cards .stButton>button{min-height:86px;width:100%;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);color:var(--blue-dark);font-size:1rem;font-weight:800;white-space:pre-line;line-height:1.5;box-shadow:0 2px 8px rgba(21,34,56,.04)}
 .module-group{margin:.25rem 0 .65rem;color:var(--blue-dark);font-size:1.05rem;font-weight:800}
-.vision-nav{height:72px;display:flex;align-items:flex-start;justify-content:center;overflow:hidden;padding-top:1px}.vision-nav img{width:100%;max-width:142px;max-height:70px;object-fit:contain}
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.st-key-brand_ribbon{top:2.5rem}.st-key-primary_navigation{top:7.2rem;position:sticky}.st-key-primary_navigation div[role="radiogroup"]{grid-template-columns:repeat(2,minmax(0,1fr))}.app-ribbon{align-items:flex-start;gap:.25rem;flex-direction:column}.app-ribbon .ribbon-meta{align-items:flex-start}.home-card{height:auto;min-height:112px}.vision-nav{height:62px}.vision-nav img{max-height:60px}}
+@media(max-width:1279px){.st-key-desktop_navigation{display:none}.st-key-mobile_navigation{display:block}.st-key-mobile_navigation button{height:40px;min-height:40px;background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;white-space:nowrap}.st-key-mobile_navigation button:hover{background:rgba(255,255,255,.1);color:#fff;border-color:#fff}}
+@media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.home-card{height:auto;min-height:112px}.opera-brandbar{padding:0 .7rem;gap:.6rem}.opera-dangote-logo{width:46px}.opera-brand-divider,.opera-tagline{display:none}.opera-wordmark{font-size:1.25rem}.opera-vision-block{width:118px;min-width:118px}.opera-vision-block img{width:110px}.opera-breadcrumb{padding:0 .7rem}}
 </style>
 """,
         unsafe_allow_html=True,
@@ -180,64 +207,153 @@ def password_change_gate(user: auth.User) -> None:
     st.stop()
 
 
+def _page_category(page: str) -> str:
+    if page in MODULE_CATEGORIES["Operational Data"]:
+        return "Operational Data"
+    if page in MODULE_CATEGORIES["Operational Knowledge"]:
+        return "Operational Knowledge"
+    if page == "Admin / Super Admin":
+        return "Administration"
+    return "Home"
+
+
+def _user_initials(display_name: str) -> str:
+    words = [word for word in display_name.replace("-", " ").split() if word]
+    return "".join(word[0] for word in words[:2]).upper() or "OX"
+
+
+def _select_page(page: str) -> None:
+    st.session_state.top_navigation = page
+
+
+def _render_nav_buttons(available: list[str], current: str, key_prefix: str) -> None:
+    ratios = {
+        "OPERA-X Home": .62,
+        "Plant Overview": .56,
+        "Equipment Overview": .82,
+        "Operations Dashboard": .86,
+        "Operating Parameters": .82,
+        "Operational Data Pipeline": 1.08,
+        "Process Optimization": .96,
+        "Event Log": .74,
+        "Lesson Bank": .62,
+        "Job Risk Assessment": 1.12,
+        "Admin / Super Admin": .58,
+    }
+    slugs = {
+        "OPERA-X Home": "home", "Plant Overview": "plant", "Equipment Overview": "equipment",
+        "Operations Dashboard": "dashboards", "Operating Parameters": "parameters",
+        "Operational Data Pipeline": "data_pipeline", "Process Optimization": "optimization",
+        "Event Log": "event_log", "Lesson Bank": "lessons", "Job Risk Assessment": "risk_assessment",
+        "Admin / Super Admin": "admin",
+    }
+    columns = st.columns([ratios[page] for page in available], gap="small", vertical_alignment="center")
+    for column, page in zip(columns, available):
+        with column:
+            st.button(
+                NAV_LABELS[page],
+                key=f"{key_prefix}{slugs[page]}",
+                type="primary" if page == current else "secondary",
+                width="stretch",
+                on_click=_select_page,
+                args=(page,),
+            )
+
+
 def top_navigation(user: auth.User, bu: str) -> str:
     bus = config.business_units()
     name = bus.loc[bus["id"] == bu, "name"].iloc[0] if (bus["id"] == bu).any() else bu
     unread = storage.unread_notifications(bu, user.username)
-    with st.container(key="brand_ribbon"):
-        st.markdown(
-            '<div class="app-ribbon"><div class="name">OPERA-X</div>'
-            f'<div class="ribbon-meta"><div class="tagline">Operational Excellence and Reliability Assistant · One Platform for All Plant Operational Data</div>'
-            f'{version_badge_html()}</div></div>',
-            unsafe_allow_html=True,
-        )
     available = [page for page in PAGES if page != "Admin / Super Admin" or auth.allowed(user, "configure")]
     requested = st.session_state.pop("requested_page", None)
     if requested in available:
         st.session_state.top_navigation = requested
     current = st.session_state.get("top_navigation")
     if current not in available:
-        st.session_state.top_navigation = available[0]
+        current = available[0]
+        st.session_state.top_navigation = current
+
+    badge = str(len(unread)) if len(unread) < 100 else "99+"
+    with st.container(key="brand_ribbon"):
+        st.markdown(
+            f"""
+<style>.st-key-notifications_menu button:after{{content:'{badge}';position:absolute;top:1px;right:0;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:#D7262F;color:#fff;border:1px solid #fff;font-size:9px;font-weight:850;line-height:14px;box-sizing:border-box}}</style>
+<div class="opera-brandbar">
+  <div class="opera-brand-left">
+    <img class="opera-dangote-logo" src="{asset_data_uri(DANGOTE_LOGO)}" alt="Dangote Group">
+    <div class="opera-wordmark"><span class="opera">OPERA</span><span class="x">-X</span></div>
+    <div class="opera-brand-divider" aria-hidden="true"></div>
+    <div class="opera-tagline">One Platform for All Plant Operational Data</div>
+  </div>
+  <div class="opera-vision-block">
+    <img src="{asset_data_uri(VISION_2030_COMPACT)}" alt="Dangote Vision 2030">
+    {version_badge_html()}
+  </div>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
+
     with st.container(key="primary_navigation"):
-        nav, notice, actions = st.columns([7.0, .65, 2.6], vertical_alignment="center")
-        with nav:
-            st.markdown(
-                f'<div class="nav-context"><strong>{name}</strong> · {user.display_name} · {user.role}</div>',
-                unsafe_allow_html=True,
-            )
-            page = st.radio(
-                "Navigation",
-                available,
-                horizontal=True,
-                key="top_navigation",
-                label_visibility="collapsed",
-            )
-        show_notifications = notice.toggle(f"🔔 {len(unread)}", key="show_notifications", help="Show unread notifications")
-        with actions:
-            button_stack, logo = st.columns([1.0, 1.2], gap="small", vertical_alignment="center")
-            with button_stack:
-                if st.button("⇄ Change BU", width="stretch", key="top_change_bu"):
+        menu, notice, account = st.columns([12, .5, .5], gap="small", vertical_alignment="center")
+        with menu:
+            with st.container(key="desktop_navigation"):
+                _render_nav_buttons(available, current, "nav_")
+            with st.container(key="mobile_navigation"):
+                with st.popover("☰ Menu", key="mobile_menu", width="stretch"):
+                    st.markdown('<div class="header-popover-title">Navigate</div>', unsafe_allow_html=True)
+                    for page in available:
+                        st.button(
+                            NAV_LABELS[page], key=f"mobile_nav_{NAV_LABELS[page].lower().replace(' ', '_')}",
+                            type="primary" if page == current else "secondary", width="stretch",
+                            on_click=_select_page, args=(page,),
+                        )
+        with notice:
+            with st.popover(
+                f"Notifications, {len(unread)} unread", key="notifications_menu",
+                help=f"{len(unread)} unread notification(s)", icon=":material/notifications:",
+            ):
+                st.markdown('<div class="header-popover-title">Notifications</div>', unsafe_allow_html=True)
+                if unread.empty:
+                    st.caption("No unread notifications.")
+                else:
+                    for _, row in unread.head(10).iterrows():
+                        (st.error if row["level"] == "error" else st.success)(row["message"])
+                    if st.button("Mark All as Read", key="top_mark_notifications", width="stretch"):
+                        storage.mark_notifications_read(bu, user.username)
+                        st.rerun()
+        with account:
+            with st.popover(_user_initials(user.display_name), key="user_menu", help="Account menu"):
+                st.markdown(
+                    f'<div class="header-popover-title">{escape(user.display_name)}</div>'
+                    f'<div class="header-popover-meta">{escape(user.role)}<br>{escape(name)}</div>',
+                    unsafe_allow_html=True,
+                )
+                if st.button("Change Business Unit", key="user_change_bu", width="stretch"):
                     st.session_state.pop("bu", None)
                     st.rerun()
-                if st.button("↪ Sign Out", width="stretch", key="top_sign_out"):
+                if st.button("Help", key="user_help", width="stretch"):
+                    st.session_state.header_help = not st.session_state.get("header_help", False)
+                if st.session_state.get("header_help"):
+                    st.markdown(
+                        '<div class="header-help">Use the menu to change modules. Your current business unit and full page path remain visible in the breadcrumb.</div>',
+                        unsafe_allow_html=True,
+                    )
+                if st.button("Sign Out", key="user_sign_out", width="stretch"):
                     storage.audit(bu, user.username, "logout")
                     st.session_state.clear()
                     st.rerun()
-            with logo:
-                st.markdown(
-                    f'<div class="vision-nav"><img src="{asset_data_uri(VISION_2030_COMPACT)}" alt="Dangote Vision 2030"></div>',
-                    unsafe_allow_html=True,
-                )
-        if show_notifications:
-            if unread.empty:
-                st.caption("No unread notifications.")
-            else:
-                for _, row in unread.head(10).iterrows():
-                    (st.error if row["level"] == "error" else st.success)(row["message"])
-                if st.button("Mark All as Read", key="top_mark_notifications"):
-                    storage.mark_notifications_read(bu, user.username)
-                    st.rerun()
-        return page
+                st.markdown(f'<div class="header-version">OPERA-X v{escape(get_version())}</div>', unsafe_allow_html=True)
+
+    category = _page_category(current)
+    with st.container(key="breadcrumb_strip"):
+        st.markdown(
+            f'<div class="opera-breadcrumb"><span class="opera-bu-badge">{escape(name.upper())}</span>'
+            f'<span>{escape(category)}</span><span class="chevron">›</span>'
+            f'<span class="page">{escape(current)}</span></div>',
+            unsafe_allow_html=True,
+        )
+    return current
 
 
 def source_frame(bu: str, source: str, field_ids: list[str] | None = None) -> pd.DataFrame:
