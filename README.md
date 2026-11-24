@@ -34,7 +34,7 @@ Change or disable every seeded account before production. Passwords are PBKDF2-S
 
 `Login → Business Unit → fixed brand bar → fixed flat navigation → breadcrumb → module content`
 
-The authenticated header is approximately 160 px high. Its white brand bar contains the Dangote mark, OPERA-X wordmark, tagline, and the Vision 2030 mark with the version directly underneath. The navy navigation bar exposes every page through short, non-wrapping labels; the active page has a red underline. At widths below 1280 px the flat menu collapses to a native Streamlit menu rather than wrapping. Notifications and the avatar open native Streamlit popovers. The avatar menu contains user context, **Change Business Unit**, **Help**, **Sign Out**, and the version. A breadcrumb keeps the business unit, category, and full page name visible.
+The authenticated header is 160 px high: a 68 px white brand bar, a 52 px navy navigation bar and a 40 px breadcrumb content strip. The brand bar contains the Dangote mark, OPERA-X wordmark, tagline, and the Vision 2030 mark with the version directly underneath. The navy navigation uses packed content-width buttons with 13 px horizontal padding; the active page has a red underline and unused space stays between Admin and the bell. At 1280 CSS px and wider all page labels remain visible in one row. At 1279 px and below they switch to a compact left-aligned ☰ control. The bell badge overlaps the bell, the initials avatar is a clean red circle, and Streamlit popover carets are hidden. The full-width breadcrumb sits flush below the nav and keeps the business unit, category and full page name visible without clipping.
 
 Navigation actions use Streamlit-native buttons, not HTML links, so selecting a page stays in the current authenticated session. The custom header selectors are verified against and depend on the exact `streamlit==1.66.1` pin in `requirements.txt`; test the header before changing that pin.
 
@@ -85,7 +85,7 @@ Each BU has one CSV per source: Digital Data (`DP1–DP1000`, persisted internal
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing verified v3.10.1 deployment, apply the complete `OPERA-X_Code_Only_Update_v3.11.0_vs_v3.10.1.zip`; do not skip intermediate versions. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.11.0 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.11.0.md`.
+For an existing verified v3.11.0 deployment, apply the complete `OPERA-X_Code_Only_Update_v3.11.1_vs_v3.11.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. v3.11.1 requires no live-data migration; see `LIVE_DATA_UPDATE_v3.11.1.md`.
 
 ## Risk registers
 
@@ -104,6 +104,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The automated suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the responsive flat header, native session-preserving navigation, admin-only visibility, breadcrumb/category mapping, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and agreement between the header, package version and authoritative `VERSION` file.
+The 71-test suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, Operational Data Pipeline naming and grouping, transparent Vision 2030 assets, the responsive flat header, native session-preserving navigation, admin-only visibility, breadcrumb/category mapping, branding, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, compact charts, and agreement between the header, package version and authoritative `VERSION` file. Set `OPERAX_RUN_BROWSER_TESTS=1` to include the real Chromium/Streamlit root- and base-path checks.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.11.0.md`, `CHANGE_MANIFEST_v3.11.0_vs_v3.10.1.md`, `VISUAL_VERIFICATION_v3.11.0.md`, and the retained earlier release, root-cause and performance reports.
+See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.11.1.md`, `CHANGE_MANIFEST_v3.11.1_vs_v3.11.0.md`, `VISUAL_VERIFICATION_v3.11.1.md`, and the retained earlier release, root-cause and performance reports.

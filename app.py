@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import streamlit as st
+from pandas.io.formats.style import Styler
 
 from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, risk_store, storage
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
@@ -63,7 +64,7 @@ def asset_data_uri(path: Path) -> str:
 def styles() -> None:
     st.markdown(
         """
-<style>
+<style id="operax-app-styles">
 :root{
   --blue:#1857C9;--blue-dark:#0F3F9C;--red:#CF3430;--text:#152238;--muted:#48597A;
   --bg:#EEF3FA;--panel:#FFFFFF;--panel-alt:#F7F9FD;--border:#C9D8EC;--border-soft:#DCE7F4;
@@ -73,28 +74,35 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 [data-testid="stHeader"]{height:0;background:transparent}
 [data-testid="stToolbar"],[data-testid="stDecoration"]{display:none}
 [data-testid="stSidebar"]{display:none}
-.st-key-brand_ribbon{position:sticky;top:0;z-index:1003;background:#fff;border-bottom:1px solid #E4E8EF;box-shadow:0 2px 7px rgba(20,32,46,.06)}
+.block-container{padding:0 .35rem 3rem;max-width:none}
+.block-container>[data-testid="stVerticalBlock"]>[data-testid="stElementContainer"]:has(#operax-app-styles){display:none}
+.st-key-brand_ribbon{position:sticky;top:0;z-index:1003;min-height:68px;background:#fff;border:0;border-bottom:1px solid #E4E8EF;border-radius:0!important;box-shadow:0 2px 7px rgba(20,32,46,.06);overflow:visible!important}
 .opera-brandbar{height:68px;display:flex;align-items:center;justify-content:space-between;gap:1.25rem;padding:0 1.1rem;background:#fff;box-sizing:border-box}
 .opera-brand-left{min-width:0;display:flex;align-items:center;gap:1rem}.opera-dangote-logo{width:58px;height:48px;object-fit:contain}.opera-wordmark{font-size:1.55rem;font-weight:900;letter-spacing:-.035em;white-space:nowrap}.opera-wordmark .opera{color:#30336A}.opera-wordmark .x{color:#D7262F}.opera-brand-divider{height:32px;width:1px;background:#CDD3DE}.opera-tagline{color:#4C566B;font-size:.88rem;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .opera-vision-block{width:145px;min-width:145px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:2px}.opera-vision-block img{width:132px;height:43px;object-fit:contain}.opera-vision-block .version{font-size:.66rem;line-height:1;color:#7B8391;font-weight:650;letter-spacing:.02em;margin-top:-1px}
-.st-key-primary_navigation{position:sticky;top:68px;z-index:1002;background:#30336A;height:52px;box-sizing:border-box;padding:.26rem .65rem;box-shadow:0 3px 8px rgba(25,27,65,.18)}
-.st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.22rem;align-items:center}
-.st-key-desktop_navigation [data-testid="stHorizontalBlock"]{gap:0}
-.st-key-desktop_navigation .stButton{height:44px}
-.st-key-desktop_navigation .stButton>button{height:44px;min-height:44px;width:100%;padding:.35rem .28rem;border:0;border-radius:0;background:transparent;color:#E8E9F2;font-size:clamp(.67rem,.75vw,.84rem);font-weight:700;white-space:nowrap;box-shadow:none}
+.st-key-primary_navigation{position:sticky;top:68px;z-index:1002;background:#30336A;height:52px;min-height:52px;box-sizing:border-box;padding:0 .65rem;margin-top:-16px;border:0;border-radius:0!important;box-shadow:0 3px 8px rgba(25,27,65,.18);overflow:visible!important}
+.st-key-primary_navigation>[data-testid="stLayoutWrapper"],.st-key-primary_navigation>[data-testid="stLayoutWrapper"]>[data-testid="stHorizontalBlock"]{height:52px;min-height:52px}
+.st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.35rem;align-items:center;flex-wrap:nowrap}
+.st-key-primary_navigation [data-testid="stColumn"]>[data-testid="stVerticalBlock"]{gap:0;justify-content:center}
+.st-key-desktop_navigation{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:0!important;height:52px!important;min-height:52px;padding:0!important;margin:0!important;overflow:visible!important}
+.st-key-desktop_navigation>[data-testid="stElementContainer"]{flex:0 0 auto;width:auto!important}
+.st-key-desktop_navigation .stButton{height:52px;width:auto}
+.st-key-desktop_navigation .stButton>button{height:52px;min-height:52px;width:auto;padding:0 13px;border:0;border-radius:0;background:transparent;color:#E8E9F2;font-size:.78rem;font-weight:700;white-space:nowrap;box-shadow:none}
 .st-key-desktop_navigation .stButton>button:hover{background:rgba(255,255,255,.08);color:#fff}
 .st-key-desktop_navigation .stButton>button[kind="primary"]{background:transparent;color:#fff;border-bottom:4px solid #D7262F}
-.st-key-nav_plant,.st-key-nav_event_log,.st-key-nav_admin{border-left:1px solid rgba(255,255,255,.28);padding-left:.18rem}
+.st-key-nav_plant,.st-key-nav_event_log,.st-key-nav_admin{border-left:1px solid rgba(255,255,255,.28)}
 .st-key-mobile_navigation{display:none}
-.st-key-notifications_menu button,.st-key-user_menu button{height:38px;min-height:38px;border:0;background:transparent;color:#fff;box-shadow:none;white-space:nowrap}
+.st-key-notifications_menu button,.st-key-user_menu button{height:38px;min-height:38px;border:0;background:transparent;color:#fff;box-shadow:none;white-space:nowrap;position:relative}
 .st-key-notifications_menu button:hover,.st-key-user_menu button:hover{background:rgba(255,255,255,.10);color:#fff}
-.st-key-notifications_menu button{width:42px;padding:0;position:relative}.st-key-notifications_menu button p{font-size:0}
+.st-key-notifications_menu button{width:36px;padding:0}.st-key-notifications_menu button p{font-size:0}
+.st-key-notifications_menu [data-testid="stPopoverButton"]>div>div:last-child,.st-key-user_menu [data-testid="stPopoverButton"]>div>div:last-child,.st-key-mobile_menu [data-testid="stPopoverButton"]>div>div:last-child{display:none!important}
+.st-key-notifications_menu [data-testid="stPopoverButton"]>div,.st-key-user_menu [data-testid="stPopoverButton"]>div,.st-key-mobile_menu [data-testid="stPopoverButton"]>div{gap:0!important;justify-content:center}
 .st-key-user_menu button{width:38px;padding:0;border-radius:50%;background:#D7262F;border:2px solid #fff;color:#fff;font-size:.72rem;font-weight:850}
 .header-popover-title{font-size:.96rem;font-weight:850;color:#30336A}.header-popover-meta{font-size:.78rem;color:#606A7C;line-height:1.45;margin:.1rem 0 .6rem}.header-help{font-size:.79rem;line-height:1.45;color:#48556A;background:#F3F5F9;border-left:3px solid #30336A;padding:.55rem .65rem;margin:.25rem 0 .5rem}.header-version{font-size:.7rem;color:#7B8391;text-align:center;margin-top:.45rem}
 .st-key-user_sign_out button{color:#B51F2A;border-color:#E9A8AD}.st-key-user_sign_out button:hover{color:#941923;border-color:#D7262F;background:#FFF5F5}
-.st-key-breadcrumb_strip{position:sticky;top:120px;z-index:1001;background:#fff;border-bottom:1px solid #E0E5EC;height:40px;box-sizing:border-box;box-shadow:0 2px 7px rgba(20,32,46,.04)}
-.opera-breadcrumb{height:40px;display:flex;align-items:center;gap:.55rem;padding:0 1.1rem;color:#566174;font-size:.78rem;font-weight:650;white-space:nowrap;overflow:hidden}.opera-bu-badge{display:inline-flex;align-items:center;border-radius:999px;background:#30336A;color:#fff;padding:.2rem .62rem;font-size:.67rem;font-weight:850;letter-spacing:.055em}.opera-breadcrumb .chevron{color:#A0A7B3}.opera-breadcrumb .page{color:#30336A;font-weight:800;overflow:hidden;text-overflow:ellipsis}
-.block-container{padding-top:.6rem;padding-bottom:3rem;max-width:1800px}
+.st-key-breadcrumb_strip{position:sticky;top:120px;z-index:1001;background:#F8FAFD;border:0;border-bottom:1px solid #E0E5EC;border-radius:0!important;height:40px;min-height:40px;box-sizing:border-box;margin-top:-16px;box-shadow:0 2px 7px rgba(20,32,46,.04);overflow:visible!important;gap:0!important}
+.st-key-breadcrumb_strip>[data-testid="stElementContainer"],.st-key-breadcrumb_strip [data-testid="stMarkdown"],.st-key-breadcrumb_strip [data-testid="stMarkdownContainer"]{height:40px;min-height:40px;overflow:visible!important}
+.opera-breadcrumb{height:40px;min-height:40px;box-sizing:border-box;display:flex;align-items:center;gap:.55rem;padding:0 1.1rem;color:#566174;font-size:.78rem;line-height:1.2;font-weight:650;white-space:nowrap;overflow:visible}.opera-bu-badge{display:inline-flex;align-items:center;border-radius:999px;background:#30336A;color:#fff;padding:.2rem .62rem;font-size:.67rem;line-height:1.2;font-weight:850;letter-spacing:.055em}.opera-breadcrumb .chevron{color:#A0A7B3}.opera-breadcrumb .page{color:#30336A;font-weight:800;overflow:hidden;text-overflow:ellipsis}
 .login-brand{min-height:410px;border-radius:18px;padding:3.1rem;background:linear-gradient(145deg,#0F3F9C 0%,#1857C9 70%,#2F7DE1 100%);color:#fff;box-shadow:0 24px 64px rgba(15,63,156,.24);display:flex;flex-direction:column;justify-content:space-between}
 .login-title{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}.login-title img{width:118px;height:auto;object-fit:contain;background:#fff;border-radius:12px;padding:.35rem .5rem;box-shadow:0 10px 24px rgba(0,0,0,.12)}
 .login-brand h1{font-size:3rem;line-height:1;margin:.8rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:1.2rem;line-height:1.3;color:#fff;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem;font-weight:800}
@@ -116,7 +124,7 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
 hr{border-color:var(--border-soft)}
-@media(max-width:1279px){.st-key-desktop_navigation{display:none}.st-key-mobile_navigation{display:block}.st-key-mobile_navigation button{height:40px;min-height:40px;background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;white-space:nowrap}.st-key-mobile_navigation button:hover{background:rgba(255,255,255,.1);color:#fff;border-color:#fff}}
+@media(max-width:1279px){.st-key-desktop_navigation{display:none}.st-key-mobile_navigation{display:flex;align-items:center;justify-content:flex-start!important;align-self:flex-start;width:40px!important;height:52px;min-height:52px;padding:0!important;margin:0!important}.st-key-mobile_navigation>[data-testid="stLayoutWrapper"],.st-key-mobile_navigation [data-testid="stPopover"]{width:40px!important}.st-key-mobile_navigation button{width:40px;height:38px;min-height:38px;padding:0;background:transparent;border:0;color:#fff;white-space:nowrap;font-size:1.15rem}.st-key-mobile_navigation button:hover{background:rgba(255,255,255,.1);color:#fff;border-color:#fff}}
 @media(max-width:900px){.login-brand{min-height:260px;padding:2rem}.login-brand h1{font-size:2.2rem}.login-title img{width:92px}.login-heading-row img{width:112px}.metric-card{height:auto;min-height:150px}.home-card{height:auto;min-height:112px}.opera-brandbar{padding:0 .7rem;gap:.6rem}.opera-dangote-logo{width:46px}.opera-brand-divider,.opera-tagline{display:none}.opera-wordmark{font-size:1.25rem}.opera-vision-block{width:118px;min-width:118px}.opera-vision-block img{width:110px}.opera-breadcrumb{padding:0 .7rem}}
 </style>
 """,
@@ -227,19 +235,6 @@ def _select_page(page: str) -> None:
 
 
 def _render_nav_buttons(available: list[str], current: str, key_prefix: str) -> None:
-    ratios = {
-        "OPERA-X Home": .62,
-        "Plant Overview": .56,
-        "Equipment Overview": .82,
-        "Operations Dashboard": .86,
-        "Operating Parameters": .82,
-        "Operational Data Pipeline": 1.08,
-        "Process Optimization": .96,
-        "Event Log": .74,
-        "Lesson Bank": .62,
-        "Job Risk Assessment": 1.12,
-        "Admin / Super Admin": .58,
-    }
     slugs = {
         "OPERA-X Home": "home", "Plant Overview": "plant", "Equipment Overview": "equipment",
         "Operations Dashboard": "dashboards", "Operating Parameters": "parameters",
@@ -247,17 +242,15 @@ def _render_nav_buttons(available: list[str], current: str, key_prefix: str) -> 
         "Event Log": "event_log", "Lesson Bank": "lessons", "Job Risk Assessment": "risk_assessment",
         "Admin / Super Admin": "admin",
     }
-    columns = st.columns([ratios[page] for page in available], gap="small", vertical_alignment="center")
-    for column, page in zip(columns, available):
-        with column:
-            st.button(
-                NAV_LABELS[page],
-                key=f"{key_prefix}{slugs[page]}",
-                type="primary" if page == current else "secondary",
-                width="stretch",
-                on_click=_select_page,
-                args=(page,),
-            )
+    for page in available:
+        st.button(
+            NAV_LABELS[page],
+            key=f"{key_prefix}{slugs[page]}",
+            type="primary" if page == current else "secondary",
+            width="content",
+            on_click=_select_page,
+            args=(page,),
+        )
 
 
 def top_navigation(user: auth.User, bu: str) -> str:
@@ -277,7 +270,7 @@ def top_navigation(user: auth.User, bu: str) -> str:
     with st.container(key="brand_ribbon"):
         st.markdown(
             f"""
-<style>.st-key-notifications_menu button:after{{content:'{badge}';position:absolute;top:1px;right:0;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:#D7262F;color:#fff;border:1px solid #fff;font-size:9px;font-weight:850;line-height:14px;box-sizing:border-box}}</style>
+<style>.st-key-notifications_menu button:after{{content:'{badge}';position:absolute;top:-2px;right:-1px;min-width:15px;height:15px;padding:0 3px;border-radius:999px;background:#D7262F;color:#fff;border:1px solid #fff;font-size:9px;font-weight:850;line-height:14px;box-sizing:border-box;z-index:2}}</style>
 <div class="opera-brandbar">
   <div class="opera-brand-left">
     <img class="opera-dangote-logo" src="{asset_data_uri(DANGOTE_LOGO)}" alt="Dangote Group">
@@ -297,10 +290,13 @@ def top_navigation(user: auth.User, bu: str) -> str:
     with st.container(key="primary_navigation"):
         menu, notice, account = st.columns([12, .5, .5], gap="small", vertical_alignment="center")
         with menu:
-            with st.container(key="desktop_navigation"):
+            with st.container(
+                key="desktop_navigation", horizontal=True, wrap=False,
+                horizontal_alignment="left", vertical_alignment="center", gap=None,
+            ):
                 _render_nav_buttons(available, current, "nav_")
             with st.container(key="mobile_navigation"):
-                with st.popover("☰ Menu", key="mobile_menu", width="stretch"):
+                with st.popover("☰", key="mobile_menu", width="content", help="Open navigation menu"):
                     st.markdown('<div class="header-popover-title">Navigate</div>', unsafe_allow_html=True)
                     for page in available:
                         st.button(
@@ -430,7 +426,7 @@ def safe_dataframe(data: Any, **kwargs: Any) -> None:
     try:
         st.dataframe(data, **kwargs)
     except ImportError as exc:
-        frame = data.data if isinstance(data, pd.io.formats.style.Styler) else pd.DataFrame(data)
+        frame = data.data if isinstance(data, Styler) else pd.DataFrame(data)
         limit = min(len(frame), 500)
         st.warning(f"Interactive table rendering is unavailable on this host ({exc}). Showing a static preview of {limit:,} row(s).")
         st.markdown(frame.head(limit).to_html(index=not bool(kwargs.get("hide_index", False)), escape=True), unsafe_allow_html=True)
@@ -638,6 +634,7 @@ def home_detail_sheets(bu: str, username: str, detail: str) -> dict[str, pd.Data
 
 
 def page_home(bu: str, user: auth.User) -> None:
+    st.title("OPERA-X Home")
     events = storage.read_csv(storage.bu_dir(bu) / "events.csv")
     flags = storage.read_csv(storage.bu_dir(bu) / "flags.csv")
     lessons = storage.read_csv(storage.bu_dir(bu) / "lessons.csv")
@@ -740,6 +737,7 @@ def page_plant(bu: str, user: auth.User) -> None:
 
 
 def page_equipment(bu: str, user: auth.User) -> None:
+    st.title("Equipment Overview")
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
     if equipment.empty:
@@ -1827,6 +1825,7 @@ def page_admin(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
+    st.title("Admin / Super Admin")
     sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Digital Data Connector", "Presets", "Audit & Backup"]
     section = st.radio("Administration Area", sections, horizontal=True, label_visibility="collapsed", key="admin_area")
     if section == sections[0]:

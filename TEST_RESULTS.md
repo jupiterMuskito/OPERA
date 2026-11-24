@@ -1,15 +1,46 @@
-# OPERA-X v3.11.0 test results
+# OPERA-X v3.11.1 test results
 
-## Automated checks
+## Automated Python suite
 
-- `pytest -q`: **68 passed**.
-- `python -m py_compile app.py opera/*.py scripts/*.py`: **passed**.
-- Version consistency: repository `VERSION`, `opera.__version__`, the brand-bar version, and avatar-menu version all resolve to **3.11.0** through the single version helper.
-- Existing regressions retained: Digital Data/Raw Field Data labels and IDs, Field Catalogue equipment/template columns and pre-v3.9 workbook upgrade, Operational Data Pipeline naming, Job Risk Assessment naming, role permissions, dashboards, formulas, storage, export, and Admin workflows.
-- New header regressions: menu order and short labels, native session-preserving controls, no HTML anchor navigation, admin-only visibility, user initials, category/breadcrumb mapping, active underline, exact Streamlit pin, and responsive breakpoint CSS.
+Command:
+
+```bash
+python -m compileall -q app.py opera scripts tests
+OPERAX_RUN_BROWSER_TESTS=1 pytest -q
+```
+
+Result: **71 passed**.
+
+The opt-in browser test starts the real authenticated Streamlit application at both `/` and `/operationaldashboard/`; it is not a static HTML test or separate header harness.
 
 ## Browser verification
 
-The header was rendered through the `/operationaldashboard/` base path at **1920, 1560, 1366, and 1280 px**. Every required width had one desktop menu row, zero overflowing labels, no horizontal document overflow, the correct active underline, and no browser console/page errors. A 1279 px capture confirmed the native hamburger menu breakpoint.
+Command:
 
-See `VISUAL_VERIFICATION_v3.11.0.md`, `verification/v3.11.0/header_measurements.json`, and the five PNG captures in that directory.
+```bash
+python scripts/verify_header_browser.py
+```
+
+Result: **36 real-app header checks passed** across:
+
+- paths: root and `/operationaldashboard/`;
+- pages: Home, Equipment Overview and Admin / Super Admin;
+- CSS viewports at 100% zoom: 1920, 1560, 1536, 1366, 1280 and 1279 px.
+
+Assertions covered:
+
+- all 11 flat-menu labels visible in one row at 1280px and wider;
+- compact left-aligned ☰ at 1279px;
+- 52px nav height;
+- packed content-width labels (maximum label-row width 947.66px);
+- no visible popover chevrons beside the bell or avatar;
+- fully visible 40px breadcrumb content within its bordered strip;
+- first page heading below the breadcrumb;
+- no horizontal document overflow;
+- no visible Streamlit exception.
+
+See `VISUAL_VERIFICATION_v3.11.1.md`, `verification/v3.11.1/header_measurements.json`, the 36 PNG captures and the two comparison sheets.
+
+## Live-data boundary
+
+The target `data/` tree was restored byte-for-byte from v3.11.0 after testing. No update is required in `~/opera_data`.
