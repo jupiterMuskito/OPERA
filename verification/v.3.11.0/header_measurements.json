@@ -1,0 +1,133 @@
+[
+  {
+    "width": 1920,
+    "brand": {
+      "y": 26,
+      "height": 68
+    },
+    "nav": {
+      "y": 95,
+      "height": 68
+    },
+    "breadcrumb": {
+      "y": 179,
+      "height": 40
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      99
+    ],
+    "overflowLabels": [],
+    "active": [
+      "Equipment"
+    ],
+    "bodyScrollWidth": 1920,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "width": 1560,
+    "brand": {
+      "y": 26,
+      "height": 68
+    },
+    "nav": {
+      "y": 95,
+      "height": 68
+    },
+    "breadcrumb": {
+      "y": 179,
+      "height": 40
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      99
+    ],
+    "overflowLabels": [],
+    "active": [
+      "Equipment"
+    ],
+    "bodyScrollWidth": 1560,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "width": 1366,
+    "brand": {
+      "y": 26,
+      "height": 68
+    },
+    "nav": {
+      "y": 95,
+      "height": 68
+    },
+    "breadcrumb": {
+      "y": 179,
+      "height": 40
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      99
+    ],
+    "overflowLabels": [],
+    "active": [
+      "Equipment"
+    ],
+    "bodyScrollWidth": 1366,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "width": 1280,
+    "brand": {
+      "y": 26,
+      "height": 68
+    },
+    "nav": {
+      "y": 95,
+      "height": 68
+    },
+    "breadcrumb": {
+      "y": 179,
+      "height": 40
+    },
+    "desktopVisible": true,
+    "mobileVisible": false,
+    "buttonRows": [
+      99
+    ],
+    "overflowLabels": [],
+    "active": [
+      "Equipment"
+    ],
+    "bodyScrollWidth": 1280,
+    "errors": [],
+    "consoleErrors": []
+  },
+  {
+    "width": 1279,
+    "brand": {
+      "y": 26,
+      "height": 68
+    },
+    "nav": {
+      "y": 95,
+      "height": 64
+    },
+    "breadcrumb": {
+      "y": 175,
+      "height": 40
+    },
+    "desktopVisible": false,
+    "mobileVisible": true,
+    "buttonRows": [],
+    "overflowLabels": [],
+    "active": [],
+    "bodyScrollWidth": 1279,
+    "errors": [],
+    "consoleErrors": []
+  }
+]
