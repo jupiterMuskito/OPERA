@@ -19,7 +19,7 @@ For persistent server storage, set `OPERAX_DATA_DIR`. Existing deployments that 
 
 ## Seeded test logins
 
-All seeded accounts use the temporary password `ChangeMe!2026`.
+All seeded accounts use the temporary password ``.
 
 | Username | Role | Business-unit access |
 |---|---|---|
