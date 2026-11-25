@@ -20,11 +20,10 @@ from opera import pipelines  # noqa: E402
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--bu", required=True, help="Business-unit ID, for example refinery")
     parser.add_argument("--pipeline", default="live_excel_1", choices=["live_excel_1", "live_excel_2", "live_excel_3"])
     args = parser.parse_args()
     try:
-        rows, flags = pipelines.sync_live_excel(args.bu, args.pipeline)
+        rows, flags = pipelines.sync_live_excel(args.pipeline)
         print(f"{args.pipeline}: synced {rows} new row(s); {flags} flag(s)")
         return 0
     except Exception as exc:

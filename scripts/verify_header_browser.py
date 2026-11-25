@@ -5,7 +5,7 @@ Runs the real Streamlit app at / and /operationaldashboard/ in Chromium and
 Microsoft Edge.  It verifies the 1100 CSS-pixel breakpoint, the primary
 1272px/scrollbar target, a 1.5 device scale factor, one-row navigation, control
 borders and all application routes. Screenshots and measurements are written to
-verification/v3.13.0/.
+verification/v3.13.1/.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from pathlib import Path
 from playwright.sync_api import Browser, Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "verification" / "v3.13.0"
+OUT = ROOT / "verification" / "v3.13.1"
 WIDTHS = (1920, 1536, 1366, 1280, 1272, 1099)
 DESKTOP_LABELS = (
     "Home", "Plant", "Equipment", "KPI's", "Parameters", "Data Pipeline",
@@ -173,8 +173,8 @@ def _assert_content_borders(page: Page, label: str) -> dict[str, int]:
         locator = page.locator(selector)
         counts[name] = locator.count()
         for index in range(locator.count()):
-            border = page.evaluate("el => getComputedStyle(el).borderTopWidth", locator.nth(index).element_handle())
-            _assert(float(border.removesuffix("px")) >= 1, f"{label}: border missing for {name} #{index + 1}")
+            border = locator.nth(index).evaluate("el => parseFloat(getComputedStyle(el).borderTopWidth) || 0")
+            _assert(float(border) >= 1, f"{label}: border missing for {name} #{index + 1}")
     return counts
 
 
@@ -190,7 +190,7 @@ def _wait_page_content(page: Page, slug: str) -> None:
         "events": ("text", "View Event Log"),
         "lessons": ("text", "Review Lessons"),
         "risk": ("text", "Job Risk Assessment"),
-        "admin": ("radio", "Business Units"),
+        "admin": ("radio", "Fields & Formulas"),
     }
     kind, name = markers[slug]
     locator = page.get_by_role("radio", name=name, exact=True) if kind == "radio" else page.get_by_text(name, exact=True).first

@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from opera import config, pipelines  # noqa: E402
+from opera import pipelines  # noqa: E402
 
 
 def due(last_attempt: object, interval: int) -> bool:
@@ -27,22 +27,20 @@ def due(last_attempt: object, interval: int) -> bool:
 
 
 def cycle() -> None:
-    units = config.business_units(active_only=True)
-    for bu in units.get("id", []):
-        states = pipelines.load_state(str(bu))
-        for item in pipelines.load_configurations(str(bu)):
-            if item.get("kind") != "live_excel" or not item.get("enabled"):
-                continue
-            pipelines.ensure_source_folder(item)
-            if not due(states.get(item["id"], {}).get("last_attempt"), int(item["interval_seconds"])):
-                continue
-            try:
-                rows, flags = pipelines.sync_live_excel(str(bu), item["id"])
-                print(f"{datetime.now().isoformat(timespec='seconds')} {bu}/{item['id']}: {rows} row(s), {flags} flag(s)", flush=True)
-            except Exception as exc:
-                # The failed run is already logged and reflected in pipeline health.
-                # Continue so one bad source never stops the other pipelines.
-                print(f"{datetime.now().isoformat(timespec='seconds')} {bu}/{item['id']}: ERROR {exc}", file=sys.stderr, flush=True)
+    states = pipelines.load_state()
+    for item in pipelines.load_configurations():
+        if item.get("kind") != "live_excel" or not item.get("enabled"):
+            continue
+        pipelines.ensure_source_folder(item)
+        if not due(states.get(item["id"], {}).get("last_attempt"), int(item["interval_seconds"])):
+            continue
+        targets = ",".join(pipelines.pipeline_targets(item)) or "row-routed"
+        try:
+            rows, flags = pipelines.sync_live_excel(item["id"])
+            print(f"{datetime.now().isoformat(timespec='seconds')} {item['name']} -> {targets}: {rows} row(s), {flags} flag(s)", flush=True)
+        except Exception as exc:
+            # Continue so one bad source never stops the other pipelines.
+            print(f"{datetime.now().isoformat(timespec='seconds')} {item['name']} -> {targets}: ERROR {exc}", file=sys.stderr, flush=True)
 
 
 def main() -> int:

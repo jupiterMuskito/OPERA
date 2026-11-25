@@ -21,7 +21,7 @@ def main() -> int:
     parser.add_argument("--status", required=True, choices=["success", "error"])
     parser.add_argument("--message", default="")
     args = parser.parse_args()
-    pipelines.record_external_status(args.bu, args.pipeline, args.status == "success", args.message)
+    pipelines.record_external_status(args.pipeline, args.status == "success", args.message, target_bu=args.bu)
     return 0
 
 
