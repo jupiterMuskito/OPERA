@@ -60,7 +60,7 @@ def test_unconfigured_connectors_never_claim_healthy():
     assert health == "Not connected"
     config.update({"enabled": True, "source": "https://example.invalid"})
     health, _ = pipelines.pipeline_health(config, {}, datetime(2026, 11, 25, tzinfo=timezone.utc))
-    assert health == "Simulated / connector pending"
+    assert health == "Not connected"
 
 
 def test_live_excel_sync_is_validated_and_idempotent(monkeypatch, tmp_path):
@@ -72,16 +72,16 @@ def test_live_excel_sync_is_validated_and_idempotent(monkeypatch, tmp_path):
     target = next(row for row in configs if row["id"] == "live_excel_1")
     target["enabled"] = True
     target["source"] = "pipeline_sources/live_excel_1.xlsx"
-    pipelines.save_configurations("refinery", configs)
+    pipelines.save_configurations(configs)
 
     # First sighting is deliberately deferred so a half-copied workbook is
     # never parsed.  The unchanged next cycle imports it.
-    assert pipelines.sync_live_excel("refinery") == (0, 0)
-    assert pipelines.sync_live_excel("refinery") == (1, 0)
-    assert pipelines.sync_live_excel("refinery") == (0, 0)
+    assert pipelines.sync_live_excel("live_excel_1") == (0, 0)
+    assert pipelines.sync_live_excel("live_excel_1") == (1, 0)
+    assert pipelines.sync_live_excel("live_excel_1") == (0, 0)
     saved = pd.read_csv(root / "business_units" / "refinery" / "inputs" / "dcs.csv")
     assert len(saved) == 1 and saved.loc[0, "DP1"] == 400
-    assert pipelines.status_frame("refinery").set_index("Pipeline").loc["Live Excel files 1", "Health"] == "Healthy"
+    assert pipelines.status_frame(["refinery"]).set_index("Pipeline").loc["Live Excel files 1", "Health"] == "Healthy"
     runs = pd.read_csv(root / "business_units" / "refinery" / "pipeline_runs.csv")
     assert set(runs["status"]) == {"waiting", "success"}
 
@@ -90,8 +90,8 @@ def test_live_excel_sync_is_validated_and_idempotent(monkeypatch, tmp_path):
     wb.loc[0, "DP1"] = 410
     with pd.ExcelWriter(source, engine="openpyxl") as writer:
         wb.to_excel(writer, sheet_name="Live Data", index=False)
-    assert pipelines.sync_live_excel("refinery") == (0, 0)
-    assert pipelines.sync_live_excel("refinery") == (1, 0)
+    assert pipelines.sync_live_excel("live_excel_1") == (0, 0)
+    assert pipelines.sync_live_excel("live_excel_1") == (1, 0)
     saved = pd.read_csv(root / "business_units" / "refinery" / "inputs" / "dcs.csv")
     assert len(saved) == 1 and saved.loc[0, "DP1"] == 410
 
