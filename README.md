@@ -19,7 +19,7 @@ For persistent server storage, set `OPERAX_DATA_DIR`. Existing deployments that 
 
 ## Seeded test logins
 
-All seeded accounts use the temporary password ``.
+All seeded accounts use the temporary password `ChangeMe!2026`.
 
 | Username | Role | Business-unit access |
 |---|---|---|
@@ -34,21 +34,21 @@ Change or disable every seeded account before production. Passwords are PBKDF2-S
 
 `Login → Business Unit → fixed brand bar → fixed flat navigation → breadcrumb → module content`
 
-The authenticated header is 160 px high: a 68 px white brand bar, a 52 px navy navigation bar and a 40 px breadcrumb content strip. The brand bar contains the Dangote mark, OPERA-X wordmark, tagline, and the Vision 2030 mark with the version directly underneath. The navy navigation is one styled Streamlit radio group: it uses 13 px horizontal padding at 1366 px and above, and 8 px compact padding with 14 px text from 1100–1365 px. The active page has a red underline and unused space stays between Admin and the bell. The full flat menu remains visible at the primary 1272 px Edge viewport with a scrollbar and collapses only at 1099 px and below. The bell badge overlaps the bell, the initials avatar is a clean red circle, and their inner panels render only while open. The full-width breadcrumb sits flush below the nav and keeps the business unit, category and full page name visible without clipping.
+The authenticated header is 160 px high: a 68 px white brand bar, a 52 px brand-blue navigation bar and a 40 px breadcrumb content strip. The brand bar contains the Dangote mark, OPERA-X wordmark, tagline, and the Vision 2030 mark with the version directly underneath. The navigation is one styled Streamlit radio group: it uses 13 px horizontal padding at 1366 px and above, and 8 px compact padding with 14 px text from 1100–1365 px. The active page has a red underline and unused space stays between Admin and the bell. The full flat menu remains visible at the primary 1272 px Edge viewport with a scrollbar and collapses only at 1099 px and below. The bell badge overlaps the bell, the initials avatar is a clean red circle, and their inner panels render only while open. The full-width breadcrumb sits flush below the nav and keeps the business unit, category and full page name visible without clipping.
 
 Navigation actions use Streamlit-native controls, not HTML links, so selecting a page stays in the current authenticated session. The custom header selectors are verified against and depend on the exact `streamlit==1.66.1` pin in `requirements.txt`; test the header before changing that pin.
 
 Modules:
 
 - **Operational Data:** Plant Overview, Equipment Overview, Operations Dashboard, Operating Parameters, Process Optimization, and **Operational Data Pipeline**.
-- **Operational Data Pipeline:** the user-facing name for the retained Manual Entry, Bulk Upload, Derived Data and Analyze Data workspace. Internal route, file and storage identifiers remain unchanged.
+- **Operational Data Pipeline:** the user-facing name for Manual Entry, Automatic Upload, Bulk Upload, Derived Data and Analyze Data. Internal route, file and storage identifiers remain unchanged.
 - **Operational Knowledge:** Event Log, Lesson Bank, and Job Risk Assessment.
 - **Process Optimization:** bounded-response decision support grouped under Operational Data; no duplicate Optimization tab remains in Operational Data Pipeline.
 - **Job Risk Assessment:** deterministic, register-backed job hazard assessment grouped under Operational Knowledge, with Job Risk Assessment PDF and Excel/CSV export labels.
 - Plant Overview, Equipment Overview and Operations Dashboard provide configurable templates, KPI fields, chart fields, table fields, and chart type. Operations setup accepts Digital Data, Raw Field Data, QAQC and Calculated fields in one catalog.
 - CPP-style charts: 12 configurable template fields, rendered four panels at a time in a two-column grid for responsive loading, or in one combined same-axis chart. v3.8 uses a compact 231 px chart height.
-- Operational Data Pipeline uses one lazy-loaded ribbon: **Manual Entry**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes. Analyze Data contains comparisons, statistics, forecasts and Instrument Check.
-- Digital Data endpoint setup and manual pipeline execution are under **Admin / Super Admin → Digital Data Connector**.
+- Operational Data Pipeline uses one lazy-loaded ribbon: **Manual Entry**, **Automatic Upload**, **Bulk Upload**, **Derived Data**, and **Analyze Data**; only the selected area executes. Automatic Upload shows truthful connector health and last-sync state; Analyze Data contains comparisons, statistics, forecasts and Instrument Check.
+- All eleven automatic connectors are configured per BU under **Admin / Super Admin → Configure Data Pipeline**. Live Excel sources use a DDF server folder (default `~/opera_inbox/live_excel/`) and require no OneDrive/Graph integration.
 - Event Log supports report, table, or picture events; notifications; and optional mapped Raw Field Data updates.
 - Lesson Bank supports controlled Equipment, Safety, General, Plant Operations and Admin-maintained categories; optional equipment for non-equipment lessons; event links; attachments; category filtering; read counts; and category-aware PDF/Excel downloads.
 
@@ -85,7 +85,7 @@ Each BU has one CSV per source: Digital Data (`DP1–DP1000`, persisted internal
 
 Community Cloud local file changes can be lost after a restart. For testing, use built-in backup/download functions. For production, use persistent storage through `OPERAX_DATA_DIR`.
 
-For an existing verified v3.11.1 deployment, apply the complete `OPERA-X_Code_Only_Update_v3.12.0_vs_v3.11.1.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory: it contains seeded users, readings, mappings, formulas, events, lessons and other runtime files. No manual live-data edit is required; the category column is added to each legacy `lessons.csv` atomically on first load. See `LIVE_DATA_UPDATE_v3.12.0.md`.
+For an existing verified v3.12.0 deployment, apply `OPERA-X_Code_Only_Update_v3.13.0_vs_v3.12.0.zip`. It excludes the complete `data/`, `registers/` and `reference_sources/` trees. Do not copy the full deployment package over a live `~/opera_data` directory. No manual live-data edit is required; pipeline configuration, state and run logs are created only when used. Upload Live Excel workbooks to `~/opera_inbox/live_excel/`, outside the repository, and follow `LIVE_EXCEL_PIPELINE_GUIDE_v3.13.0.md`.
 
 ## Risk registers
 
@@ -104,6 +104,6 @@ pytest -q
 python -m py_compile app.py opera/*.py scripts/*.py
 ```
 
-The 79-test suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, category migration/exports, Operational Data Pipeline naming and grouping, transparent and optimized Vision 2030 assets, the 1272 px Edge/Chrome flat header, native session-preserving navigation, admin-only visibility, breadcrumb/category mapping, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, cached Operations snapshots, compact charts, and agreement between the header, package version and authoritative `VERSION` file. The browser verifier separately runs the real application in Edge and Chrome at root and `/operationaldashboard/`.
+The 84-test suite includes end-to-end page rendering and Admin propagation, source-label/backward-compatibility checks, combined equipment/template Field Catalogue upload, category migration/exports, Automatic Upload and Live Excel append/update/deduplication, truthful pipeline health, new role scope, Operational Data Pipeline naming and grouping, transparent and optimized Vision 2030 assets, the 1272 px Edge/Chrome flat header, native session-preserving navigation, admin-only visibility, breadcrumb/category mapping, Job Risk Assessment labels, Home drill-down/Excel grouping, the mixed-source Operations catalog, cached Operations snapshots, compact charts, and agreement between the header, package version and authoritative `VERSION` file. The browser verifier separately runs the real application in Edge and Chrome at root and `/operationaldashboard/`.
 
-See `BUILD_NOTES.md`, `TEST_RESULTS.md`, `LIVE_DATA_UPDATE_v3.12.0.md`, `CHANGE_MANIFEST_v3.12.0_vs_v3.11.1.md`, `VISUAL_VERIFICATION_v3.12.0.md`, `PERFORMANCE_REPORT_v3.12.0.md`, and the retained earlier release reports.
+See `BUILD_NOTES_v3.13.0.md`, `TEST_RESULTS_v3.13.0.md`, `LIVE_EXCEL_PIPELINE_GUIDE_v3.13.0.md`, `CHANGE_MANIFEST_v3.13.0_vs_v3.12.0.md`, `VISUAL_VERIFICATION_v3.13.0.md`, the retained `PERFORMANCE_REPORT_v3.12.0.md`, and earlier release reports.

@@ -15,7 +15,7 @@ import pandas as pd
 import streamlit as st
 from pandas.io.formats.style import Styler
 
-from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, risk_store, storage
+from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, pipelines, risk_store, storage
 from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
 from opera.risk_pdf import build_pdf
 from opera.version import get_version, version_badge_html
@@ -68,7 +68,7 @@ def styles() -> None:
         """
 <style id="operax-app-styles">
 :root{
-  --blue:#1857C9;--blue-dark:#0F3F9C;--red:#CF3430;--text:#152238;--muted:#48597A;
+  --blue:#1857C9;--blue-dark:#174A9B;--red:#CF3430;--text:#152238;--muted:#48597A;
   --bg:#EEF3FA;--panel:#FFFFFF;--panel-alt:#F7F9FD;--border:#C9D8EC;--border-soft:#DCE7F4;
 }
 html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif;color:var(--text)}
@@ -80,9 +80,9 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .block-container>[data-testid="stVerticalBlock"]>[data-testid="stElementContainer"]:has(#operax-app-styles){display:none}
 .st-key-brand_ribbon{position:sticky;top:0;z-index:1003;min-height:68px;background:#fff;border:0;border-bottom:1px solid #E4E8EF;border-radius:0!important;box-shadow:0 2px 7px rgba(20,32,46,.06);overflow:visible!important}
 .opera-brandbar{height:68px;display:flex;align-items:center;justify-content:space-between;gap:1.25rem;padding:0 1.1rem;background:#fff;box-sizing:border-box}
-.opera-brand-left{min-width:0;display:flex;align-items:center;gap:1rem}.opera-dangote-logo{width:58px;height:48px;object-fit:contain}.opera-wordmark{font-size:1.55rem;font-weight:900;letter-spacing:-.035em;white-space:nowrap}.opera-wordmark .opera{color:#30336A}.opera-wordmark .x{color:#D7262F}.opera-brand-divider{height:32px;width:1px;background:#CDD3DE}.opera-tagline{color:#4C566B;font-size:.88rem;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opera-brand-left{min-width:0;display:flex;align-items:center;gap:1rem}.opera-dangote-logo{width:58px;height:48px;object-fit:contain}.opera-wordmark{font-size:1.55rem;font-weight:900;letter-spacing:-.035em;white-space:nowrap}.opera-wordmark .opera{color:var(--blue)}.opera-wordmark .x{color:#D7262F}.opera-brand-divider{height:32px;width:1px;background:#CDD3DE}.opera-tagline{color:#4C566B;font-size:.88rem;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .opera-vision-block{width:145px;min-width:145px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:2px}.opera-vision-block img{width:132px;height:43px;object-fit:contain}.opera-vision-block .version{font-size:.66rem;line-height:1;color:#7B8391;font-weight:650;letter-spacing:.02em;margin-top:-1px}
-.st-key-primary_navigation{position:sticky;top:68px;z-index:1002;background:#30336A;height:52px;min-height:52px;box-sizing:border-box;padding:0 .65rem;margin-top:-16px;border:0;border-radius:0!important;box-shadow:0 3px 8px rgba(25,27,65,.18);overflow:visible!important}
+.st-key-primary_navigation{position:sticky;top:68px;z-index:1002;background:var(--blue);height:52px;min-height:52px;box-sizing:border-box;padding:0 .65rem;margin-top:-16px;border:0;border-radius:0!important;box-shadow:0 3px 8px rgba(24,87,201,.20);overflow:visible!important}
 .st-key-primary_navigation>[data-testid="stLayoutWrapper"],.st-key-primary_navigation>[data-testid="stLayoutWrapper"]>[data-testid="stHorizontalBlock"]{height:52px;min-height:52px}
 .st-key-primary_navigation [data-testid="stHorizontalBlock"]{gap:.18rem;align-items:center;flex-wrap:nowrap}
 .st-key-primary_navigation [data-testid="stColumn"]>[data-testid="stVerticalBlock"]{gap:0;justify-content:center}
@@ -102,11 +102,11 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .st-key-user_menu button{width:38px;padding:0;border-radius:50%;background:#D7262F;border:2px solid #fff;color:#fff;font-size:.72rem;font-weight:850}
 .st-key-user_menu button p{font-size:.72rem;font-weight:850;color:#fff}
 .st-key-header_mobile_panel,.st-key-header_notice_panel,.st-key-header_user_panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem .75rem;box-shadow:0 8px 20px rgba(21,34,56,.14);position:relative;z-index:1004}
-.header-popover-title{font-size:.96rem;font-weight:850;color:#30336A}.header-popover-meta{font-size:.78rem;color:#606A7C;line-height:1.45;margin:.1rem 0 .6rem}.header-help{font-size:.79rem;line-height:1.45;color:#48556A;background:#F3F5F9;border-left:3px solid #30336A;padding:.55rem .65rem;margin:.25rem 0 .5rem}.header-version{font-size:.7rem;color:#7B8391;text-align:center;margin-top:.45rem}
+.header-popover-title{font-size:.96rem;font-weight:850;color:var(--blue-dark)}.header-popover-meta{font-size:.78rem;color:#606A7C;line-height:1.45;margin:.1rem 0 .6rem}.header-help{font-size:.79rem;line-height:1.45;color:#48556A;background:#F3F5F9;border-left:3px solid var(--blue);padding:.55rem .65rem;margin:.25rem 0 .5rem}.header-version{font-size:.7rem;color:#7B8391;text-align:center;margin-top:.45rem}
 .st-key-user_sign_out button{color:#B51F2A;border-color:#E9A8AD}.st-key-user_sign_out button:hover{color:#941923;border-color:#D7262F;background:#FFF5F5}
 .st-key-breadcrumb_strip{position:sticky;top:120px;z-index:1001;background:#F8FAFD;border:0;border-bottom:1px solid #E0E5EC;border-radius:0!important;height:40px;min-height:40px;box-sizing:border-box;margin-top:-16px;box-shadow:0 2px 7px rgba(20,32,46,.04);overflow:visible!important;gap:0!important}
 .st-key-breadcrumb_strip>[data-testid="stElementContainer"],.st-key-breadcrumb_strip [data-testid="stMarkdown"],.st-key-breadcrumb_strip [data-testid="stMarkdownContainer"]{height:40px;min-height:40px;overflow:visible!important}
-.opera-breadcrumb{height:40px;min-height:40px;box-sizing:border-box;display:flex;align-items:center;gap:.55rem;padding:0 1.1rem;color:#566174;font-size:.78rem;line-height:1.2;font-weight:650;white-space:nowrap;overflow:visible}.opera-bu-badge{display:inline-flex;align-items:center;border-radius:999px;background:#30336A;color:#fff;padding:.2rem .62rem;font-size:.67rem;line-height:1.2;font-weight:850;letter-spacing:.055em}.opera-breadcrumb .chevron{color:#A0A7B3}.opera-breadcrumb .page{color:#30336A;font-weight:800;overflow:hidden;text-overflow:ellipsis}
+.opera-breadcrumb{height:40px;min-height:40px;box-sizing:border-box;display:flex;align-items:center;gap:.55rem;padding:0 1.1rem;color:#566174;font-size:.78rem;line-height:1.2;font-weight:650;white-space:nowrap;overflow:visible}.opera-bu-badge{display:inline-flex;align-items:center;border-radius:999px;background:var(--blue);color:#fff;padding:.2rem .62rem;font-size:.67rem;line-height:1.2;font-weight:850;letter-spacing:.055em}.opera-breadcrumb .chevron{color:#A0A7B3}.opera-breadcrumb .page{color:var(--blue-dark);font-weight:800;overflow:hidden;text-overflow:ellipsis}
 .login-brand{min-height:410px;border-radius:18px;padding:3.1rem;background:linear-gradient(145deg,#0F3F9C 0%,#1857C9 70%,#2F7DE1 100%);color:#fff;box-shadow:0 24px 64px rgba(15,63,156,.24);display:flex;flex-direction:column;justify-content:space-between}
 .login-title{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}.login-title img{width:118px;height:auto;object-fit:contain;background:#fff;border-radius:12px;padding:.35rem .5rem;box-shadow:0 10px 24px rgba(0,0,0,.12)}
 .login-brand h1{font-size:3rem;line-height:1;margin:.8rem 0 .6rem;letter-spacing:-.04em}.login-brand p{font-size:1.05rem;color:#DCE9FF;max-width:34rem}.login-brand .route{font-size:1.2rem;line-height:1.3;color:#fff;border-top:1px solid rgba(255,255,255,.25);padding-top:1rem;font-weight:800}
@@ -698,12 +698,11 @@ def page_home(bu: str, user: auth.User) -> None:
         if st.button("Close Data Table", key="home_close_detail"):
             st.session_state.pop("home_detail", None)
             st.rerun()
-    st.markdown("### Modules")
     descriptions = {
         "Plant Overview": "Plant-level trends, conditions and period reports",
         "Equipment Overview": "Equipment trends using configurable dashboard templates",
         "Operations Dashboard": "Aligned KPI cards, targets, period views and chart grids",
-        "Operational Data Pipeline": "Manual Entry, Bulk Upload, Derived Data and Analyze Data in one ribbon",
+        "Operational Data Pipeline": "Manual Entry, Automatic Upload, Bulk Upload, Derived Data and Analyze Data in one ribbon",
         "Operating Parameters": "Process and QAQC trends across configured equipment",
         "Event Log": "Events, Raw Field Data updates, pictures and notifications",
         "Lesson Bank": "Searchable lessons, files and PDF downloads",
@@ -931,7 +930,7 @@ def page_operations(bu: str, user: auth.User) -> None:
 
 
 def manual_entry_panel(bu: str, user: auth.User) -> None:
-    if not auth.allowed(user, "input"):
+    if not auth.allowed(user, "manual_input"):
         st.warning("Your role is view-only.")
         return
     equipment = storage.equipment(bu)
@@ -972,7 +971,7 @@ def manual_entry_panel(bu: str, user: auth.User) -> None:
 
 
 def bulk_upload_panel(bu: str, user: auth.User) -> None:
-    if not auth.allowed(user, "input"):
+    if not auth.allowed(user, "bulk_input"):
         st.warning("Your role is view-only.")
         return
     equipment = storage.equipment(bu)
@@ -1025,12 +1024,22 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
             st.error(f"Upload could not be read: {exc}")
 
 
+def automatic_upload_panel(bu: str, user: auth.User) -> None:
+    st.caption("Live pipeline health is based only on recorded connector runs. Unconfigured sources never report a false healthy status.")
+    st.info("A 100 ms sync interval is not recommended: it would cause continuous file/API polling and CSV lock contention. Defaults are 5 seconds for the DCS connector, 60 seconds for script/Excel pipelines, and 300 seconds for SAP. Admins can tune each pipeline without changing code.")
+    safe_dataframe(pipelines.status_frame(bu), width="stretch", hide_index=True)
+    if st.button("Refresh Pipeline Health", key="refresh_pipeline_health"):
+        st.rerun()
+    st.caption("Configure sources and intervals under Admin → Configure Data Pipeline. Automatic execution is handled by the DDF server scheduler, not by a Streamlit page rerun.")
+
+
 def page_operational_data(bu: str, user: auth.User) -> None:
-    st.markdown("### Operational Data Pipeline")
-    sections = ["Manual Entry", "Bulk Upload", "Derived Data", "Analyze Data"]
+    sections = ["Manual Entry", "Automatic Upload", "Bulk Upload", "Derived Data", "Analyze Data"]
     section = st.radio("Operational Data Pipeline View", sections, horizontal=True, label_visibility="collapsed", key="operational_data_view")
     if section == "Manual Entry":
         manual_entry_panel(bu, user)
+    elif section == "Automatic Upload":
+        automatic_upload_panel(bu, user)
     elif section == "Bulk Upload":
         bulk_upload_panel(bu, user)
     elif section == "Derived Data":
@@ -1504,8 +1513,14 @@ def add_user_form(current: auth.User) -> None:
     with st.form("add_user"):
         username = st.text_input("Username").strip().lower()
         name = st.text_input("Display Name")
-        role = st.selectbox("Role", ["BU Admin", "Operator", "Viewer", "Super Admin"])
-        business_units = st.multiselect("Business Units", config.business_units()["id"].tolist())
+        role = st.selectbox("Role", list(auth.SUPPORTED_ROLES))
+        business_units = st.multiselect(
+            "Business Units",
+            config.business_units()["id"].tolist(),
+            max_selections=1 if role in auth.SINGLE_BU_ROLES else None,
+            disabled=role == "Super Admin",
+            help="Managers, Operators and Patrollers are deliberately limited to one business unit. Existing BU Admin, Viewer and Super Admin profiles remain available.",
+        )
         password = st.text_input("Temporary Password", type="password")
         submit = st.form_submit_button("Create User")
     if submit:
@@ -1526,11 +1541,17 @@ def manage_user_form(current: auth.User) -> None:
     index = users[users["username"] == username].index[0]
     row = users.loc[index]
     display_name = st.text_input("Display Name", row["display_name"], key="manage_display_name")
-    roles = ["BU Admin", "Operator", "Viewer", "Super Admin"]
-    role = st.selectbox("Role", roles, index=roles.index(row["role"]) if row["role"] in roles else 2, key="manage_role")
+    roles = list(auth.SUPPORTED_ROLES)
+    role = st.selectbox("Role", roles, index=roles.index(row["role"]) if row["role"] in roles else roles.index("Viewer"), key="manage_role")
     available_bus = config.business_units()["id"].tolist()
     assigned = [item for item in str(row["business_units"]).split(";") if item in available_bus]
-    business_units = st.multiselect("Business Units", available_bus, default=assigned, disabled=role == "Super Admin", key="manage_bus")
+    if role in auth.SINGLE_BU_ROLES:
+        assigned = assigned[:1]
+    business_units = st.multiselect(
+        "Business Units", available_bus, default=assigned, disabled=role == "Super Admin",
+        max_selections=1 if role in auth.SINGLE_BU_ROLES else None, key="manage_bus",
+        help="Managers, Operators and Patrollers must be assigned to exactly one business unit.",
+    )
     active = st.checkbox("Active Account", value=str(row["active"]).lower() == "true", key="manage_active")
     if st.button("Save User Access", type="primary", key="save_user_access"):
         try:
@@ -1907,11 +1928,80 @@ def equipment_admin(bu: str, user: auth.User) -> None:
         safe_dataframe(equipment.head(100), width="stretch", hide_index=True)
 
 
+def pipeline_admin(bu: str, user: auth.User) -> None:
+    configurations = pipelines.load_configurations(bu)
+    states = pipelines.load_state(bu)
+    summary = pipelines.status_frame(bu)
+    st.caption("Configure every pipeline shown in Data Pipeline → Automatic Upload. Settings are scoped to the current business unit.")
+    safe_dataframe(summary, width="stretch", hide_index=True)
+    labels = {f"{row['name']} — {row['method']}": row["id"] for row in configurations}
+    selected_label = st.selectbox("Pipeline", list(labels), key="pipeline_admin_selected")
+    selected_id = labels[selected_label]
+    selected = next(row for row in configurations if row["id"] == selected_id)
+    state = states.get(selected_id, {})
+    st.caption(f"Current state: {state.get('last_status', 'never run')} · Last synced: {state.get('last_synced', 'Never')}")
+    enabled = st.checkbox("Enabled", value=bool(selected.get("enabled")), key=f"pipeline_enabled_{selected_id}")
+    source_labels = {"api": "API Endpoint", "script": "Script Command, Endpoint or Source", "live_excel": "Watched Folder or Excel File"}
+    source = st.text_input(
+        source_labels.get(selected["kind"], "Source"),
+        value=str(selected.get("source", "")),
+        key=f"pipeline_source_{selected_id}",
+        help="Relative paths are resolved below OPERA_DATA_DIR. Absolute paths and environment variables are supported.",
+    )
+    first, second = st.columns(2)
+    interval = first.number_input(
+        "Sync Interval (seconds)", min_value=1, max_value=86_400,
+        value=int(selected.get("interval_seconds", 60)), step=1, key=f"pipeline_interval_{selected_id}",
+    )
+    secret_name = second.text_input(
+        "Secret Name (value stays in Streamlit Secrets)", value=str(selected.get("secret_name", "")),
+        key=f"pipeline_secret_{selected_id}",
+    )
+    notes = st.text_area("Configuration Notes", value=str(selected.get("notes", "")), key=f"pipeline_notes_{selected_id}")
+    if not selected.get("implemented"):
+        st.warning("Connector pending: OPERA-X will show this pipeline as simulated/not connected until a production script reports a successful run. Saving settings does not create a false healthy state.")
+    if st.button("Save Pipeline Configuration", type="primary", key=f"save_pipeline_{selected_id}"):
+        updated = []
+        for row in configurations:
+            if row["id"] == selected_id:
+                row = {**row, "enabled": enabled, "source": source.strip(), "interval_seconds": int(interval), "secret_name": secret_name.strip(), "notes": notes.strip()}
+            updated.append(row)
+        pipelines.save_configurations(bu, updated)
+        if selected["kind"] == "live_excel" and source.strip():
+            pipelines.ensure_source_folder({**selected, "source": source.strip()})
+        # Preserve the existing connector file for older DDF deployments while
+        # the unified configuration becomes the source of truth.
+        if selected_id == "refinery_dcs":
+            storage.save_json(storage.bu_dir(bu) / "pipeline.json", {"url": source.strip(), "token_secret_name": secret_name.strip()})
+        storage.audit(bu, user.username, "data_pipeline_configured", {"pipeline": selected_id, "enabled": enabled, "interval_seconds": int(interval)})
+        st.success("Pipeline configuration saved and available on the next scheduler run.")
+    if selected["kind"] == "live_excel":
+        source_path = pipelines.source_file({**selected, "source": source}) if source.strip() else None
+        if source_path:
+            st.code(str(source_path), language=None)
+        if st.button("Run Live Excel Sync Now", disabled=not enabled or not source_path or not source_path.is_file(), key=f"run_pipeline_{selected_id}"):
+            try:
+                count, flag_count = pipelines.sync_live_excel(bu, selected_id, user.username)
+                st.success(f"Sync completed: {count} new row(s), {flag_count} flag(s).")
+            except Exception as exc:
+                st.error(f"Live Excel sync failed: {exc}")
+    elif selected_id == "refinery_dcs":
+        if st.button("Pull Digital Data Now", disabled=not enabled or not source.strip(), key="admin_pull_dcs"):
+            try:
+                token = str(st.secrets.get("dcs", {}).get(secret_name, "")) if secret_name else ""
+                count, flag_count = dcs_connector.ingest(bu, source.strip(), token, user.username)
+                pipelines.record_external_status(bu, selected_id, True, f"Ingested {count} row(s); {flag_count} flag(s).")
+                st.success(f"Ingested {count} rows; {flag_count} flags.")
+            except Exception as exc:
+                pipelines.record_external_status(bu, selected_id, False, str(exc))
+                st.error(f"Digital Data pull failed: {exc}")
+
+
 def page_admin(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
-    sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Digital Data Connector", "Presets", "Audit & Backup"]
+    sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Configure Data Pipeline", "Presets", "Audit & Backup"]
     section = st.radio("Administration Area", sections, horizontal=True, label_visibility="collapsed", key="admin_area")
     if section == sections[0]:
         safe_dataframe(config.business_units(), width="stretch", hide_index=True)
@@ -2028,25 +2118,7 @@ def page_admin(bu: str, user: auth.User) -> None:
             except Exception as exc:
                 st.error(str(exc))
     elif section == sections[7]:
-        settings = storage.json_setting(storage.bu_dir(bu) / "pipeline.json", {})
-        url = st.text_input("Digital Data JSON Endpoint", settings.get("url", ""))
-        token_name = st.text_input("Secret Key Under [dcs] (internal compatibility section)", settings.get("token_secret_name", ""))
-        if st.button("Save Connector Settings"):
-            settings = {"url": url.strip(), "token_secret_name": token_name.strip()}
-            storage.save_json(storage.bu_dir(bu) / "pipeline.json", settings)
-            storage.audit(bu, user.username, "digital_data_connector_configured", {"url": url})
-            st.success("Connector settings saved and available immediately; token value remains in Secrets.")
-        st.markdown("#### Pipeline Run")
-        st.code(settings.get("url") or "Digital Data endpoint not configured")
-        if st.button("Pull Digital Data Now", disabled=not bool(settings.get("url")), key="admin_pull_dcs"):
-            try:
-                token = ""
-                if settings.get("token_secret_name"):
-                    token = str(st.secrets.get("dcs", {}).get(settings["token_secret_name"], ""))
-                count, flag_count = dcs_connector.ingest(bu, settings["url"], token, user.username)
-                st.success(f"Ingested {count} rows; {flag_count} flags.")
-            except Exception as exc:
-                st.error(f"Digital Data pull failed: {exc}")
+        pipeline_admin(bu, user)
     elif section == sections[8]:
         presets = config.load_presets(bu)
         st.json(presets)

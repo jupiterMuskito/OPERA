@@ -1,0 +1,4 @@
+OPERA-X v3.13.0 code-only update: no v3.12.0 files need to be deleted.
+
+Do not overwrite ~/opera_data with the package data folder.
+The Live Excel inbox is outside the repository at ~/opera_inbox/live_excel/.

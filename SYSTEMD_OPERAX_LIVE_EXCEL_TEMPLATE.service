@@ -1,0 +1,10 @@
+[Unit]
+Description=OPERA-X Live Excel pipeline sync
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=opera
+WorkingDirectory=/home/opera/OPERA
+Environment=OPERA_DATA_DIR=/home/opera/opera_data
+ExecStart=/home/opera/OPERA/.venv/bin/python scripts/sync_live_excel.py --bu refinery --pipeline live_excel_1
