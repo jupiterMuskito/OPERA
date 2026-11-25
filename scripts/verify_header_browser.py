@@ -5,7 +5,7 @@ Runs the real Streamlit app at / and /operationaldashboard/ in Chromium and
 Microsoft Edge.  It verifies the 1100 CSS-pixel breakpoint, the primary
 1272px/scrollbar target, a 1.5 device scale factor, one-row navigation, control
 borders and all application routes. Screenshots and measurements are written to
-verification/v3.12.0/.
+verification/v3.13.0/.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from pathlib import Path
 from playwright.sync_api import Browser, Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "verification" / "v3.12.0"
+OUT = ROOT / "verification" / "v3.13.0"
 WIDTHS = (1920, 1536, 1366, 1280, 1272, 1099)
 DESKTOP_LABELS = (
     "Home", "Plant", "Equipment", "KPI's", "Parameters", "Data Pipeline",
@@ -180,7 +180,7 @@ def _assert_content_borders(page: Page, label: str) -> dict[str, int]:
 
 def _wait_page_content(page: Page, slug: str) -> None:
     markers = {
-        "home": ("text", "Modules"),
+        "home": ("text", "Operational Data"),
         "plant": ("text", "Dashboard Template"),
         "equipment": ("text", "Dashboard Template"),
         "kpis": ("text", "Key Performance Indicators"),
