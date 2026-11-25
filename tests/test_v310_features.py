@@ -12,7 +12,7 @@ def test_home_grouping_and_pipeline_label_match_the_corrected_requirement():
     assert '"Operational Data Pipeline", "Process Optimization"' in source
     assert '"Operational Knowledge": ["Event Log", "Lesson Bank", "Job Risk Assessment"]' in source
     assert '"Operational Data Pipeline": page_operational_data' in source
-    assert 'st.markdown("### Operational Data Pipeline")' in source
+    assert 'st.markdown("### Operational Data Pipeline")' not in source
     rejected_name = "Operational Data Collection" + " and Retrieval"
     assert rejected_name not in source
 

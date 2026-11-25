@@ -46,7 +46,7 @@ def test_header_uses_one_native_radio_group_without_anchor_navigation_or_eleven_
 def test_brand_version_breadcrumb_and_responsive_css_match_approved_design():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
-    assert __version__ == "3.12.0"
+    assert __version__ == "3.13.0"
     assert "streamlit==1.66.1" in requirements
     assert "One Platform for All Plant Operational Data" in source
     assert "opera-vision-block" in source and "version_badge_html()" in source
