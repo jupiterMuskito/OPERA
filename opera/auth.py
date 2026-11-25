@@ -14,6 +14,8 @@ from . import storage
 ITERS = 200_000
 MAX_TRIES = 5
 LOCK_MINUTES = 15
+SUPPORTED_ROLES = ("Super Admin", "BU Admin", "Manager", "Operator", "Patroller", "Viewer")
+SINGLE_BU_ROLES = {"Manager", "Operator", "Patroller"}
 
 
 @dataclass(frozen=True)
@@ -90,9 +92,11 @@ def authenticate(username: str, password: str, secret_users: Mapping[str, Any] |
 
 def allowed(user: User, capability: str) -> bool:
     grants = {
-        "Super Admin": {"view", "input", "events", "risk", "lessons", "configure", "users", "all_bu"},
-        "BU Admin": {"view", "input", "events", "risk", "lessons", "configure"},
-        "Operator": {"view", "input", "events", "risk", "lessons"},
+        "Super Admin": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons", "configure", "users", "all_bu"},
+        "BU Admin": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons", "configure"},
+        "Manager": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons", "configure"},
+        "Operator": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons"},
+        "Patroller": {"view", "manual_input"},
         "Viewer": {"view"},
     }
     return capability in grants.get(user.role, set())
@@ -129,8 +133,13 @@ def create_user(username: str, display_name: str, role: str, business_units: lis
     username = username.strip().lower()
     if not username or len(password) < 12:
         raise ValueError("Username and a 12-character temporary password are required.")
-    if role not in {"Super Admin", "BU Admin", "Operator", "Viewer"}:
+    if role not in SUPPORTED_ROLES:
         raise ValueError("Choose a supported role.")
+    business_units = list(dict.fromkeys(business_units))
+    if role != "Super Admin" and not business_units:
+        raise ValueError("Choose at least one business unit.")
+    if role in SINGLE_BU_ROLES and len(business_units) != 1:
+        raise ValueError(f"{role} accounts must be assigned to exactly one business unit.")
     path = storage.DATA_ROOT / "shared" / "users.csv"
     users = storage.read_csv(path)
     if not users.empty and username in set(users["username"].str.lower()):
@@ -140,7 +149,7 @@ def create_user(username: str, display_name: str, role: str, business_units: lis
         "display_name": display_name.strip() or username,
         "password_hash": hash_password(password),
         "role": role,
-        "business_units": "*" if role == "Super Admin" else ";".join(dict.fromkeys(business_units)),
+        "business_units": "*" if role == "Super Admin" else ";".join(business_units),
         "active": "true",
         "must_change_password": "true",
         "failed_attempts": "0",
@@ -156,12 +165,17 @@ def update_user_access(username: str, display_name: str, role: str, business_uni
     hit = users["username"].str.lower() == username.strip().lower()
     if not hit.any():
         raise ValueError("Unknown user.")
-    if role not in {"Super Admin", "BU Admin", "Operator", "Viewer"}:
+    if role not in SUPPORTED_ROLES:
         raise ValueError("Choose a supported role.")
+    business_units = list(dict.fromkeys(business_units))
+    if role != "Super Admin" and not business_units:
+        raise ValueError("Choose at least one business unit.")
+    if role in SINGLE_BU_ROLES and len(business_units) != 1:
+        raise ValueError(f"{role} accounts must be assigned to exactly one business unit.")
     users.loc[hit, ["display_name", "role", "business_units", "active"]] = [
         display_name.strip() or username,
         role,
-        "*" if role == "Super Admin" else ";".join(dict.fromkeys(business_units)),
+        "*" if role == "Super Admin" else ";".join(business_units),
         str(bool(active)).lower(),
     ]
     storage.atomic_write_csv(path, users)
