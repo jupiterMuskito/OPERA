@@ -1,46 +1,39 @@
-# OPERA-X v3.12.0 test results
+# OPERA-X v3.13.1 Test Results
 
-## Python compilation and suite
+## Automated regression suite
 
-```bash
-python -m py_compile app.py opera/*.py scripts/*.py
-python -m pytest -q
-```
-
-Result: **78 passed, 1 browser-marker test skipped by default (79 collected), 0 failed**.
-
-The opt-in pytest browser marker calls the same real-app verifier described below; it is skipped unless `OPERAX_RUN_BROWSER_TESTS=1`.
-
-## Real Chrome and Microsoft Edge verification
+Commands:
 
 ```bash
-python scripts/verify_header_browser.py
+python3 -m compileall -q app.py opera scripts
+pytest -q
 ```
 
-Result: **52 checks passed**.
+Result: **90 passed, 1 skipped, 0 failed** (91 collected).
 
-Coverage:
+The skipped test is the existing opt-in real-browser marker, which runs only when `OPERAX_RUN_BROWSER_TESTS=1` is set. The same browser verifier was run directly for this build.
 
-- installed Microsoft Edge and bundled Chromium;
-- root and `/operationaldashboard/` base paths;
-- 1920, 1536, 1366, 1280, 1272 and 1099 CSS px;
-- 1272 px with a 17 px scrollbar gutter (1255 px usable width);
-- 1280 CSS px at `deviceScaleFactor=1.5`;
-- all eleven authenticated pages at 1366 px in both browsers;
-- all eleven menu labels on one row at 1272 px;
-- compact ☰ only at 1099 px;
-- 14 px minimum nav text;
-- content field, file-uploader and expander borders where present;
-- no leftover v3.11.1 H1 page title;
-- bell, avatar and compact-menu lazy panels;
-- no horizontal overflow or visible Streamlit exception.
+## New v3.13.1 coverage
 
-See `VISUAL_VERIFICATION_v3.12.0.md` and `verification/v3.12.0/browser_measurements.json`.
+- Complete role/action permission matrix.
+- Super Admin receives every declared capability and every BU even with a legacy role alias or missing wildcard assignment.
+- Secrets roles remain authoritative across reruns.
+- Automatic migration and de-duplication of per-BU v3.13.0 pipeline configuration.
+- Global pipeline configuration remains unchanged when a different active BU is viewed.
+- Scheduler cycles without any user session import Live Excel files 1, 2 and 3 into Refinery, Cement and Fertilizer respectively.
+- Multi-BU Live Excel rows route by each row's `Business unit` value and validate equipment in that target BU.
+- Fixed-target sources import valid rows while rejecting rows for disallowed BUs.
+- Non-Super-Admin pipeline health is filtered to permitted BU data.
+- The removed developer-information phrases cannot regress into the app source.
 
-## Performance verification
+## Real browser verifier
 
-The release benchmark compared v3.10.1, original v3.11.1 and v3.12.0 using warm authenticated click-to-settled-page timings. v3.12.0 improved every measured page against v3.11.1 by 34.5%–74.2%; see `PERFORMANCE_REPORT_v3.12.0.md`.
+Command:
 
-## Package checks
+```bash
+python3 scripts/verify_header_browser.py --check-only
+```
 
-Both final ZIPs are compiled after cache cleanup, then checked with `unzip -t`. SHA-256 hashes are recorded in `DELIVERABLE_SHA256SUMS_v3.12.0.txt`.
+Result: **PASS — 52 Chrome/Edge checks across root and `/operationaldashboard/`**.
+
+Coverage includes 1920, 1536, 1366, 1280, 1272 and 1099 px widths; 1.5 device scale factor; scrollbar gutter; one-row navigation; all authenticated routes; content-control borders; visible exceptions; and nginx sub-path behavior.

@@ -1,124 +1,136 @@
-# OPERA-X v3.12.0 build notes
+# OPERA-X v3.13.1 Build Notes
 
-## Scope
+Base: `OPERA-X_Streamlit_Deployment_v3.13.0_Final.zip`
 
-v3.12.0 starts from the complete v3.11.1 package and preserves the v3.9–v3.11.1 mapping, version, header, nginx base-path and Community Cloud fixes. It addresses the Edge breakpoint, content-control borders, navigation wording, duplicate page headings, page-opening performance and Lesson Bank categories.
+## Summary
 
-## 1. Edge menu collapse — root cause and fix
+v3.13.1 preserves the v3.9–v3.13.0 mapping, dashboard, nginx base-path, Community Cloud, responsive-header, Live Excel and scheduler functionality while fixing three production issues:
+
+1. developer and implementation notes were visible in the application;
+2. Super Admin could be resolved as view-only on action pages; and
+3. automatic pipeline configuration and execution were incorrectly tied to the business unit selected in the UI.
+
+## 1. User-facing technical notes
 
 ### Root cause
 
-The user measured the primary Dangote laptop in Microsoft Edge with DevTools undocked and the Edge sidebar closed:
-
-- physical display: 1920 px;
-- Windows scaling: 150%;
-- `screen.width`: 1280 CSS px;
-- `window.outerWidth`: 1280 CSS px;
-- `window.innerWidth`: 1272 CSS px;
-- `devicePixelRatio`: 1.5;
-- usable page width with the vertical scrollbar: approximately 1255 CSS px.
-
-v3.11.1 collapsed the desktop menu at 1279 px and below. Edge therefore followed the compact branch even though the physical screen was 1920 px. This was a breakpoint problem, not a different Edge rendering engine: Edge and Chrome are both Chromium, but their effective CSS viewport can differ by window chrome, scaling and scrollbar allocation.
+The Automatic Upload panel contained a hard-coded engineering explanation about 100 ms polling, CSV lock contention and implementation defaults. Similar implementation wording appeared in Admin help, mapping text, connector status, source-path help, register persistence and saved-view controls.
 
 ### Fix
 
-- The flat menu remains visible from 1100 CSS px upward and collapses only at 1099 px and below.
-- A compact desktop range from 1100–1365 px uses 8 px horizontal item padding, 14 px text and 1 px group dividers.
-- Normal 13 px item padding remains at 1366 px and above; nav text is never below 14 px.
-- The responsive decision is a CSS viewport media query, not a Streamlit column/container measurement.
-- All eleven items, the bell and avatar stay on one row. At the 1272 px test viewport with a 17 px scrollbar gutter, the measured menu row is 829.52 px inside 1255 px of usable application width.
-- “Dashboards” is now `KPI's`; it still routes to Operations Dashboard.
+- Removed the 100 ms information box in full.
+- Audited every application page and the Admin area.
+- Replaced implementation explanations with short task-focused help only where a user needs guidance.
+- Removed or renamed user-facing references to polling, CSV locks, Python scripts, Streamlit Secrets, environment-variable/path resolution, backend/runtime databases, fingerprints, simulated connectors and GitHub persistence.
+- Kept the underlying functionality and moved implementation detail to documentation and build notes.
+- Added a source-level regression test for the removed phrases.
 
-## 2. Missing field and button borders — root cause and fix
+## 2. Hierarchical permissions and Super Admin fail-safe
 
-v3.11.1 gave the header explicit border resets but left content fields dependent on Streamlit theme defaults. Streamlit 1.66.1 renders select/date controls with React Aria (`data-rac`, `stDateInputField`) rather than only the older BaseWeb nodes. Against the light-blue secondary background, those default control backgrounds and edges had insufficient contrast and looked like floating text.
+### Root causes
 
-The header rules now remain header-key scoped, and content controls have separate selectors under `stMainBlockContainer`. Visible 1 px borders, white field backgrounds and blue focus rings are applied to:
+Three permission paths could disagree:
 
-- buttons and download buttons;
-- selectboxes and multiselects;
-- date, time, text and number inputs;
-- file-upload drop zones; and
-- expanders.
+1. grants were assembled independently for each role, so a new lower-role capability could be omitted from Super Admin;
+2. role checks depended on exact display strings or direct `user.role == "Super Admin"` comparisons, so legacy values such as `super_admin`, separator/casing variants or an inconsistent persisted record could fall back to Viewer; and
+3. after a Secrets login, the next rerun reloaded a same-named CSV account and could replace the authoritative Secrets role. BU access also depended on a literal `*` assignment instead of the Super Admin role itself.
 
-Both old BaseWeb and current React-Aria structures are covered so the login, Select Business Unit page and every authenticated page retain accessible focus styling.
+### Fix
 
-## 3. Navigation label and page heading
+- Added canonical role handling for supported legacy casing and separator variants.
+- Built grants by inheritance: Viewer → Patroller → Operator → Manager/BU Admin → Super Admin.
+- Super Admin is the union of every lower-role grant plus global user, business-unit and all-BU administration. A test iterates every declared action and fails if Super Admin is denied any one.
+- Super Admin can access every current or future BU even if a persisted `business_units` value is missing or malformed.
+- Secrets accounts remain authoritative on rerun and are no longer replaced by same-named CSV rows.
+- Replaced direct page checks with capabilities for manual entry, bulk upload, event input, lesson input, risk assessment, exports, Home drill-downs, Admin sections and pipeline configuration.
+- Enforced one-BU scope at runtime for Manager, Operator and Patroller, including legacy records that contain multiple BU values; the first assigned BU remains effective until a Super Admin updates the account.
+- Restricted global **Business Units** and **Users & Roles** sections to Super Admin. BU Admin and Manager retain BU-scoped configuration sections.
 
-- The flat label `Dashboards` is now `KPI's`.
-- The internal route remains `Operations Dashboard`.
-- The breadcrumb continues to show `Operations Dashboard`.
-- The explicit v3.11.1 H1 elements added directly below the breadcrumb on Home, Equipment Overview and Admin were removed. The breadcrumb and each page’s own section titles remain, with no duplicate/leftover page heading.
+## Permission matrix
 
-## 4. Performance — root causes and fixes
+A check means the action is available within the role's permitted BU scope.
 
-### Root causes found
+| Role | View data | Manual entry | Bulk upload | Event input | Lesson input | Risk assessment | Exports | Home drill-downs | BU configuration and pipelines | Users and global BU administration | BU scope |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Super Admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Every BU |
+| BU Admin | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | Assigned BU(s) |
+| Manager | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | Exactly one assigned BU |
+| Operator | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | — | — | Exactly one assigned BU |
+| Patroller | ✓ | ✓ | — | — | — | — | — | — | — | — | Exactly one assigned BU |
+| Viewer | ✓ | — | — | — | — | — | — | — | — | — | Assigned BU(s) |
 
-1. v3.11.1 rendered eleven desktop navigation buttons and another eleven hidden mobile buttons on every rerun.
-2. Closed mobile, notification and account popovers still executed their body widgets on every rerun.
-3. The 1823 px Vision 2030 compact PNG was 520,934 bytes and became an approximately 694 KB base64 string injected on every page rerun.
-4. Brand assets were read and base64-encoded repeatedly.
-5. Operations Dashboard rebuilt the same aligned input/calculated snapshot whenever the page reopened, even when no source file had changed.
+## 3. Global automatic pipelines
 
-### Fixes
+### Root cause
 
-- Replaced eleven desktop buttons with one Streamlit-native radio-group widget styled as the approved flat menu.
-- The compact menu, notification panel and account panel now render their inner widgets only while open.
-- Added right-sized transparent WebP assets: the repeated compact asset is 24,770 bytes instead of 520,934 bytes.
-- Cached asset data URIs per process.
-- Added a file-signature cache for Operations Dashboard data. Any change to source CSVs, fields, calculated-field definitions or constants changes the key automatically; no stale manual invalidation is required.
+v3.13.0 stored `pipeline_configurations.json` and `pipeline_state.json` inside each BU folder. Admin saved settings to the currently selected BU, and the scheduler looped through BUs and called Live Excel sync with that loop BU. Live Excel validation then required every row's `Business unit` value and equipment to match the loop BU. Enabling files 1 and 3 while Cement was selected therefore ran them as `cement/live_excel_1` and `cement/live_excel_3`, producing the observed “Must be cement” and “Equipment is not registered” errors.
 
-### Measured result
+### Fix
 
-Method: median of three warm authenticated click-to-settled-page transitions after one warm-up cycle, same container host and bundled Chromium. Times include Streamlit rerun, backend work and settled page rendering.
+- Pipeline configuration is now global at `~/opera_data/shared/pipeline_configurations.json`.
+- Pipeline state is global at `~/opera_data/shared/pipeline_state.json`, with target-BU status details for access-filtered health reporting.
+- Every pipeline has either a fixed **Target Business Unit** or **Route by Business unit column** with an explicit allowed-BU list.
+- Default Live Excel targets are:
+  - Live Excel files 1 → Refinery;
+  - Live Excel files 2 → Cement;
+  - Live Excel files 3 → Fertilizer.
+- Admin → Configure Data Pipeline shows the global list to Super Admin. BU Admin and Manager see only pipelines intersecting their assigned BU scope. Editing does not depend on the BU selected in the header.
+- Automatic Upload shows all target-BU health rows to Super Admin. Other users see only the current BU's pipeline health.
+- Live Excel canonicalizes each row's `Business unit` value, groups rows by that target, validates fields and equipment against that BU's registries, and writes to that BU's `inputs/dcs.csv`.
+- Unknown or disallowed BU rows are rejected individually. Valid rows for allowed BUs continue to import; the signed-in or header-selected BU is never used for routing.
+- Pipeline run logs now include pipeline ID, pipeline name, target BU, imported rows, flags and rejected-row count.
+- The background scheduler loads the global configuration once per cycle and runs every enabled pipeline by its own interval without any user session.
+- Scheduler console lines show the pipeline name and target BU(s).
 
-| Page | v3.10.1 reference | v3.11.1 before | v3.12.0 after | Change vs v3.11.1 |
-|---|---:|---:|---:|---:|
-| Home | 1.623 s | 5.946 s | 1.532 s | -74.2% |
-| Plant Overview | 1.086 s | 2.372 s | 1.066 s | -55.1% |
-| Equipment Overview | 4.606 s | 2.284 s | 1.495 s | -34.5% |
-| Operations Dashboard | 5.315 s | 18.901 s | 7.718 s | -59.2% |
-| Admin | 1.512 s | 4.560 s | 1.359 s | -70.2% |
+## Automatic migration of v3.13.0 settings
 
-Four target pages are at or faster than the v3.10.1 reference within these paired runs. Operations Dashboard is 2.402 s above the v3.10.1 reference but 11.184 s faster than v3.11.1; it remains the heaviest page because it renders the aligned KPI card and chart workspace.
+No manual edit is required.
 
-Machine-readable results are in `verification/v3.12.0/performance_comparison_v3.10.1_v3.11.1_v3.12.0.json`.
+On first global configuration load:
 
-## 5. Lesson Bank categories
+1. OPERA-X scans existing `business_units/<bu>/pipeline_configurations.json` files.
+2. It de-duplicates each pipeline ID.
+3. When the same pipeline was saved under multiple BUs, it keeps the settings from the pipeline's intended target BU (for example, Refinery for Live Excel files 1).
+4. It writes the merged global configuration to `shared/pipeline_configurations.json`.
+5. Matching legacy state is migrated to `shared/pipeline_state.json`.
+6. Existing per-BU configuration and state files are retained for rollback/audit and are not deleted or edited.
 
-- Controlled defaults: Equipment, Safety, General and Plant Operations.
-- Admin can maintain the controlled list under **Admin / Super Admin → Equipment → Validation Lists → Lesson Categories**. Equipment and General are retained for compatibility.
-- Input Lesson stores `category`.
-- Equipment is required only for the Equipment category; it is optional for every other category.
-- Event-linked non-equipment lessons can optionally retain the event’s equipment.
-- Review Lessons includes a Category filter and category column.
-- The selected lesson PDF metadata and filtered Lesson Bank Excel export include Category.
-- Home’s Super Admin Lessons Excel export also uses the migrated category-aware frame.
+## What must be updated in `~/opera_data`
 
-### Existing lesson migration
+**Nothing must be edited or copied manually. Do not overwrite `~/opera_data` with the package `data/` folder.**
 
-On first category-aware lesson load for each business unit, OPERA-X atomically adds the `category` column if needed:
+The application automatically creates or updates only these items when used:
 
-- an existing row with equipment becomes `Equipment`;
-- an existing row without equipment becomes `General`.
+- `~/opera_data/shared/pipeline_configurations.json` — global configuration created by automatic migration or the Admin page;
+- `~/opera_data/shared/pipeline_state.json` — global scheduler/health state;
+- `~/opera_data/business_units/<bu>/pipeline_runs.csv` — gains pipeline-name, target-BU and rejected-row fields on the next appended run;
+- `~/opera_data/business_units/<target-bu>/inputs/dcs.csv` — updated only with validated rows routed to that BU;
+- existing per-BU pipeline configuration/state files remain untouched.
 
-No manual CSV edit is required.
+The watched workbook folder remains `~/opera_inbox/live_excel/`, outside both the repository and `~/opera_data`.
 
-## Compatibility and deployment
+## Scheduler restart — required
 
-- `streamlit==1.66.1` remains pinned.
-- Both `OPERA_DATA_DIR` and `OPERAX_DATA_DIR` remain supported.
-- Root-path Community Cloud and nginx `/operationaldashboard/` were tested.
-- The code-only ZIP excludes `data/`, `registers/` and `reference_sources/`.
+**Yes. The scheduler must be restarted after deploying v3.13.1.** The existing process has the v3.13.0 per-BU loop loaded in memory; updating files alone does not replace that running process.
 
-Deploy the complete code-only update, then fully restart and hard-refresh:
+After applying the code, run exactly:
 
 ```bash
-cd ~/OPERA
-git pull
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+~/OPERA/scripts/stop_pipeline_scheduler.sh
+~/OPERA/scripts/start_pipeline_scheduler.sh
+```
+
+Then fully restart the application and hard-refresh the browser:
+
+```bash
 ~/OPERA/start_opera.sh
 ```
 
-Use **Ctrl+F5** in both Chrome and Edge. A Streamlit hot reload is not sufficient for the header/CSS and asset changes.
+Press **Ctrl+F5** in both Chrome and Edge. Verify the normal URL and `/operationaldashboard/`, including the 1272 px Edge viewport.
+
+## Testing
+
+- `python3 -m compileall -q app.py opera scripts` — passed.
+- `pytest -q` — **90 passed, 1 skipped, 0 failed** (91 collected). The skip is the existing opt-in browser marker.
+- `python3 scripts/verify_header_browser.py --check-only` — **PASS: 52 Chrome/Edge checks across root and `/operationaldashboard/`**.
+- New tests cover the complete permission matrix, Super Admin fail-safe, Secrets role precedence, automatic global migration/de-duplication, three-BU scheduler execution without a user session, row-routed multi-BU workbooks, fixed-target row rejection, active-BU independence and non-Super-Admin health visibility.

@@ -534,6 +534,8 @@ def period_filter(frame: pd.DataFrame, key: str) -> pd.DataFrame:
 
 
 def export_panel(frame: pd.DataFrame, title: str, bu: str, user: auth.User, key: str) -> None:
+    if not auth.allowed(user, "export"):
+        return
     with st.expander("Export", expanded=False):
         fmt = st.selectbox("Export Format", ["Excel", "CSV", "PDF"], key=f"{key}_fmt")
         if st.button("Prepare Export", key=f"{key}_prepare"):
@@ -668,14 +670,14 @@ def page_home(bu: str, user: auth.User) -> None:
         columns = st.columns(5)
         for column, label, value in zip(columns, ["Readings", "Open Flags", "Events", "Lessons", "Notifications"], values):
             if column.button(f"{label}\n{value:,}", key=f"home_detail_{label}", width="stretch", help=f"Open the {label.lower()} table"):
-                if user.role != "Super Admin":
-                    st.warning("Super Admin access is required to open and export this operational register. Contact your OPERA-X Super Admin if you need a copy.")
+                if not auth.allowed(user, "home_drilldown"):
+                    st.warning("Your role does not allow opening the detailed operational register.")
                 else:
                     st.session_state.home_detail = label
                     storage.audit(bu, user.username, "home_detail_opened", {"detail": label})
     detail = st.session_state.get("home_detail")
-    if detail and user.role == "Super Admin":
-        st.markdown(f"### {detail} — Super Admin Data")
+    if detail and auth.allowed(user, "home_drilldown"):
+        st.markdown(f"### {detail} — Operational Data")
         sheets = home_detail_sheets(bu, user.username, detail)
         if detail == "Readings":
             tabs = st.tabs(list(sheets))
@@ -931,7 +933,7 @@ def page_operations(bu: str, user: auth.User) -> None:
 
 def manual_entry_panel(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "manual_input"):
-        st.warning("Your role is view-only.")
+        st.warning("Your role does not allow manual data entry.")
         return
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
@@ -972,7 +974,7 @@ def manual_entry_panel(bu: str, user: auth.User) -> None:
 
 def bulk_upload_panel(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "bulk_input"):
-        st.warning("Your role is view-only.")
+        st.warning("Your role does not allow bulk data upload.")
         return
     equipment = storage.equipment(bu)
     equipment = equipment[(equipment["active"].str.lower() == "true") & (equipment["placeholder"].str.lower() != "true")]
@@ -1025,12 +1027,12 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
 
 
 def automatic_upload_panel(bu: str, user: auth.User) -> None:
-    st.caption("Live pipeline health is based only on recorded connector runs. Unconfigured sources never report a false healthy status.")
-    st.info("A 100 ms sync interval is not recommended: it would cause continuous file/API polling and CSV lock contention. Defaults are 5 seconds for the DCS connector, 60 seconds for script/Excel pipelines, and 300 seconds for SAP. Admins can tune each pipeline without changing code.")
-    safe_dataframe(pipelines.status_frame(bu), width="stretch", hide_index=True)
+    st.caption("Review the latest status for each automatic data source below.")
+    visible_bus = None if auth.allowed(user, "all_bu") else [bu]
+    safe_dataframe(pipelines.status_frame(visible_bus), width="stretch", hide_index=True)
     if st.button("Refresh Pipeline Health", key="refresh_pipeline_health"):
         st.rerun()
-    st.caption("Configure sources and intervals under Admin → Configure Data Pipeline. Automatic execution is handled by the DDF server scheduler, not by a Streamlit page rerun.")
+    st.caption("Use Admin → Configure Data Pipeline to update source settings and schedules.")
 
 
 def page_operational_data(bu: str, user: auth.User) -> None:
@@ -1167,7 +1169,7 @@ def page_analysis(bu: str, user: auth.User) -> None:
         dcs_index = next((index for index, label in enumerate(dcs_options) if label.startswith(paired_dcs_default + " — ")), 0)
         dcs_label = st.selectbox("Digital Data Reading", dcs_options, index=dcs_index)
         if paired_dcs_ids:
-            st.caption("Default pair loaded from the Admin Excel mapping database. You can still select another Digital Data point for an ad-hoc check.")
+            st.caption("A saved default pair is selected. You can choose another Digital Data reading for this check.")
         monitor = st.number_input("Monitor Difference", min_value=0.0, value=5.0)
         critical = st.number_input("Critical Difference", min_value=monitor, value=max(10.0, monitor))
         exclude_shutdown = st.checkbox("Exclude Shutdown Days", value=True)
@@ -1263,15 +1265,16 @@ def page_output(bu: str, user: auth.User) -> None:
     result = pd.DataFrame(rows)
     display_data_table(result, bu, width="stretch", hide_index=True)
     export_panel(result, "Operational Data Pipeline Calculated Data Output", bu, user, "output")
-    st.markdown("#### Complete Excel Workbooks")
-    if st.button("Prepare Input, Calculated and Merged Excel"):
-        inputs = storage.input_data(bu, list(storage.SOURCES))
-        calculated_columns = [column for column in definitions["field_id"] if column in frame.columns]
-        payload = exports.excel_bytes({"Input": inputs, "Calculated": frame[[column for column in storage.BASE_COLUMNS if column in frame] + calculated_columns], "Merged": frame})
-        storage.audit(bu, user.username, "export_prepared", {"title": "Input Calculated Merged", "format": "Excel"})
-        st.session_state.full_excel = payload
-    if "full_excel" in st.session_state:
-        st.download_button("Download Complete Excel", st.session_state.full_excel, f"{bu}_input_calculated_merged.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    if auth.allowed(user, "export"):
+        st.markdown("#### Complete Excel Workbooks")
+        if st.button("Prepare Input, Calculated and Merged Excel"):
+            inputs = storage.input_data(bu, list(storage.SOURCES))
+            calculated_columns = [column for column in definitions["field_id"] if column in frame.columns]
+            payload = exports.excel_bytes({"Input": inputs, "Calculated": frame[[column for column in storage.BASE_COLUMNS if column in frame] + calculated_columns], "Merged": frame})
+            storage.audit(bu, user.username, "export_prepared", {"title": "Input Calculated Merged", "format": "Excel"})
+            st.session_state.full_excel = payload
+        if "full_excel" in st.session_state:
+            st.download_button("Download Complete Excel", st.session_state.full_excel, f"{bu}_input_calculated_merged.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 def page_parameters(bu: str, user: auth.User) -> None:
@@ -1328,11 +1331,14 @@ def page_parameters(bu: str, user: auth.User) -> None:
 
 def page_risk(bu: str, user: auth.User) -> None:
     st.markdown("## Job Risk Assessment")
+    if not auth.allowed(user, "risk"):
+        st.warning("Your role does not allow creating job risk assessments.")
+        return
     register, source, problem = risk_store.resolve(bu)
     if not register:
         st.warning(problem or "Job Risk Assessment register update required.")
         return
-    st.caption(f"{source} · {register.hazard_count} hazards · Fingerprint {register.fingerprint}")
+    st.caption(f"{register.hazard_count} approved hazards are available for assessment.")
     preset_names = {f"{preset['id']} — {preset['n']}": preset for preset in register.presets}
     preset_label = st.selectbox("Preset", list(preset_names) or ["Custom"])
     preset = preset_names.get(preset_label, {"tags": [], "et": "", "mo": "Running", "st": "Operational", "loc": "", "ref": "", "n": "Custom"})
@@ -1360,7 +1366,7 @@ def page_risk(bu: str, user: auth.User) -> None:
         table = pd.DataFrame([{"ID": hazard["uid"], "Category": hazard["cat"], "Hazard": hazard["hz"], "Initial": hazard["lv"], "Controls": hazard["ct"], "Residual": hazard["rd"], "Responsible": hazard["rp"]} for hazard in hazards])
         safe_dataframe(table, width="stretch", hide_index=True)
         excluded = st.multiselect("Review: Exclude Risks That Are Not Applicable", [hazard["uid"] for hazard in hazards])
-        if st.button("Prepare Job Risk Assessment PDF"):
+        if auth.allowed(user, "export") and st.button("Prepare Job Risk Assessment PDF"):
             now = datetime.now(timezone.utc)
             serial = make_serial(now, context.get("equipment", ""), "")
             payload = {"serial": serial, "bu": bu.title(), "company": "OPERA-X — DANGOTE INDUSTRIES", "form_title": "JOB RISK ASSESSMENT FORM", "register_status": "Approved", "register_source": source, "fingerprint": register.fingerprint, "header": [("Assessment No.", serial), ("Preset / Job", context.get("preset")), ("Description", context.get("description")), ("Location", context.get("location")), ("Equipment", context.get("equipment")), ("Motion / Status", f"{context.get('motion')} / {context.get('status')}")], "hazards": hazards, "excluded": set(excluded), "categories": register.categories, "erp": ["Raise alarm and stop work.", "Make the area safe without personal exposure.", "Notify the control room and emergency response team.", "Provide first aid only when trained and safe."], "assessed_by": user.display_name, "reviewed_by": "", "generated": now.isoformat(timespec="seconds")}
@@ -1368,7 +1374,7 @@ def page_risk(bu: str, user: auth.User) -> None:
             st.session_state.risk_serial = serial
             storage.append_rows(storage.bu_dir(bu) / "risk_assessments.csv", [{"serial": serial, "timestamp": storage.utcnow(), "preset": context.get("preset"), "job_type": ";".join(context.get("tags", [])), "location": context.get("location"), "equipment": context.get("equipment"), "hazard_count": len(hazards) - len(excluded), "assessed_by": user.username}])
             storage.audit(bu, user.username, "job_risk_assessment_exported", {"serial": serial, "format": "PDF"})
-        if "risk_pdf" in st.session_state:
+        if auth.allowed(user, "export") and "risk_pdf" in st.session_state:
             st.download_button("Print / Download Job Risk Assessment PDF", st.session_state.risk_pdf, f"job_risk_assessment_{st.session_state.risk_serial}.pdf", "application/pdf")
         export_panel(table, "Job Risk Assessment Hazards", bu, user, "risk_table")
 
@@ -1406,13 +1412,14 @@ def page_lessons(bu: str, user: auth.User) -> None:
                 view = view.sort_values("timestamp", ascending=False)
             display_columns = ["lesson_id", "lesson_title", "category", "unit_section", "equipment", "event_id", "read_count", "entered_by", "timestamp"]
             safe_dataframe(view[display_columns], width="stretch", hide_index=True)
-            st.download_button(
-                "Download Filtered Lessons Excel",
-                exports.excel_bytes({"Lessons": view[required]}),
-                f"{bu}_lesson_bank.xlsx",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                key="lesson_excel_download",
-            )
+            if auth.allowed(user, "export"):
+                st.download_button(
+                    "Download Filtered Lessons Excel",
+                    exports.excel_bytes({"Lessons": view[required]}),
+                    f"{bu}_lesson_bank.xlsx",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    key="lesson_excel_download",
+                )
             labels = {f"{row.lesson_id} — {row.lesson_title or 'Untitled lesson'}": row.lesson_id for row in view.itertuples()}
             if labels:
                 selected_label = st.selectbox("Saved Lesson", list(labels))
@@ -1432,8 +1439,9 @@ def page_lessons(bu: str, user: auth.User) -> None:
                         st.caption(f"{row['category']} · {row['unit_section']} · {row['equipment'] or 'No equipment'} · Event {row['event_id'] or 'Unlinked'} · {row['read_count']} read(s)")
                         st.write(row["lesson"])
                         metadata = {"Lesson ID": row["lesson_id"], "Category": row["category"], "Unit / Section": row["unit_section"], "Equipment": row["equipment"], "Event": row["event_id"], "Entered By": row["entered_by"], "Recorded": row["timestamp"], "Attachment": row["attachment_name"]}
-                        pdf = exports.lesson_pdf_bytes(row["lesson_title"] or row["lesson_id"], metadata, row["lesson"])
-                        st.download_button("Download Lesson as PDF", pdf, f"{row['lesson_id']}.pdf", "application/pdf")
+                        if auth.allowed(user, "export"):
+                            pdf = exports.lesson_pdf_bytes(row["lesson_title"] or row["lesson_id"], metadata, row["lesson"])
+                            st.download_button("Download Lesson as PDF", pdf, f"{row['lesson_id']}.pdf", "application/pdf")
                         if row["attachment_path"]:
                             try:
                                 payload = storage.attachment_bytes(row["attachment_path"])
@@ -1442,7 +1450,8 @@ def page_lessons(bu: str, user: auth.User) -> None:
                                     st.image(payload, caption=row["attachment_name"])
                                 elif str(mime).startswith("video/"):
                                     st.video(payload)
-                                st.download_button("Download Supporting File", payload, row["attachment_name"], mime)
+                                if auth.allowed(user, "export"):
+                                    st.download_button("Download Supporting File", payload, row["attachment_name"], mime)
                             except Exception as exc:
                                 st.warning(f"Supporting file is unavailable: {exc}")
     with entry:
@@ -1557,7 +1566,7 @@ def manage_user_form(current: auth.User) -> None:
         try:
             auth.update_user_access(username, display_name, role, business_units, active)
             storage.audit("shared", current.username, "user_access_changed", {"username": username, "role": role, "business_units": business_units, "active": active})
-            st.success("User access updated. Active sessions refresh on their next interaction.")
+            st.success("User access updated.")
         except Exception as exc:
             st.error(str(exc))
 
@@ -1625,8 +1634,7 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
     st.markdown(
         '<div class="panel-note"><strong>How mapping works:</strong> OPERA-X uses the equipment and dashboard-template '
         'mappings below to filter data-field dropdowns across Plant Overview, Equipment Overview, Operational Data Pipeline, '
-        'Event Log and Operating Parameters. The complete runtime mapping is stored in an Admin-viewable Excel database; '
-        'a single edit or validated bulk upload creates an audited override that takes effect immediately.</div>',
+        'Event Log and Operating Parameters. Changes made here apply immediately and are recorded in the audit log.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1646,10 +1654,10 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
         st.info("No data fields are configured for this business unit.")
         return
 
-    st.markdown("##### Excel mapping database and bulk update")
+    st.markdown("##### Excel review and bulk update")
     st.caption(
-        "Download the controlled update template for Excel dropdowns and bulk changes, or download the live backend "
-        "database for review. In the update template, Field Catalogue places Dashboard Template ID and Dashboard Template "
+        "Download the controlled update template for bulk changes, or download the current mappings workbook for review. "
+        "In the update template, Field Catalogue places Dashboard Template ID and Dashboard Template "
         "beside the equipment columns; add one row per additional equipment/template relationship. Bulk uploads validate "
         "every Field ID, Equipment ID and Dashboard Template ID before saving."
     )
@@ -1665,7 +1673,7 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
             storage.audit(mapping_bu, user.username, "field_mapping_update_template_prepared")
         except Exception as exc:
             st.error(f"The Excel Mapping Update Template could not be prepared: {exc}")
-    if prepare_database_col.button("Prepare Excel Mapping Database", key=f"prepare_mapping_database_{mapping_bu}"):
+    if prepare_database_col.button("Prepare Current Mappings Workbook", key=f"prepare_mapping_database_{mapping_bu}"):
         st.session_state.pop("mapping_database_download", None)
         st.session_state.pop("mapping_database_download_bu", None)
         try:
@@ -1673,7 +1681,7 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
             st.session_state.mapping_database_download_bu = mapping_bu
             storage.audit(mapping_bu, user.username, "field_mapping_database_prepared")
         except Exception as exc:
-            st.error(f"The Excel Mapping Database could not be prepared: {exc}")
+            st.error(f"The current mappings workbook could not be prepared: {exc}")
 
     download_template_col, download_database_col = st.columns(2)
     if st.session_state.get("mapping_update_template_bu") == mapping_bu and "mapping_update_template" in st.session_state:
@@ -1686,7 +1694,7 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
         )
     if st.session_state.get("mapping_database_download_bu") == mapping_bu and "mapping_database_download" in st.session_state:
         download_database_col.download_button(
-            "Download Excel Mapping Database",
+            "Download Current Mappings Workbook",
             st.session_state.mapping_database_download,
             f"{mapping_bu}_field_mappings_database.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1863,9 +1871,9 @@ def field_mapping_admin(bu: str, user: auth.User) -> None:
             if reset_col.button("Reset to Computed Default", key="reset_data_field_mapping"):
                 if dashboard.reset_field_mapping(mapping_bu, field_id):
                     storage.audit(mapping_bu, user.username, "field_mapping_reset", {"field_id": field_id})
-                    st.success("Admin override removed. The computed default mapping is active again.")
+                    st.success("The saved change was removed. The default mapping is active again.")
                 else:
-                    st.info("This field already uses its computed default mapping.")
+                    st.info("This field already uses its default mapping.")
 
     if st.button("Prepare Complete Mapping Workbook", key="prepare_mapping_workbook"):
         st.session_state.mapping_workbook = exports.excel_bytes(dashboard.mapping_export_sheets(mapping_bu, mappings))
@@ -1929,24 +1937,62 @@ def equipment_admin(bu: str, user: auth.User) -> None:
 
 
 def pipeline_admin(bu: str, user: auth.User) -> None:
-    configurations = pipelines.load_configurations(bu)
-    states = pipelines.load_state(bu)
-    summary = pipelines.status_frame(bu)
-    st.caption("Configure every pipeline shown in Data Pipeline → Automatic Upload. Settings are scoped to the current business unit.")
+    business_units = config.business_units(active_only=True)
+    all_bu_ids = business_units["id"].astype(str).tolist()
+    all_bu_labels = {str(row["id"]): str(row["name"]) for _, row in business_units.iterrows()}
+    if auth.allowed(user, "all_bu"):
+        visible_bus = None
+        editable_bus = all_bu_ids
+    else:
+        editable_bus = [item for item in all_bu_ids if auth.can_access_bu(user, item)]
+        visible_bus = editable_bus
+    configurations = pipelines.configurations_for_business_units(visible_bus)
+    states = pipelines.load_state()
+    summary = pipelines.status_frame(visible_bus)
+    st.caption("Configure every automatic data source you are permitted to manage. The target business unit is saved with the source and does not depend on the business unit selected in the header.")
     safe_dataframe(summary, width="stretch", hide_index=True)
-    labels = {f"{row['name']} — {row['method']}": row["id"] for row in configurations}
+    if not configurations:
+        st.info("No automatic data sources are assigned to your business units.")
+        return
+    labels = {
+        f"{row['name']} — {', '.join(pipelines.pipeline_targets(row)) or 'Business unit column'}": row["id"]
+        for row in configurations
+    }
     selected_label = st.selectbox("Pipeline", list(labels), key="pipeline_admin_selected")
     selected_id = labels[selected_label]
     selected = next(row for row in configurations if row["id"] == selected_id)
     state = states.get(selected_id, {})
     st.caption(f"Current state: {state.get('last_status', 'never run')} · Last synced: {state.get('last_synced', 'Never')}")
+    target_options = {"Route by Business unit column": pipelines.ROUTE_BY_COLUMN}
+    target_options.update({f"{all_bu_labels.get(item, item)} ({item})": item for item in editable_bus})
+    current_target = pipelines.ROUTE_BY_COLUMN if selected.get("target_mode") == "row" else str(selected.get("target_bu", ""))
+    current_target_label = next((label for label, value in target_options.items() if value == current_target), next(iter(target_options)))
+    target_label = st.selectbox("Target Business Unit", list(target_options), index=list(target_options).index(current_target_label), key=f"pipeline_target_{selected_id}")
+    target_value = target_options[target_label]
+    target_mode = "row" if target_value == pipelines.ROUTE_BY_COLUMN else "fixed"
+    existing_allowed = [item for item in selected.get("allowed_business_units", []) if item in editable_bus]
+    if target_mode == "row":
+        default_allowed = existing_allowed or editable_bus
+        allowed_business_units = st.multiselect(
+            "Allowed Business Units",
+            editable_bus,
+            default=default_allowed,
+            key=f"pipeline_allowed_bus_{selected_id}",
+            help="Rows are routed by their Business unit value and accepted only for the selected business units.",
+        )
+    else:
+        allowed_business_units = []
+    shared_targets = set(pipelines.pipeline_targets(selected)) - set(editable_bus)
+    shared_route_locked = bool(shared_targets) and not auth.allowed(user, "all_bu")
+    if shared_route_locked:
+        st.info("This source also serves another business unit. A Super Admin must change its shared routing.")
     enabled = st.checkbox("Enabled", value=bool(selected.get("enabled")), key=f"pipeline_enabled_{selected_id}")
-    source_labels = {"api": "API Endpoint", "script": "Script Command, Endpoint or Source", "live_excel": "Watched Folder or Excel File"}
+    source_labels = {"api": "Source Endpoint", "script": "Source Location or Endpoint", "live_excel": "Watched Folder or Excel File"}
     source = st.text_input(
         source_labels.get(selected["kind"], "Source"),
         value=str(selected.get("source", "")),
         key=f"pipeline_source_{selected_id}",
-        help="Relative paths are resolved below OPERA_DATA_DIR. Absolute paths and environment variables are supported.",
+        help="Enter the approved source location or endpoint for this data source.",
     )
     first, second = st.columns(2)
     interval = first.number_input(
@@ -1954,46 +2000,58 @@ def pipeline_admin(bu: str, user: auth.User) -> None:
         value=int(selected.get("interval_seconds", 60)), step=1, key=f"pipeline_interval_{selected_id}",
     )
     secret_name = second.text_input(
-        "Secret Name (value stays in Streamlit Secrets)", value=str(selected.get("secret_name", "")),
+        "Credential Reference (Optional)", value=str(selected.get("secret_name", "")),
         key=f"pipeline_secret_{selected_id}",
     )
     notes = st.text_area("Configuration Notes", value=str(selected.get("notes", "")), key=f"pipeline_notes_{selected_id}")
     if not selected.get("implemented"):
-        st.warning("Connector pending: OPERA-X will show this pipeline as simulated/not connected until a production script reports a successful run. Saving settings does not create a false healthy state.")
-    if st.button("Save Pipeline Configuration", type="primary", key=f"save_pipeline_{selected_id}"):
+        st.warning("This source is not connected yet. Its status will remain Not Connected until setup is completed.")
+    if st.button("Save Pipeline Configuration", type="primary", key=f"save_pipeline_{selected_id}", disabled=shared_route_locked):
+        if target_mode == "row" and not allowed_business_units:
+            st.error("Select at least one allowed business unit.")
+            return
         updated = []
-        for row in configurations:
+        for row in pipelines.load_configurations():
             if row["id"] == selected_id:
-                row = {**row, "enabled": enabled, "source": source.strip(), "interval_seconds": int(interval), "secret_name": secret_name.strip(), "notes": notes.strip()}
+                row = {
+                    **row,
+                    "enabled": enabled,
+                    "source": source.strip(),
+                    "interval_seconds": int(interval),
+                    "secret_name": secret_name.strip(),
+                    "notes": notes.strip(),
+                    "target_mode": target_mode,
+                    "target_bu": target_value if target_mode == "fixed" else "",
+                    "allowed_business_units": allowed_business_units if target_mode == "row" else [],
+                }
             updated.append(row)
-        pipelines.save_configurations(bu, updated)
+        pipelines.save_configurations(updated)
         if selected["kind"] == "live_excel" and source.strip():
             pipelines.ensure_source_folder({**selected, "source": source.strip()})
-        # Preserve the existing connector file for older DDF deployments while
-        # the unified configuration becomes the source of truth.
-        if selected_id == "refinery_dcs":
-            storage.save_json(storage.bu_dir(bu) / "pipeline.json", {"url": source.strip(), "token_secret_name": secret_name.strip()})
-        storage.audit(bu, user.username, "data_pipeline_configured", {"pipeline": selected_id, "enabled": enabled, "interval_seconds": int(interval)})
-        st.success("Pipeline configuration saved and available on the next scheduler run.")
+        configured_row = next(row for row in updated if row["id"] == selected_id)
+        if selected_id == "refinery_dcs" and configured_row.get("target_mode") == "fixed":
+            storage.save_json(storage.bu_dir(configured_row["target_bu"]) / "pipeline.json", {"url": source.strip(), "token_secret_name": secret_name.strip()})
+        for target_bu in pipelines.pipeline_targets(configured_row):
+            storage.audit(target_bu, user.username, "data_pipeline_configured", {"pipeline": selected_id, "target_bu": target_bu, "enabled": enabled, "interval_seconds": int(interval)})
+        st.success("Pipeline configuration saved for future automatic updates.")
     if selected["kind"] == "live_excel":
         source_path = pipelines.source_file({**selected, "source": source}) if source.strip() else None
-        if source_path:
-            st.code(str(source_path), language=None)
         if st.button("Run Live Excel Sync Now", disabled=not enabled or not source_path or not source_path.is_file(), key=f"run_pipeline_{selected_id}"):
             try:
-                count, flag_count = pipelines.sync_live_excel(bu, selected_id, user.username)
+                count, flag_count = pipelines.sync_live_excel(selected_id, user.username)
                 st.success(f"Sync completed: {count} new row(s), {flag_count} flag(s).")
             except Exception as exc:
                 st.error(f"Live Excel sync failed: {exc}")
     elif selected_id == "refinery_dcs":
-        if st.button("Pull Digital Data Now", disabled=not enabled or not source.strip(), key="admin_pull_dcs"):
+        fixed_target = str(selected.get("target_bu", "")) if selected.get("target_mode") == "fixed" else ""
+        if st.button("Pull Digital Data Now", disabled=not enabled or not source.strip() or not fixed_target, key="admin_pull_dcs"):
             try:
                 token = str(st.secrets.get("dcs", {}).get(secret_name, "")) if secret_name else ""
-                count, flag_count = dcs_connector.ingest(bu, source.strip(), token, user.username)
-                pipelines.record_external_status(bu, selected_id, True, f"Ingested {count} row(s); {flag_count} flag(s).")
+                count, flag_count = dcs_connector.ingest(fixed_target, source.strip(), token, user.username)
+                pipelines.record_external_status(selected_id, True, f"Ingested {count} row(s); {flag_count} flag(s).", target_bu=fixed_target)
                 st.success(f"Ingested {count} rows; {flag_count} flags.")
             except Exception as exc:
-                pipelines.record_external_status(bu, selected_id, False, str(exc))
+                pipelines.record_external_status(selected_id, False, str(exc), target_bu=fixed_target or None)
                 st.error(f"Digital Data pull failed: {exc}")
 
 
@@ -2001,11 +2059,15 @@ def page_admin(bu: str, user: auth.User) -> None:
     if not auth.allowed(user, "configure"):
         st.warning("Administrator role required.")
         return
-    sections = ["Business Units", "Users & Roles", "Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Configure Data Pipeline", "Presets", "Audit & Backup"]
+    sections = ["Fields & Formulas", "Field Mappings", "Dashboard Templates", "Equipment", "Job Risk Assessment Registers", "Configure Data Pipeline", "Saved Views", "Audit & Backup"]
+    if auth.allowed(user, "users"):
+        sections.insert(0, "Users & Roles")
+    if auth.allowed(user, "manage_business_units"):
+        sections.insert(0, "Business Units")
     section = st.radio("Administration Area", sections, horizontal=True, label_visibility="collapsed", key="admin_area")
-    if section == sections[0]:
+    if section == "Business Units":
         safe_dataframe(config.business_units(), width="stretch", hide_index=True)
-        if user.role == "Super Admin":
+        if auth.allowed(user, "manage_business_units"):
             st.markdown("#### Clone a Business Unit")
             source = st.selectbox("Template Business Unit", config.business_units()["id"].tolist())
             name = st.text_input("New Business Unit Name")
@@ -2023,13 +2085,13 @@ def page_admin(bu: str, user: auth.User) -> None:
             if st.button("Save Business Unit Configuration") and new_name:
                 config.set_business_unit(target, new_name, enabled, user.username)
                 st.success("Business unit updated.")
-    elif section == sections[1]:
+    elif section == "Users & Roles":
         users = storage.read_csv(storage.DATA_ROOT / "shared" / "users.csv")
         safe_dataframe(users.drop(columns=["password_hash"]), width="stretch", hide_index=True)
-        if user.role == "Super Admin":
+        if auth.allowed(user, "users"):
             add_user_form(user)
             manage_user_form(user)
-    elif section == sections[2]:
+    elif section == "Fields & Formulas":
         registry = storage.registry(bu)
         source_filter = st.selectbox("Source Registry", list(storage.SOURCES), key="admin_field_source", format_func=storage.source_label)
         candidates = registry[registry["source"] == source_filter]
@@ -2057,7 +2119,7 @@ def page_admin(bu: str, user: auth.User) -> None:
             calculated_field = st.selectbox("Calculated Field", definitions["field_id"])
             row = definitions[definitions["field_id"] == calculated_field].iloc[0]
             calculated_name = st.text_input("Calculated Field Name", row["field_name"])
-            st.info("Formulas can reference input or earlier calculated fields with square brackets, for example [DP1] or [CF1]. Supported operators are +, −, ×, ÷, //, %, powers and comparisons. Available functions: IF, MIN, MAX, ABS, MOD and ROUND. Example: ROUND(([DP1] + [F1]) / 2, 2). Baseline constants may be referenced by their name, for example B_capacity.")
+            st.info("Use field IDs in square brackets, such as [DP1] or [CF1]. You can use standard arithmetic, comparisons, IF, MIN, MAX, ABS, MOD and ROUND. Saved baseline constants can also be used by name.")
             expression = st.text_input("Formula", row["formula"])
             status = st.selectbox("Status", ["active", "on hold", "disabled"], index=["active", "on hold", "disabled"].index(row["status"]) if row["status"] in ["active", "on hold", "disabled"] else 0)
             if st.button("Save Calculated Field"):
@@ -2089,16 +2151,15 @@ def page_admin(bu: str, user: auth.User) -> None:
                 st.success("Baseline constants saved.")
             except Exception as exc:
                 st.error(str(exc))
-    elif section == sections[3]:
+    elif section == "Field Mappings":
         field_mapping_admin(bu, user)
-    elif section == sections[4]:
+    elif section == "Dashboard Templates":
         template_admin(bu, user)
-    elif section == sections[5]:
+    elif section == "Equipment":
         equipment_admin(bu, user)
-    elif section == sections[6]:
+    elif section == "Job Risk Assessment Registers":
         register, source, problem = risk_store.resolve(bu)
-        st.write(f"Current: {source or problem}")
-        st.write(f"Fingerprint: {register.fingerprint if register else '—'}")
+        st.write("Current register: Approved and available" if register else f"Current register: {problem}")
         upload = st.file_uploader("Upload Approved Excel Job Risk Assessment Register", type=["xlsx"], key="risk_upload")
         note = st.text_input("Change Note")
         if upload and st.button("Validate and Activate Register"):
@@ -2111,26 +2172,27 @@ def page_admin(bu: str, user: auth.User) -> None:
             github = dict(st.secrets.get("github", {}))
         except Exception:
             github = {}
-        if upload and github and st.button("Commit Uploaded Register to GitHub"):
+        if upload and github and st.button("Save Approved Register to Shared Repository"):
             try:
                 url = risk_store.github_commit(bu, upload.getvalue(), user.username, github)
-                st.success(f"Committed: {url}")
+                st.success("The approved register was saved to the shared repository.")
             except Exception as exc:
                 st.error(str(exc))
-    elif section == sections[7]:
+    elif section == "Configure Data Pipeline":
         pipeline_admin(bu, user)
-    elif section == sections[8]:
+    elif section == "Saved Views":
         presets = config.load_presets(bu)
-        st.json(presets)
-        st.download_button("Download Presets JSON", config.export_presets(bu), f"{bu}_presets.json", "application/json")
-        upload = st.file_uploader("Upload Presets JSON", type=["json"], key="preset_upload")
-        if upload and st.button("Import Presets"):
+        preset_summary = pd.DataFrame([{"Name": name, "Page": values.get("module", ""), "Template": values.get("template", "")} for name, values in presets.items()])
+        safe_dataframe(preset_summary, width="stretch", hide_index=True)
+        st.download_button("Download Saved Views", config.export_presets(bu), f"{bu}_saved_views.json", "application/json")
+        upload = st.file_uploader("Upload Saved Views File", type=["json"], key="preset_upload")
+        if upload and st.button("Import Saved Views"):
             try:
                 count = config.import_presets(bu, upload.getvalue(), user.username)
                 st.success(f"Imported {count} preset(s).")
             except Exception as exc:
                 st.error(str(exc))
-    elif section == sections[9]:
+    elif section == "Audit & Backup":
         audit = storage.read_csv(storage.bu_dir(bu) / "audit_log.csv")
         audit_view = audit.copy()
         if not audit_view.empty and "action" in audit_view:
@@ -2162,8 +2224,10 @@ def main() -> None:
     if "user" not in st.session_state:
         do_login()
     user: auth.User = st.session_state.user
-    refreshed = auth.get_user(user.username)
-    if refreshed is None and user.username not in {str(name).lower() for name in secret_users()}:
+    configured_secret_users = secret_users()
+    secret_usernames = {str(name).strip().lower() for name in configured_secret_users}
+    refreshed = auth.get_secret_user(user.username, configured_secret_users) if user.username in secret_usernames else auth.get_user(user.username)
+    if refreshed is None:
         st.session_state.clear()
         st.rerun()
     user = refreshed or user

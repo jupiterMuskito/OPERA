@@ -1,0 +1,14 @@
+OPERA-X v3.13.1 code-only update: no v3.13.0 files need to be deleted.
+
+Do not overwrite ~/opera_data with the package data folder.
+Do not manually edit or delete existing per-BU pipeline configuration/state files.
+OPERA-X migrates them automatically into ~/opera_data/shared/ on first load.
+
+After applying the update, restart the scheduler:
+  ~/OPERA/scripts/stop_pipeline_scheduler.sh
+  ~/OPERA/scripts/start_pipeline_scheduler.sh
+
+Then fully restart OPERA-X:
+  ~/OPERA/start_opera.sh
+
+Hard-refresh Chrome and Edge with Ctrl+F5.
