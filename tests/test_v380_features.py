@@ -49,8 +49,8 @@ def _configure_demo(monkeypatch, tmp_path):
 
 def test_v380_version_banner_home_permissions_and_sign_out_text_are_present():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
-    assert __version__ == "3.13.1"
-    assert (ROOT / "VERSION").read_text(encoding="utf-8").strip() == "3.13.1"
+    assert __version__ == "3.13.2"
+    assert (ROOT / "VERSION").read_text(encoding="utf-8").strip() == "3.13.2"
     assert "version_badge_html()" in source
     assert 'auth.allowed(user, "home_drilldown")' in source
     assert 'st.button("Sign Out"' in source

@@ -19,6 +19,10 @@ def test_browser_verifier_covers_release_breakpoints_paths_and_breadcrumb_contra
     assert "device_scale_factor=1.5" in source
     assert '"edge": edge' in source
     assert 'PAGES = (' in source and '("admin", "Admin", "Admin / Super Admin")' in source
+    assert "_audit_navigation_hit_areas" in source
+    assert 'for vertical in ("top", "centre", "bottom")' in source
+    assert 'root.querySelectorAll(\'h1,h2\')' in source
+    assert 'risk-hazard-summary' in source
 
 
 @pytest.mark.browser

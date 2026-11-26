@@ -33,8 +33,8 @@ def test_admin_is_navigation_only_and_header_actions_are_in_the_user_menu():
     navigation = source[source.index("def top_navigation"):source.index("def source_frame")]
     assert "Admin / Super Admin" not in home
     assert '"Admin / Super Admin": page_admin' in source
-    assert 'st.button(_user_initials(user.display_name), key="user_menu"' in navigation
-    assert 'with st.container(key="header_user_panel")' in navigation
+    assert 'st.popover(_user_initials(user.display_name), width="content")' in navigation
+    assert 'class="account-menu-card"' in navigation
     assert navigation.index('button("Change Business Unit"') < navigation.index('button("Help"')
     assert navigation.index('button("Help"') < navigation.index('button("Sign Out"')
 

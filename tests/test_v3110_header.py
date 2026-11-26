@@ -46,7 +46,7 @@ def test_header_uses_one_native_radio_group_without_anchor_navigation_or_eleven_
 def test_brand_version_breadcrumb_and_responsive_css_match_approved_design():
     source = (ROOT / "app.py").read_text(encoding="utf-8")
     requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
-    assert __version__ == "3.13.1"
+    assert __version__ == "3.13.2"
     assert "streamlit==1.66.1" in requirements
     assert "One Platform for All Plant Operational Data" in source
     assert "opera-vision-block" in source and "version_badge_html()" in source
@@ -71,8 +71,10 @@ def test_lazy_header_panels_badge_and_compact_mobile_menu_are_styled_cleanly():
     assert 'st.button("☰", key="mobile_menu"' in source
     assert 'key="header_mobile_panel"' in source
     assert 'key="header_notice_panel"' in source
-    assert 'key="header_user_panel"' in source
-    assert "st.popover(" not in source[source.index("def top_navigation"):source.index("def source_frame")]
+    assert 'with st.popover(_user_initials(user.display_name), width="content")' in source
+    assert "account-menu-card" in source
+    assert 'help="Account menu"' not in source
+    assert "unread notification(s)" not in source
     assert "justify-content:flex-start!important" in source
 
 
