@@ -17,6 +17,56 @@ LOCK_MINUTES = 15
 SUPPORTED_ROLES = ("Super Admin", "BU Admin", "Manager", "Operator", "Patroller", "Viewer")
 SINGLE_BU_ROLES = {"Manager", "Operator", "Patroller"}
 
+ROLE_ALIASES = {
+    "super admin": "Super Admin",
+    "superadmin": "Super Admin",
+    "super administrator": "Super Admin",
+    "opera super admin": "Super Admin",
+    "opera x super admin": "Super Admin",
+    "bu admin": "BU Admin",
+    "buadmin": "BU Admin",
+    "business unit admin": "BU Admin",
+    "business unit administrator": "BU Admin",
+    "manager": "Manager",
+    "operator": "Operator",
+    "patroller": "Patroller",
+    "viewer": "Viewer",
+}
+
+# Capabilities are inherited from left to right. Super Admin is built from the
+# union of every lower-role grant, so adding a lower-role privilege cannot
+# accidentally deny it to Super Admin.
+_VIEWER_GRANTS = frozenset({"view"})
+_PATROLLER_GRANTS = _VIEWER_GRANTS | {"input", "manual_input"}
+_OPERATOR_GRANTS = _PATROLLER_GRANTS | {
+    "bulk_input", "events", "risk", "lessons", "export", "home_drilldown",
+}
+_MANAGER_GRANTS = _OPERATOR_GRANTS | {"configure"}
+_BU_ADMIN_GRANTS = _MANAGER_GRANTS
+_SUPER_ADMIN_ONLY = frozenset({"users", "manage_business_units", "all_bu"})
+ROLE_GRANTS = {
+    "Viewer": _VIEWER_GRANTS,
+    "Patroller": _PATROLLER_GRANTS,
+    "Operator": _OPERATOR_GRANTS,
+    "Manager": _MANAGER_GRANTS,
+    "BU Admin": _BU_ADMIN_GRANTS,
+}
+ROLE_GRANTS["Super Admin"] = frozenset().union(*ROLE_GRANTS.values(), _SUPER_ADMIN_ONLY)
+
+# User-facing and administrative actions that must always be covered by the
+# role matrix. Tests iterate this list and fail if Super Admin lacks any item.
+ACTION_CAPABILITIES = (
+    "view", "manual_input", "bulk_input", "events", "lessons", "risk",
+    "export", "home_drilldown", "configure", "users",
+    "manage_business_units", "all_bu",
+)
+
+
+def canonical_role(value: Any) -> str:
+    """Return the supported role name for legacy casing and separator variants."""
+    key = " ".join(str(value or "Viewer").strip().replace("_", " ").replace("-", " ").split()).casefold()
+    return ROLE_ALIASES.get(key, "Viewer")
+
 
 @dataclass(frozen=True)
 class User:
@@ -25,6 +75,14 @@ class User:
     role: str
     business_units: tuple[str, ...]
     must_change_password: bool = False
+
+    def __post_init__(self) -> None:
+        role = canonical_role(self.role)
+        business_units = tuple(dict.fromkeys(str(item).strip() for item in self.business_units if str(item).strip()))
+        if role in SINGLE_BU_ROLES:
+            business_units = business_units[:1]
+        object.__setattr__(self, "role", role)
+        object.__setattr__(self, "business_units", business_units)
 
 
 def hash_password(password: str, salt: str | None = None, iterations: int = ITERS) -> str:
@@ -86,24 +144,21 @@ def authenticate(username: str, password: str, secret_users: Mapping[str, Any] |
     display_name = str(rec.get("display_name") or rec.get("name") or username)
     if display_name == "OPERA Super Admin":
         display_name = "OPERA-X Super Admin"
-    return User(username, display_name, str(rec.get("role") or "Viewer"), bus,
+    return User(username, display_name, canonical_role(rec.get("role")), bus,
                 str(rec.get("must_change_password", "false")).lower() == "true"), ""
 
 
 def allowed(user: User, capability: str) -> bool:
-    grants = {
-        "Super Admin": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons", "configure", "users", "all_bu"},
-        "BU Admin": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons", "configure"},
-        "Manager": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons", "configure"},
-        "Operator": {"view", "input", "manual_input", "bulk_input", "events", "risk", "lessons"},
-        "Patroller": {"view", "manual_input"},
-        "Viewer": {"view"},
-    }
-    return capability in grants.get(user.role, set())
+    role = canonical_role(user.role)
+    # Fail closed for unknown roles, but never let a recognized Super Admin
+    # principal lose an application action because one grant path was stale.
+    if role == "Super Admin" and capability in ACTION_CAPABILITIES:
+        return True
+    return capability in ROLE_GRANTS[role]
 
 
 def can_access_bu(user: User, bu: str) -> bool:
-    return "*" in user.business_units or bu in user.business_units
+    return allowed(user, "all_bu") or "*" in user.business_units or bu in user.business_units
 
 
 def user_from_record(record: Mapping[str, Any]) -> User:
@@ -112,10 +167,19 @@ def user_from_record(record: Mapping[str, Any]) -> User:
     return User(
         username,
         str(record.get("display_name") or username),
-        str(record.get("role") or "Viewer"),
+        canonical_role(record.get("role")),
         business_units,
         str(record.get("must_change_password", "false")).lower() == "true",
     )
+
+
+def get_secret_user(username: str, secret_users: Mapping[str, Any] | None) -> User | None:
+    """Reload a Secrets account without falling back to a same-named CSV row."""
+    record = _secret_record(username.strip().lower(), secret_users)
+    if record is None or str(record.get("active", "true")).lower() != "true":
+        return None
+    record = {**record, "username": username.strip().lower()}
+    return user_from_record(record)
 
 
 def get_user(username: str) -> User | None:
