@@ -1,0 +1,8 @@
+OPERA-X v3.13.2 code-only update
+Base: v3.13.1
+
+No files are deleted by this update.
+
+Apply the code-only ZIP at the repository root, preserving ~/opera_data. Then fully restart the Streamlit application with ~/OPERA/start_opera.sh and hard-refresh Chrome and Edge with Ctrl+F5.
+
+The global pipeline scheduler is unchanged and does not require a restart for v3.13.2.

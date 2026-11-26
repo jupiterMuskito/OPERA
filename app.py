@@ -16,7 +16,7 @@ import streamlit as st
 from pandas.io.formats.style import Styler
 
 from opera import auth, config, dashboard, dcs_connector, exports, formula, operational, pipelines, risk_store, storage
-from opera.risk_engine import collect_hazards, make_serial, suggest_from_text
+from opera.risk_engine import collect_hazards, make_serial
 from opera.risk_pdf import build_pdf
 from opera.version import get_version, version_badge_html
 
@@ -78,7 +78,9 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 [data-testid="stSidebar"]{display:none}
 .block-container{padding:0 .35rem 3rem;max-width:none}
 .block-container>[data-testid="stVerticalBlock"]>[data-testid="stElementContainer"]:has(#operax-app-styles){display:none}
-.st-key-brand_ribbon{position:sticky;top:0;z-index:1003;min-height:68px;background:#fff;border:0;border-bottom:1px solid #E4E8EF;border-radius:0!important;box-shadow:0 2px 7px rgba(20,32,46,.06);overflow:visible!important}
+.block-container [data-testid="stElementContainer"]:has([data-testid="operax-page-marker"]){display:none}
+.block-container [data-testid="stElementContainer"]:has([data-testid="risk-generation-marker"]){display:none}
+.st-key-brand_ribbon{position:sticky;top:0;z-index:1003;min-height:68px;background:#fff;border:0;border-bottom:1px solid #E4E8EF;border-radius:0!important;box-shadow:0 2px 7px rgba(20,32,46,.06);overflow:visible!important;pointer-events:none}
 .opera-brandbar{height:68px;display:flex;align-items:center;justify-content:space-between;gap:1.25rem;padding:0 1.1rem;background:#fff;box-sizing:border-box}
 .opera-brand-left{min-width:0;display:flex;align-items:center;gap:1rem}.opera-dangote-logo{width:58px;height:48px;object-fit:contain}.opera-wordmark{font-size:1.55rem;font-weight:900;letter-spacing:-.035em;white-space:nowrap}.opera-wordmark .opera{color:var(--blue)}.opera-wordmark .x{color:#D7262F}.opera-brand-divider{height:32px;width:1px;background:#CDD3DE}.opera-tagline{color:#4C566B;font-size:.88rem;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .opera-vision-block{width:145px;min-width:145px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:2px}.opera-vision-block img{width:132px;height:43px;object-fit:contain}.opera-vision-block .version{font-size:.66rem;line-height:1;color:#7B8391;font-weight:650;letter-spacing:.02em;margin-top:-1px}
@@ -96,14 +98,18 @@ html,body,[class*="css"]{font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif
 .st-key-desktop_navigation label[data-testid="stRadioOption"]:has(input:checked){background:transparent;color:#fff;border-bottom:4px solid #D7262F}
 .st-key-desktop_navigation label[data-testid="stRadioOption"]:nth-child(2),.st-key-desktop_navigation label[data-testid="stRadioOption"]:nth-child(8),.st-key-desktop_navigation label[data-testid="stRadioOption"]:nth-child(11){border-left:1px solid rgba(255,255,255,.28)}
 .st-key-mobile_navigation{display:none}
-.st-key-notifications_menu button,.st-key-user_menu button{height:38px;min-height:38px;border:0;background:transparent;color:#fff;box-shadow:none;white-space:nowrap;position:relative}
-.st-key-notifications_menu button:hover,.st-key-user_menu button:hover{background:rgba(255,255,255,.10);color:#fff}
+.st-key-notifications_menu button,.st-key-user_menu [data-testid="stPopoverButton"]{height:38px;min-height:38px;border:0;background:transparent;color:#fff;box-shadow:none;white-space:nowrap;position:relative}
+.st-key-notifications_menu button:hover,.st-key-user_menu [data-testid="stPopoverButton"]:hover{background:rgba(255,255,255,.10);color:#fff}
 .st-key-notifications_menu button{width:36px;padding:0}.st-key-notifications_menu button p{font-size:0}
-.st-key-user_menu button{width:38px;padding:0;border-radius:50%;background:#D7262F;border:2px solid #fff;color:#fff;font-size:.72rem;font-weight:850}
-.st-key-user_menu button p{font-size:.72rem;font-weight:850;color:#fff}
-.st-key-header_mobile_panel,.st-key-header_notice_panel,.st-key-header_user_panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem .75rem;box-shadow:0 8px 20px rgba(21,34,56,.14);position:relative;z-index:1004}
+.st-key-user_menu [data-testid="stPopoverButton"]{width:38px;padding:0;border-radius:50%;background:#D7262F;border:2px solid #fff;color:#fff;font-size:.72rem;font-weight:850}
+.st-key-user_menu [data-testid="stPopoverButton"] p{font-size:.72rem;font-weight:850;color:#fff}.st-key-user_menu [data-testid="stPopoverButton"] [data-testid="stIconMaterial"]{display:none}
+.st-key-header_mobile_panel,.st-key-header_notice_panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem .75rem;box-shadow:0 8px 20px rgba(21,34,56,.14);position:relative;z-index:1004}
 .header-popover-title{font-size:.96rem;font-weight:850;color:var(--blue-dark)}.header-popover-meta{font-size:.78rem;color:#606A7C;line-height:1.45;margin:.1rem 0 .6rem}.header-help{font-size:.79rem;line-height:1.45;color:#48556A;background:#F3F5F9;border-left:3px solid var(--blue);padding:.55rem .65rem;margin:.25rem 0 .5rem}.header-version{font-size:.7rem;color:#7B8391;text-align:center;margin-top:.45rem}
-.st-key-user_sign_out button{color:#B51F2A;border-color:#E9A8AD}.st-key-user_sign_out button:hover{color:#941923;border-color:#D7262F;background:#FFF5F5}
+.account-menu-card{width:236px;padding:.15rem .15rem 0}.account-menu-card .header-popover-title{font-size:.9rem}.account-menu-card .header-popover-meta{margin-bottom:.35rem}.account-menu-divider{height:1px;background:#E4E9F1;margin:.2rem 0 .3rem}
+div[data-testid="stPopoverBody"]:has(.account-menu-card){width:260px!important;min-width:260px!important;padding:.45rem!important;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 28px rgba(21,34,56,.18)}
+div[data-testid="stPopoverBody"]:has(.account-menu-card) .stButton>button{min-height:2.1rem;height:2.1rem;border:0;border-radius:6px;justify-content:flex-start;padding:0 .55rem;background:#fff;color:#26364F;box-shadow:none;font-size:.8rem}
+div[data-testid="stPopoverBody"]:has(.account-menu-card) .stButton>button:hover{background:#F1F5FB;color:var(--blue-dark)}
+div[data-testid="stPopoverBody"]:has(.account-menu-card) .st-key-user_sign_out button{color:#B51F2A!important}div[data-testid="stPopoverBody"]:has(.account-menu-card) .st-key-user_sign_out button:hover{color:#941923!important;background:#FFF2F3!important}
 .st-key-breadcrumb_strip{position:sticky;top:120px;z-index:1001;background:#F8FAFD;border:0;border-bottom:1px solid #E0E5EC;border-radius:0!important;height:40px;min-height:40px;box-sizing:border-box;margin-top:-16px;box-shadow:0 2px 7px rgba(20,32,46,.04);overflow:visible!important;gap:0!important}
 .st-key-breadcrumb_strip>[data-testid="stElementContainer"],.st-key-breadcrumb_strip [data-testid="stMarkdown"],.st-key-breadcrumb_strip [data-testid="stMarkdownContainer"]{height:40px;min-height:40px;overflow:visible!important}
 .opera-breadcrumb{height:40px;min-height:40px;box-sizing:border-box;display:flex;align-items:center;gap:.55rem;padding:0 1.1rem;color:#566174;font-size:.78rem;line-height:1.2;font-weight:650;white-space:nowrap;overflow:visible}.opera-bu-badge{display:inline-flex;align-items:center;border-radius:999px;background:var(--blue);color:#fff;padding:.2rem .62rem;font-size:.67rem;line-height:1.2;font-weight:850;letter-spacing:.055em}.opera-breadcrumb .chevron{color:#A0A7B3}.opera-breadcrumb .page{color:var(--blue-dark);font-weight:800;overflow:hidden;text-overflow:ellipsis}
@@ -142,6 +148,8 @@ div[data-testid="stPlotlyChart"]{background:#fff;border:1px solid var(--border-s
 .metric-card.bad{border-top-color:var(--red)}.metric-value{font-size:1.65rem;font-weight:750;color:var(--blue-dark);line-height:1.15;margin:.55rem 0 .35rem}.metric-title{font-size:.84rem;color:var(--muted);font-weight:700;min-height:2.35rem;line-height:1.35}.metric-meta{font-size:.8rem;color:var(--muted);line-height:1.35}
 .kpi-field-selector{margin-bottom:.3rem}.home-card{height:124px;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);border-radius:10px;padding:1rem 1.05rem .85rem;box-shadow:0 2px 8px rgba(21,34,56,.04)}.home-card h4{margin:0 0 .45rem;color:var(--blue-dark);font-size:1rem}.home-card p{margin:0;color:var(--muted);font-size:.84rem;line-height:1.35}
 .st-key-home_metric_cards .stButton>button{min-height:86px;width:100%;background:#fff;border:1px solid var(--border);border-top:4px solid var(--blue);color:var(--blue-dark);font-size:1rem;font-weight:800;white-space:pre-line;line-height:1.5;box-shadow:0 2px 8px rgba(21,34,56,.04)}
+.st-key-risk_assessment_controls{max-width:1180px;margin:0 auto .7rem}.st-key-risk_assessment_controls>[data-testid="stVerticalBlockBorderWrapper"]{box-shadow:0 2px 8px rgba(21,34,56,.04)}
+.risk-hazard-summary{display:flex;align-items:center;gap:.55rem;min-height:38px;box-sizing:border-box;padding:.5rem .75rem;border:1px solid #C8D6EA;border-radius:8px;background:#F1F6FC;color:#30336A;font-size:14px;line-height:1.35}.risk-hazard-summary .icon{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border:1.5px solid #30336A;border-radius:50%;font-size:11px;font-weight:850;line-height:1}.risk-hazard-summary strong{font-size:16px;font-weight:850;color:#30336A}.risk-hazard-summary .register{margin-left:auto;color:#53627B;font-size:14px;font-weight:650}
 .module-group{margin:.25rem 0 .65rem;color:var(--blue-dark);font-size:1.05rem;font-weight:800}
 [data-testid="stTabs"] [data-baseweb="tab-list"]{gap:.35rem}[data-testid="stTabs"] [data-baseweb="tab"]{border-radius:8px;padding:.45rem .8rem}
 h1,h2,h3,h4{color:var(--text);letter-spacing:-.015em}
@@ -311,12 +319,34 @@ def top_navigation(user: auth.User, bu: str) -> str:
         with notice:
             if st.button(
                 f"Notifications, {len(unread)} unread", key="notifications_menu",
-                help=f"{len(unread)} unread notification(s)", icon=":material/notifications:",
+                icon=":material/notifications:",
             ):
                 st.session_state.header_notifications_open = not st.session_state.get("header_notifications_open", False)
         with account:
-            if st.button(_user_initials(user.display_name), key="user_menu", help="Account menu"):
-                st.session_state.header_user_open = not st.session_state.get("header_user_open", False)
+            with st.container(key="user_menu"):
+                with st.popover(_user_initials(user.display_name), width="content"):
+                    st.markdown(
+                        f'<div class="account-menu-card"><div class="header-popover-title">{escape(user.display_name)}</div>'
+                        f'<div class="header-popover-meta">{escape(user.role)}<br>{escape(name)}</div>'
+                        f'<div class="account-menu-divider"></div></div>',
+                        unsafe_allow_html=True,
+                    )
+                    if st.button("Change Business Unit", key="user_change_bu", width="stretch", icon=":material/swap_horiz:"):
+                        st.session_state.pop("bu", None)
+                        st.rerun()
+                    if st.button("Help", key="user_help", width="stretch", icon=":material/help:"):
+                        st.session_state.header_help = not st.session_state.get("header_help", False)
+                    if st.session_state.get("header_help"):
+                        st.markdown(
+                            '<div class="header-help">Use the menu to change modules. Your current business unit and full page path remain visible in the breadcrumb.</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with st.container(key="user_sign_out"):
+                        if st.button("Sign Out", key="user_sign_out_button", width="stretch", icon=":material/logout:"):
+                            storage.audit(bu, user.username, "logout")
+                            st.session_state.clear()
+                            st.rerun()
+                    st.markdown(f'<div class="header-version">OPERA-X v{escape(get_version())}</div>', unsafe_allow_html=True)
 
     if st.session_state.get("header_mobile_open"):
         with st.container(key="header_mobile_panel"):
@@ -339,31 +369,6 @@ def top_navigation(user: auth.User, bu: str) -> str:
                 if st.button("Mark All as Read", key="top_mark_notifications", width="stretch"):
                     storage.mark_notifications_read(bu, user.username)
                     st.rerun()
-    if st.session_state.get("header_user_open"):
-        _, panel = st.columns([3, 1])
-        with panel:
-            with st.container(key="header_user_panel"):
-                st.markdown(
-                    f'<div class="header-popover-title">{escape(user.display_name)}</div>'
-                    f'<div class="header-popover-meta">{escape(user.role)}<br>{escape(name)}</div>',
-                    unsafe_allow_html=True,
-                )
-                if st.button("Change Business Unit", key="user_change_bu", width="stretch"):
-                    st.session_state.pop("bu", None)
-                    st.rerun()
-                if st.button("Help", key="user_help", width="stretch"):
-                    st.session_state.header_help = not st.session_state.get("header_help", False)
-                if st.session_state.get("header_help"):
-                    st.markdown(
-                        '<div class="header-help">Use the menu to change modules. Your current business unit and full page path remain visible in the breadcrumb.</div>',
-                        unsafe_allow_html=True,
-                    )
-                if st.button("Sign Out", key="user_sign_out", width="stretch"):
-                    storage.audit(bu, user.username, "logout")
-                    st.session_state.clear()
-                    st.rerun()
-                st.markdown(f'<div class="header-version">OPERA-X v{escape(get_version())}</div>', unsafe_allow_html=True)
-
     category = _page_category(current)
     with st.container(key="breadcrumb_strip"):
         st.markdown(
@@ -669,7 +674,7 @@ def page_home(bu: str, user: auth.User) -> None:
     with st.container(key="home_metric_cards"):
         columns = st.columns(5)
         for column, label, value in zip(columns, ["Readings", "Open Flags", "Events", "Lessons", "Notifications"], values):
-            if column.button(f"{label}\n{value:,}", key=f"home_detail_{label}", width="stretch", help=f"Open the {label.lower()} table"):
+            if column.button(f"{label}\n{value:,}", key=f"home_detail_{label}", width="stretch"):
                 if not auth.allowed(user, "home_drilldown"):
                     st.warning("Your role does not allow opening the detailed operational register.")
                 else:
@@ -1027,7 +1032,6 @@ def bulk_upload_panel(bu: str, user: auth.User) -> None:
 
 
 def automatic_upload_panel(bu: str, user: auth.User) -> None:
-    st.caption("Review the latest status for each automatic data source below.")
     visible_bus = None if auth.allowed(user, "all_bu") else [bu]
     safe_dataframe(pipelines.status_frame(visible_bus), width="stretch", hide_index=True)
     if st.button("Refresh Pipeline Health", key="refresh_pipeline_health"):
@@ -1122,7 +1126,6 @@ def page_analysis(bu: str, user: auth.User) -> None:
     data = long_data(bu)
     compare, dcs_tab = st.tabs(["Compare Any Data Field", "Instrument Check"])
     with compare:
-        st.markdown("#### Compare Any Data Field")
         if data.empty:
             st.info("No data is available.")
         else:
@@ -1152,8 +1155,6 @@ def page_analysis(bu: str, user: auth.User) -> None:
                 display_data_table(summary, bu, width="stretch", hide_index=True)
                 export_panel(summary, f"Operational Data Pipeline {analysis} Analysis", bu, user, "analysis")
     with dcs_tab:
-        st.markdown("#### Instrument Check")
-        st.caption("Compare one Raw Field Data reading with one Digital Data reading. These are the only comparison sources available in Instrument Check.")
         field_registry = active_registry(bu, "Field")
         dcs_registry = active_registry(bu, "DCS")
         recorded_pairs = dashboard.instrument_check_pairs(bu)
@@ -1201,8 +1202,6 @@ def page_analysis(bu: str, user: auth.User) -> None:
 def page_process_optimization(bu: str, user: auth.User) -> None:
     """Process Optimization module within the Operational Data group."""
     data = long_data(bu)
-    st.markdown("#### Bounded Response Optimization")
-    st.caption("This decision-support tool fits a linear response model from aligned historical readings, then applies bounds to maximize, minimize or match an outcome. Review operational and safety constraints before use.")
     if data.empty:
         st.info("No data is available for optimization.")
         return
@@ -1329,8 +1328,27 @@ def page_parameters(bu: str, user: auth.User) -> None:
             export_panel(view, "QAQC Operating Parameters", bu, user, "qual_params")
 
 
+MANUAL_RISK_MODE = "Manual / no preset"
+
+
+def _risk_form_signature(values: dict[str, Any]) -> tuple[Any, ...]:
+    return (
+        values.get("mode", ""), values.get("description", ""), tuple(values.get("tags", [])),
+        values.get("location", ""), values.get("equipment_type", ""), values.get("equipment", ""),
+        values.get("motion", ""), values.get("status", ""),
+    )
+
+
+def _audit_risk_pdf_download(bu: str, username: str, serial: str, included: int, excluded: int) -> None:
+    storage.audit(
+        bu,
+        username,
+        "job_risk_assessment_exported",
+        {"serial": serial, "format": "PDF", "hazards_included": included, "hazards_excluded": excluded},
+    )
+
+
 def page_risk(bu: str, user: auth.User) -> None:
-    st.markdown("## Job Risk Assessment")
     if not auth.allowed(user, "risk"):
         st.warning("Your role does not allow creating job risk assessments.")
         return
@@ -1338,45 +1356,189 @@ def page_risk(bu: str, user: auth.User) -> None:
     if not register:
         st.warning(problem or "Job Risk Assessment register update required.")
         return
-    st.caption(f"{register.hazard_count} approved hazards are available for assessment.")
+
     preset_names = {f"{preset['id']} — {preset['n']}": preset for preset in register.presets}
-    preset_label = st.selectbox("Preset", list(preset_names) or ["Custom"])
-    preset = preset_names.get(preset_label, {"tags": [], "et": "", "mo": "Running", "st": "Operational", "loc": "", "ref": "", "n": "Custom"})
-    description = st.text_area("Job Description", value=preset.get("d", ""))
-    suggested = suggest_from_text(register, description) if description else {"tags": []}
-    tags = st.multiselect("Job Type / Activities", register.tag_names, default=[tag for tag in (preset.get("tags") or suggested.get("tags", [])) if tag in register.tag_names])
-    locations = [item["n"] for item in register.locations]
-    location_index = locations.index(preset["loc"]) if preset.get("loc") in locations else 0
-    location = st.selectbox("Location", locations, index=location_index)
-    available = [equipment for equipment in register.equipment if register.available(equipment, location)]
-    equipment_names = [equipment["n"] for equipment in available]
-    equipment_index = equipment_names.index(preset["ref"]) if preset.get("ref") in equipment_names else 0
-    equipment = st.selectbox("Equipment", equipment_names, index=equipment_index)
-    equipment_record = register.equip(equipment)
-    motion = st.selectbox("Equipment Motion", register.motions, index=register.motions.index(preset["mo"]) if preset.get("mo") in register.motions else 0)
-    status = st.selectbox("Equipment Status", register.statuses, index=register.statuses.index(preset["st"]) if preset.get("st") in register.statuses else 0)
-    if st.button("Generate Job Risk Assessment", type="primary"):
-        hazards = collect_hazards(register, tags, equipment_record["t"] if equipment_record else None, motion, status)
-        st.session_state.risk_hazards = hazards
-        st.session_state.risk_context = {"preset": preset["n"], "description": description, "location": location, "equipment": equipment, "motion": motion, "status": status, "tags": tags}
-        storage.audit(bu, user.username, "job_risk_assessment_generated", {"preset": preset["n"], "hazards": len(hazards)})
+    mode_options = [MANUAL_RISK_MODE] + list(preset_names)
+    scope = f"{bu}:{register.fingerprint}"
+    if st.session_state.get("risk_form_scope") != scope:
+        for key in [
+            "risk_mode", "risk_description", "risk_tags", "risk_location", "risk_equipment_type",
+            "risk_equipment", "risk_motion", "risk_status", "risk_hazards", "risk_context",
+            "risk_serial", "risk_generated_signature",
+        ]:
+            st.session_state.pop(key, None)
+        st.session_state.risk_form_scope = scope
+
+    defaults = {
+        "risk_mode": MANUAL_RISK_MODE,
+        "risk_description": "",
+        "risk_tags": [],
+        "risk_location": "",
+        "risk_equipment_type": "",
+        "risk_equipment": "",
+        "risk_motion": register.motions[0],
+        "risk_status": register.statuses[0],
+    }
+    for key, value in defaults.items():
+        st.session_state.setdefault(key, value)
+
+    def apply_risk_mode() -> None:
+        selected = st.session_state.get("risk_mode", MANUAL_RISK_MODE)
+        preset = preset_names.get(selected)
+        if preset is None:
+            values = defaults
+        else:
+            values = {
+                "risk_description": preset.get("d", ""),
+                "risk_tags": [tag for tag in preset.get("tags", []) if tag in register.tag_names],
+                "risk_location": preset.get("loc", "") if preset.get("loc", "") in {item["n"] for item in register.locations} else "",
+                "risk_equipment_type": preset.get("et", "") if preset.get("et", "") in register.equipment_types else "",
+                "risk_equipment": preset.get("ref", "") if register.equip(preset.get("ref", "")) else "",
+                "risk_motion": preset.get("mo", "") if preset.get("mo", "") in register.motions else register.motions[0],
+                "risk_status": preset.get("st", "") if preset.get("st", "") in register.statuses else register.statuses[0],
+            }
+        for key, value in values.items():
+            if key != "risk_mode":
+                st.session_state[key] = value
+        st.session_state.pop("risk_hazards", None)
+        st.session_state.pop("risk_context", None)
+        st.session_state.pop("risk_generated_signature", None)
+
+    def sync_risk_equipment_type() -> None:
+        record = register.equip(st.session_state.get("risk_equipment", ""))
+        if record:
+            st.session_state.risk_equipment_type = record["t"]
+
+    with st.container(border=True, key="risk_assessment_controls"):
+        register_label = f"{bu.title()} register"
+        st.markdown(
+            f'<div class="risk-hazard-summary" data-testid="risk-hazard-summary"><span class="icon" aria-hidden="true">i</span>'
+            f'<strong>{register.hazard_count:,}</strong><span>approved hazards available for assessment</span>'
+            f'<span class="register">{escape(register_label)}</span></div>',
+            unsafe_allow_html=True,
+        )
+        st.selectbox("Assessment Mode / Preset", mode_options, key="risk_mode", on_change=apply_risk_mode)
+        st.text_area("Job Description", key="risk_description", placeholder="Describe the work, tools and method")
+        st.multiselect("Job Type / Activities", register.tag_names, key="risk_tags", placeholder="Select one or more activities")
+
+        location_options = [""] + [item["n"] for item in register.locations]
+        type_options = [""] + list(register.equipment_types)
+        if st.session_state.risk_location not in location_options:
+            st.session_state.risk_location = ""
+        if st.session_state.risk_equipment_type not in type_options:
+            st.session_state.risk_equipment_type = ""
+        first, second = st.columns(2)
+        location = first.selectbox(
+            "Location", location_options, key="risk_location",
+            format_func=lambda value: "Select location" if not value else value,
+        )
+        equipment_type = second.selectbox(
+            "Equipment Type", type_options, key="risk_equipment_type",
+            format_func=lambda value: "Select equipment type" if not value else value,
+        )
+        available = [
+            item for item in register.equipment
+            if register.available(item, location) and (not equipment_type or item["t"] == equipment_type)
+        ]
+        equipment_options = [""] + [item["n"] for item in available]
+        if st.session_state.risk_equipment not in equipment_options:
+            st.session_state.risk_equipment = ""
+        equipment = st.selectbox(
+            "Equipment", equipment_options, key="risk_equipment", on_change=sync_risk_equipment_type,
+            format_func=lambda value: "Select equipment" if not value else value,
+        )
+        third, fourth = st.columns(2)
+        motion = third.selectbox("Equipment Motion", register.motions, key="risk_motion")
+        status = fourth.selectbox("Equipment Status", register.statuses, key="risk_status")
+
+        form_values = {
+            "mode": st.session_state.risk_mode,
+            "description": st.session_state.risk_description.strip(),
+            "tags": list(st.session_state.risk_tags),
+            "location": location,
+            "equipment_type": st.session_state.risk_equipment_type,
+            "equipment": equipment,
+            "motion": motion,
+            "status": status,
+        }
+        if st.button("Generate Job Risk Assessment", type="primary", width="stretch"):
+            missing = [
+                label for label, value in (
+                    ("Job Type / Activities", form_values["tags"]), ("Location", location),
+                    ("Equipment Type", form_values["equipment_type"]), ("Equipment", equipment),
+                ) if not value
+            ]
+            if missing:
+                st.error("Complete: " + ", ".join(missing) + ".")
+            else:
+                now = datetime.now(timezone.utc)
+                hazards = collect_hazards(register, form_values["tags"], form_values["equipment_type"], motion, status)
+                serial = make_serial(now, equipment, form_values["equipment_type"])
+                st.session_state.risk_hazards = hazards
+                st.session_state.risk_context = {**form_values, "generated": now.isoformat(timespec="seconds")}
+                st.session_state.risk_serial = serial
+                st.session_state.risk_generated_signature = _risk_form_signature(form_values)
+                storage.append_rows(
+                    storage.bu_dir(bu) / "risk_assessments.csv",
+                    [{"serial": serial, "timestamp": storage.utcnow(), "preset": form_values["mode"], "job_type": ";".join(form_values["tags"]), "location": location, "equipment": equipment, "hazard_count": len(hazards), "assessed_by": user.username}],
+                )
+                storage.audit(bu, user.username, "job_risk_assessment_generated", {"mode": form_values["mode"], "hazards": len(hazards), "serial": serial})
+
     hazards = st.session_state.get("risk_hazards", [])
     context = st.session_state.get("risk_context", {})
-    if hazards:
-        table = pd.DataFrame([{"ID": hazard["uid"], "Category": hazard["cat"], "Hazard": hazard["hz"], "Initial": hazard["lv"], "Controls": hazard["ct"], "Residual": hazard["rd"], "Responsible": hazard["rp"]} for hazard in hazards])
-        safe_dataframe(table, width="stretch", hide_index=True)
-        excluded = st.multiselect("Review: Exclude Risks That Are Not Applicable", [hazard["uid"] for hazard in hazards])
-        if auth.allowed(user, "export") and st.button("Prepare Job Risk Assessment PDF"):
-            now = datetime.now(timezone.utc)
-            serial = make_serial(now, context.get("equipment", ""), "")
-            payload = {"serial": serial, "bu": bu.title(), "company": "OPERA-X — DANGOTE INDUSTRIES", "form_title": "JOB RISK ASSESSMENT FORM", "register_status": "Approved", "register_source": source, "fingerprint": register.fingerprint, "header": [("Assessment No.", serial), ("Preset / Job", context.get("preset")), ("Description", context.get("description")), ("Location", context.get("location")), ("Equipment", context.get("equipment")), ("Motion / Status", f"{context.get('motion')} / {context.get('status')}")], "hazards": hazards, "excluded": set(excluded), "categories": register.categories, "erp": ["Raise alarm and stop work.", "Make the area safe without personal exposure.", "Notify the control room and emergency response team.", "Provide first aid only when trained and safe."], "assessed_by": user.display_name, "reviewed_by": "", "generated": now.isoformat(timespec="seconds")}
-            st.session_state.risk_pdf = build_pdf(payload)
-            st.session_state.risk_serial = serial
-            storage.append_rows(storage.bu_dir(bu) / "risk_assessments.csv", [{"serial": serial, "timestamp": storage.utcnow(), "preset": context.get("preset"), "job_type": ";".join(context.get("tags", [])), "location": context.get("location"), "equipment": context.get("equipment"), "hazard_count": len(hazards) - len(excluded), "assessed_by": user.username}])
-            storage.audit(bu, user.username, "job_risk_assessment_exported", {"serial": serial, "format": "PDF"})
-        if auth.allowed(user, "export") and "risk_pdf" in st.session_state:
-            st.download_button("Print / Download Job Risk Assessment PDF", st.session_state.risk_pdf, f"job_risk_assessment_{st.session_state.risk_serial}.pdf", "application/pdf")
-        export_panel(table, "Job Risk Assessment Hazards", bu, user, "risk_table")
+    if not hazards:
+        return
+    if st.session_state.get("risk_generated_signature") != _risk_form_signature(form_values):
+        st.warning("The assessment fields changed after generation. Generate the assessment again to review and export the updated selection.")
+        return
+
+    st.markdown(
+        f'<div data-testid="risk-generation-marker" data-mode="{escape(str(context.get("mode", "")))}" data-hazards="{len(hazards)}" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
+
+    table = pd.DataFrame([
+        {"ID": hazard["uid"], "Category": hazard["cat"], "Hazard": hazard["hz"], "Initial": hazard["lv"], "Controls": hazard["ct"], "Residual": hazard["rd"], "Responsible": hazard["rp"]}
+        for hazard in hazards
+    ])
+    safe_dataframe(table, width="stretch", hide_index=True)
+    excluded = st.multiselect(
+        "Review: Exclude Risks That Are Not Applicable",
+        [hazard["uid"] for hazard in hazards],
+        key=f"risk_excluded_{st.session_state.risk_serial}",
+    )
+    if auth.allowed(user, "export"):
+        serial = st.session_state.risk_serial
+        payload = {
+            "serial": serial, "bu": bu.title(), "company": "OPERA-X — DANGOTE INDUSTRIES",
+            "form_title": "JOB RISK ASSESSMENT FORM", "register_status": "Approved",
+            "register_source": source, "fingerprint": register.fingerprint,
+            "header": [
+                ("Assessment No.", serial), ("Mode / Preset", context.get("mode")),
+                ("Description", context.get("description")), ("Activities", ", ".join(context.get("tags", []))),
+                ("Location", context.get("location")), ("Equipment Type", context.get("equipment_type")),
+                ("Equipment", context.get("equipment")),
+                ("Motion / Status", f"{context.get('motion')} / {context.get('status')}"),
+            ],
+            "hazards": hazards, "excluded": set(excluded), "categories": register.categories,
+            "erp": [
+                "Raise alarm and stop work.", "Make the area safe without personal exposure.",
+                "Notify the control room and emergency response team.",
+                "Provide first aid only when trained and safe.",
+            ],
+            "assessed_by": user.display_name, "reviewed_by": "", "generated": context.get("generated", ""),
+        }
+        pdf = build_pdf(payload)
+        st.download_button(
+            "Print / Download Job Risk Assessment PDF",
+            pdf,
+            f"job_risk_assessment_{serial}.pdf",
+            "application/pdf",
+            type="primary",
+            width="stretch",
+            on_click=lambda: _audit_risk_pdf_download(bu, user.username, serial, len(hazards) - len(excluded), len(excluded)),
+        )
+    export_panel(table, "Job Risk Assessment Hazards", bu, user, "risk_table")
 
 
 def page_lessons(bu: str, user: auth.User) -> None:
@@ -1630,14 +1792,6 @@ def template_admin(bu: str, user: auth.User) -> None:
 
 
 def field_mapping_admin(bu: str, user: auth.User) -> None:
-    st.markdown("#### Data Field Mapping")
-    st.markdown(
-        '<div class="panel-note"><strong>How mapping works:</strong> OPERA-X uses the equipment and dashboard-template '
-        'mappings below to filter data-field dropdowns across Plant Overview, Equipment Overview, Operational Data Pipeline, '
-        'Event Log and Operating Parameters. Changes made here apply immediately and are recorded in the audit log.</div>',
-        unsafe_allow_html=True,
-    )
-
     business_units = config.business_units()
     business_units = business_units[business_units["id"].map(lambda value: auth.can_access_bu(user, value))]
     bu_labels = {f"{row['name']} ({row['id']})": row["id"] for _, row in business_units.iterrows()}
@@ -1949,7 +2103,6 @@ def pipeline_admin(bu: str, user: auth.User) -> None:
     configurations = pipelines.configurations_for_business_units(visible_bus)
     states = pipelines.load_state()
     summary = pipelines.status_frame(visible_bus)
-    st.caption("Configure every automatic data source you are permitted to manage. The target business unit is saved with the source and does not depend on the business unit selected in the header.")
     safe_dataframe(summary, width="stretch", hide_index=True)
     if not configurations:
         st.info("No automatic data sources are assigned to your business units.")
@@ -2248,6 +2401,12 @@ def main() -> None:
         "Admin / Super Admin": page_admin,
     }
     routes[page](bu, user)
+    # Emitted after the route so browser tests can wait for the complete page,
+    # not merely the earlier breadcrumb update during a Streamlit rerun.
+    st.markdown(
+        f'<div data-testid="operax-page-marker" data-page="{escape(page)}" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
 
 
 
