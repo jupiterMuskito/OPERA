@@ -5,7 +5,7 @@ Runs the real Streamlit app at / and /operationaldashboard/ in Chromium and
 Microsoft Edge.  It verifies the 1100 CSS-pixel breakpoint, the primary
 1272px/scrollbar target, a 1.5 device scale factor, one-row navigation, control
 borders and all application routes. Screenshots and measurements are written to
-verification/v3.13.1/.
+verification/v3.13.2/.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from pathlib import Path
 from playwright.sync_api import Browser, Page, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "verification" / "v3.13.1"
+OUT = ROOT / "verification" / "v3.13.2"
 WIDTHS = (1920, 1536, 1366, 1280, 1272, 1099)
 DESKTOP_LABELS = (
     "Home", "Plant", "Equipment", "KPI's", "Parameters", "Data Pipeline",
@@ -186,13 +186,20 @@ def _wait_page_content(page: Page, slug: str) -> None:
         "kpis": ("text", "Key Performance Indicators"),
         "parameters": ("text", "Quality / QAQC"),
         "pipeline": ("radio", "Manual Entry"),
-        "optimization": ("text", "Bounded Response Optimization"),
+        "optimization": ("text", "Outcome Data Field"),
         "events": ("text", "View Event Log"),
         "lessons": ("text", "Review Lessons"),
-        "risk": ("text", "Job Risk Assessment"),
+        "risk": ("text", "Assessment Mode / Preset"),
         "admin": ("radio", "Fields & Formulas"),
     }
     kind, name = markers[slug]
+    breadcrumb_name = next(item[2] for item in PAGES if item[0] == slug)
+    page.locator(f'[data-testid="operax-page-marker"][data-page="{breadcrumb_name}"]').wait_for(state="attached", timeout=180_000)
+    page.wait_for_function(
+        "name => document.querySelectorAll('[data-testid=\"operax-page-marker\"]').length === 1 && document.querySelector('[data-testid=\"operax-page-marker\"]')?.dataset.page === name",
+        arg=breadcrumb_name,
+        timeout=180_000,
+    )
     locator = page.get_by_role("radio", name=name, exact=True) if kind == "radio" else page.get_by_text(name, exact=True).first
     locator.wait_for(timeout=180_000)
     page.locator("[data-testid='stStatusWidget']:visible").wait_for(state="hidden", timeout=180_000)
@@ -214,25 +221,50 @@ def _audit_pages(page: Page, browser_name: str, output_dir: Path, capture: bool)
             page.locator(".st-key-desktop_navigation:visible").get_by_test_id("stRadioOption").filter(has_text=button_name).click(force=True)
             page.locator(".opera-breadcrumb .page", has_text=breadcrumb_name).wait_for(timeout=120_000)
         _wait_page_content(page, slug)
+        page.wait_for_timeout(700)
         _assert(page.locator("[data-testid='stException']:visible").count() == 0,
                 f"{browser_name}/{slug}: visible Streamlit exception")
         borders = _assert_content_borders(page, f"{browser_name}/{slug}")
-        title_count = page.locator("[data-testid='stMainBlockContainer'] h1:visible").count()
-        _assert(title_count == 0, f"{browser_name}/{slug}: leftover page-title element is visible")
+        lead = page.evaluate("""() => {
+          const crumb = document.querySelector('.st-key-breadcrumb_strip');
+          const root = document.querySelector('[data-testid="stMainBlockContainer"]');
+          if (!crumb || !root) return {headings: [], captions: [], hazardSummary: 0};
+          const bottom = crumb.getBoundingClientRect().bottom;
+          const visible = (el) => {
+            const r = el.getBoundingClientRect();
+            const s = getComputedStyle(el);
+            return r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden';
+          };
+          const controls = [...root.querySelectorAll('button,input,textarea,[role="combobox"],[role="radio"],[data-testid="stFileUploaderDropzone"]')]
+            .filter(visible).filter(el => el.getBoundingClientRect().top >= bottom - 1)
+            .filter(el => !el.closest('.st-key-brand_ribbon,.st-key-primary_navigation,.st-key-breadcrumb_strip'));
+          const firstTop = controls.length ? Math.min(...controls.map(el => el.getBoundingClientRect().top)) : Infinity;
+          const between = (el) => visible(el) && el.getBoundingClientRect().top >= bottom - 1 && el.getBoundingClientRect().top < firstTop - 1;
+          return {
+            headings: [...root.querySelectorAll('h1,h2')].filter(between).map(el => el.textContent.trim()),
+            captions: [...root.querySelectorAll('[data-testid="stCaptionContainer"]')].filter(between).map(el => el.textContent.trim()),
+            hazardSummary: root.querySelectorAll('[data-testid="risk-hazard-summary"]').length,
+          };
+        }""")
+        _assert(not lead["headings"], f"{browser_name}/{slug}: heading before first control {lead['headings']}")
+        _assert(not lead["captions"], f"{browser_name}/{slug}: caption before first control {lead['captions']}")
+        if slug == "risk":
+            _assert(lead["hazardSummary"] == 1, f"{browser_name}/{slug}: hazard-count summary missing")
         if capture:
             page.screenshot(path=str(output_dir / f"page_{slug}_1366px.png"), full_page=False)
-        results.append({"browser": browser_name, "page": slug, "contentBorders": borders, "visibleH1": title_count})
+        results.append({"browser": browser_name, "page": slug, "contentBorders": borders, "leadContent": lead})
     return results
 
 
 def _audit_header_actions(page: Page, browser_name: str) -> dict[str, object]:
     page.set_viewport_size({"width": 1366, "height": 720})
-    page.locator(".st-key-user_menu button:visible").click()
-    page.locator(".st-key-header_user_panel:visible").wait_for(timeout=60_000)
+    page.locator(".st-key-user_menu [data-testid='stPopoverButton']:visible").click()
+    account = page.locator("[data-testid='stPopoverBody']:visible").filter(has=page.locator(".account-menu-card"))
+    account.wait_for(timeout=60_000)
     for name in ("Change Business Unit", "Help", "Sign Out"):
-        page.locator(".st-key-header_user_panel").get_by_role("button", name=name, exact=True).wait_for()
-    page.locator(".st-key-user_menu button:visible").click()
-    page.locator(".st-key-header_user_panel").wait_for(state="hidden", timeout=60_000)
+        account.get_by_role("button", name=name, exact=True).wait_for()
+    page.locator(".st-key-user_menu [data-testid='stPopoverButton']:visible").click()
+    account.wait_for(state="hidden", timeout=60_000)
 
     page.locator(".st-key-notifications_menu button:visible").click()
     page.locator(".st-key-header_notice_panel:visible").wait_for(timeout=60_000)
@@ -245,6 +277,102 @@ def _audit_header_actions(page: Page, browser_name: str) -> dict[str, object]:
     page.locator(".st-key-mobile_navigation button:visible").click()
     page.locator(".st-key-header_mobile_panel").wait_for(state="hidden", timeout=60_000)
     return {"browser": browser_name, "headerActions": "pass"}
+
+
+def _mouse_click_at(page: Page, locator, vertical: str) -> None:
+    box = locator.bounding_box()
+    if not box:
+        raise AssertionError(f"Missing click target for {vertical}")
+    offsets = {"top": 3, "centre": box["height"] / 2, "bottom": box["height"] - 3}
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + offsets[vertical])
+
+
+def _audit_navigation_hit_areas(page: Page, browser_name: str, path_name: str) -> dict[str, object]:
+    page.set_viewport_size({"width": 1366, "height": 720})
+    def option(position: int):
+        return page.locator(".st-key-desktop_navigation:visible").get_by_test_id("stRadioOption").nth(position)
+
+    def wait_page(name: str) -> None:
+        page.locator(f'[data-testid="operax-page-marker"][data-page="{name}"]').wait_for(state="attached", timeout=120_000)
+        page.wait_for_function(
+            "name => document.querySelectorAll('[data-testid=\"operax-page-marker\"]').length === 1 && document.querySelector('[data-testid=\"operax-page-marker\"]')?.dataset.page === name",
+            arg=name,
+            timeout=120_000,
+        )
+
+    for index, (_, _, breadcrumb_name) in enumerate(PAGES):
+        anchor_index = 1 if index == 0 else 0
+        for vertical in ("top", "centre", "bottom"):
+            option(anchor_index).locator("input[type='radio']").check(force=True)
+            wait_page(PAGES[anchor_index][2])
+            _mouse_click_at(page, option(index), vertical)
+            wait_page(breadcrumb_name)
+
+    bell = page.locator(".st-key-notifications_menu button:visible")
+    avatar = page.locator(".st-key-user_menu [data-testid='stPopoverButton']:visible")
+    for vertical in ("top", "centre", "bottom"):
+        _mouse_click_at(page, bell, vertical)
+        page.locator(".st-key-header_notice_panel:visible").wait_for(timeout=60_000)
+        _mouse_click_at(page, bell, vertical)
+        page.locator(".st-key-header_notice_panel").wait_for(state="hidden", timeout=60_000)
+        _mouse_click_at(page, avatar, vertical)
+        page.locator("[data-testid='stPopoverBody']:visible .account-menu-card").wait_for(timeout=60_000)
+        _mouse_click_at(page, avatar, vertical)
+        page.locator("[data-testid='stPopoverBody'] .account-menu-card").wait_for(state="hidden", timeout=60_000)
+    return {"browser": browser_name, "path": path_name, "navigationHitAreas": "top/centre/bottom pass"}
+
+
+def _choose_next_option(page: Page, label: str) -> None:
+    control = page.get_by_role("combobox", name=label, exact=True)
+    control.click()
+    page.keyboard.press("ArrowDown")
+    page.keyboard.press("Enter")
+    page.keyboard.press("Escape")
+    page.locator("[data-testid='stStatusWidget']:visible").wait_for(state="hidden", timeout=120_000)
+    page.wait_for_timeout(900)
+
+
+def _capture_required_views(page: Page, output_dir: Path) -> None:
+    """Capture the user-requested 1272px Edge evidence under the nginx base path."""
+    page.set_viewport_size({"width": 1272, "height": 760})
+    nav = page.locator(".st-key-desktop_navigation:visible").get_by_test_id("stRadioOption")
+
+    nav.filter(has_text="Home").click(force=True)
+    page.locator(".opera-breadcrumb .page", has_text="OPERA-X Home").wait_for(timeout=60_000)
+    _wait_page_content(page, "home")
+    page.screenshot(path=str(output_dir / "home_cards_1272px.png"), full_page=False)
+    page.screenshot(path=str(output_dir / "navigation_bar_1272px.png"), full_page=False, clip={"x": 0, "y": 0, "width": 1272, "height": 180})
+
+    page.locator(".st-key-user_menu [data-testid='stPopoverButton']:visible").click()
+    page.locator("[data-testid='stPopoverBody']:visible .account-menu-card").wait_for(timeout=60_000)
+    page.screenshot(path=str(output_dir / "account_menu_1272px.png"), full_page=False)
+    page.locator(".st-key-user_menu [data-testid='stPopoverButton']:visible").click()
+
+    page.set_viewport_size({"width": 1272, "height": 1600})
+    nav.filter(has_text="Risk Assessment").click(force=True)
+    page.locator(".opera-breadcrumb .page", has_text="Job Risk Assessment").wait_for(timeout=60_000)
+    _wait_page_content(page, "risk")
+    page.get_by_label("Job Description", exact=True).fill("Manual browser verification assessment")
+    _choose_next_option(page, "Job Type / Activities")
+    _choose_next_option(page, "Location")
+    _choose_next_option(page, "Equipment Type")
+    _choose_next_option(page, "Equipment")
+    page.get_by_role("button", name="Generate Job Risk Assessment", exact=True).click()
+    page.locator('[data-testid="risk-generation-marker"][data-mode="Manual / no preset"]').wait_for(state="attached", timeout=120_000)
+    page.get_by_role("button", name="Print / Download Job Risk Assessment PDF", exact=True).wait_for(timeout=120_000)
+    page.screenshot(path=str(output_dir / "risk_manual_hazard_count_and_print_1272px.png"), full_page=True)
+
+    _choose_next_option(page, "Assessment Mode / Preset")
+    page.locator('[data-testid="risk-generation-marker"]').wait_for(state="detached", timeout=120_000)
+    page.get_by_role("button", name="Generate Job Risk Assessment", exact=True).click()
+    page.wait_for_function(
+        "manual => { const el = document.querySelector('[data-testid=\"risk-generation-marker\"]'); return el && el.dataset.mode !== manual; }",
+        arg="Manual / no preset",
+        timeout=120_000,
+    )
+    page.locator("[data-testid='stStatusWidget']:visible").wait_for(state="hidden", timeout=120_000)
+    page.get_by_role("button", name="Print / Download Job Risk Assessment PDF", exact=True).wait_for(timeout=120_000)
+    page.screenshot(path=str(output_dir / "risk_preset_editable_and_print_1272px.png"), full_page=True)
 
 
 def _run_path(browser: Browser, browser_name: str, base_path: str, capture: bool) -> list[dict[str, object]]:
@@ -276,9 +404,12 @@ def _run_path(browser: Browser, browser_name: str, base_path: str, capture: bool
             results.append(_measure(page, browser_name, path_name, width, 1.0))
             if capture:
                 page.screenshot(path=str(output_dir / f"home_{width}px.png"), full_page=False)
-        if path_name == "root":
-            results.extend(_audit_pages(page, browser_name, output_dir, capture))
-            results.append(_audit_header_actions(page, browser_name))
+        results.extend(_audit_pages(page, browser_name, output_dir, capture))
+        if path_name == "operationaldashboard" and not capture:
+            results.append(_audit_navigation_hit_areas(page, browser_name, path_name))
+        results.append(_audit_header_actions(page, browser_name))
+        if capture and browser_name == "edge" and path_name == "operationaldashboard":
+            _capture_required_views(page, output_dir)
         page.close()
 
         scaled = browser.new_page(viewport={"width": 1280, "height": 700}, device_scale_factor=1.5)
